@@ -1,547 +1,364 @@
 // **************************************************************************
-// IsarCollectionGenerator
+// _IsarCollectionGenerator
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
+// ignore_for_file: type=lint
 
 extension GetWardrobeSlotCollection on Isar {
-  IsarCollection<WardrobeSlot> get wardrobeSlots => this.collection();
+  IsarCollection<int, WardrobeSlot> get wardrobeSlots => this.collection();
 }
 
-const WardrobeSlotSchema = CollectionSchema(
-  name: r'WardrobeSlot',
-  id: 4846355618783464329,
-  properties: {
-    r'isPaid': PropertySchema(
-      id: 0,
-      name: r'isPaid',
-      type: IsarType.bool,
-    ),
-    r'paymentMethod': PropertySchema(
-      id: 1,
-      name: r'paymentMethod',
-      type: IsarType.string,
-    ),
-    r'secret': PropertySchema(
-      id: 2,
-      name: r'secret',
-      type: IsarType.string,
-    ),
-    r'status': PropertySchema(
-      id: 3,
-      name: r'status',
-      type: IsarType.string,
-    ),
-    r'updatedAt': PropertySchema(
-      id: 4,
-      name: r'updatedAt',
-      type: IsarType.dateTime,
-    )
-  },
-  estimateSize: _wardrobeSlotEstimateSize,
-  serialize: _wardrobeSlotSerialize,
-  deserialize: _wardrobeSlotDeserialize,
-  deserializeProp: _wardrobeSlotDeserializeProp,
-  idName: r'id',
-  indexes: {},
-  links: {},
-  embeddedSchemas: {},
-  getId: _wardrobeSlotGetId,
-  getLinks: _wardrobeSlotGetLinks,
-  attach: _wardrobeSlotAttach,
-  version: '3.1.0+1',
+const WardrobeSlotSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'WardrobeSlot',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'status',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isPaid',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'paymentMethod',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'secret',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'updatedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
+  converter: IsarObjectConverter<int, WardrobeSlot>(
+    serialize: serializeWardrobeSlot,
+    deserialize: deserializeWardrobeSlot,
+    deserializeProperty: deserializeWardrobeSlotProp,
+  ),
+  embeddedSchemas: [],
 );
 
-int _wardrobeSlotEstimateSize(
-  WardrobeSlot object,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  var bytesCount = offsets.last;
-  bytesCount += 3 + object.paymentMethod.length * 3;
-  bytesCount += 3 + object.secret.length * 3;
-  bytesCount += 3 + object.status.length * 3;
-  return bytesCount;
+@isarProtected
+int serializeWardrobeSlot(IsarWriter writer, WardrobeSlot object) {
+  IsarCore.writeString(writer, 1, object.status);
+  IsarCore.writeBool(writer, 2, object.isPaid);
+  IsarCore.writeString(writer, 3, object.paymentMethod);
+  IsarCore.writeString(writer, 4, object.secret);
+  IsarCore.writeLong(
+      writer, 5, object.updatedAt.toUtc().microsecondsSinceEpoch);
+  return object.id;
 }
 
-void _wardrobeSlotSerialize(
-  WardrobeSlot object,
-  IsarWriter writer,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  writer.writeBool(offsets[0], object.isPaid);
-  writer.writeString(offsets[1], object.paymentMethod);
-  writer.writeString(offsets[2], object.secret);
-  writer.writeString(offsets[3], object.status);
-  writer.writeDateTime(offsets[4], object.updatedAt);
-}
-
-WardrobeSlot _wardrobeSlotDeserialize(
-  Id id,
-  IsarReader reader,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
+@isarProtected
+WardrobeSlot deserializeWardrobeSlot(IsarReader reader) {
+  final int _id;
+  _id = IsarCore.readId(reader);
+  final String _status;
+  _status = IsarCore.readString(reader, 1) ?? 'free';
+  final bool _isPaid;
+  _isPaid = IsarCore.readBool(reader, 2);
+  final String _paymentMethod;
+  _paymentMethod = IsarCore.readString(reader, 3) ?? 'none';
+  final String _secret;
+  _secret = IsarCore.readString(reader, 4) ?? '';
+  final DateTime _updatedAt;
+  {
+    final value = IsarCore.readLong(reader, 5);
+    if (value == -9223372036854775808) {
+      _updatedAt =
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+    } else {
+      _updatedAt =
+          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
+    }
+  }
   final object = WardrobeSlot(
-    id: id,
-    isPaid: reader.readBoolOrNull(offsets[0]) ?? false,
-    paymentMethod: reader.readStringOrNull(offsets[1]) ?? 'none',
-    secret: reader.readStringOrNull(offsets[2]) ?? '',
-    status: reader.readStringOrNull(offsets[3]) ?? 'free',
-    updatedAt: reader.readDateTime(offsets[4]),
+    id: _id,
+    status: _status,
+    isPaid: _isPaid,
+    paymentMethod: _paymentMethod,
+    secret: _secret,
+    updatedAt: _updatedAt,
   );
   return object;
 }
 
-P _wardrobeSlotDeserializeProp<P>(
-  IsarReader reader,
-  int propertyId,
-  int offset,
-  Map<Type, List<int>> allOffsets,
-) {
-  switch (propertyId) {
+@isarProtected
+dynamic deserializeWardrobeSlotProp(IsarReader reader, int property) {
+  switch (property) {
     case 0:
-      return (reader.readBoolOrNull(offset) ?? false) as P;
+      return IsarCore.readId(reader);
     case 1:
-      return (reader.readStringOrNull(offset) ?? 'none') as P;
+      return IsarCore.readString(reader, 1) ?? 'free';
     case 2:
-      return (reader.readStringOrNull(offset) ?? '') as P;
+      return IsarCore.readBool(reader, 2);
     case 3:
-      return (reader.readStringOrNull(offset) ?? 'free') as P;
+      return IsarCore.readString(reader, 3) ?? 'none';
     case 4:
-      return (reader.readDateTime(offset)) as P;
-    default:
-      throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Id _wardrobeSlotGetId(WardrobeSlot object) {
-  return object.id;
-}
-
-List<IsarLinkBase<dynamic>> _wardrobeSlotGetLinks(WardrobeSlot object) {
-  return [];
-}
-
-void _wardrobeSlotAttach(
-    IsarCollection<dynamic> col, Id id, WardrobeSlot object) {
-  object.id = id;
-}
-
-extension WardrobeSlotQueryWhereSort
-    on QueryBuilder<WardrobeSlot, WardrobeSlot, QWhere> {
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterWhere> anyId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
-}
-
-extension WardrobeSlotQueryWhere
-    on QueryBuilder<WardrobeSlot, WardrobeSlot, QWhereClause> {
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterWhereClause> idEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterWhereClause> idNotEqualTo(
-      Id id) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
-      } else {
-        return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
+      return IsarCore.readString(reader, 4) ?? '';
+    case 5:
+      {
+        final value = IsarCore.readLong(reader, 5);
+        if (value == -9223372036854775808) {
+          return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+        } else {
+          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
+              .toLocal();
+        }
       }
-    });
+    default:
+      throw ArgumentError('Unknown property: $property');
   }
+}
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterWhereClause> idGreaterThan(
-      Id id,
-      {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.greaterThan(lower: id, includeLower: include),
-      );
-    });
-  }
+sealed class _WardrobeSlotUpdate {
+  bool call({
+    required int id,
+    String? status,
+    bool? isPaid,
+    String? paymentMethod,
+    String? secret,
+    DateTime? updatedAt,
+  });
+}
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.lessThan(upper: id, includeUpper: include),
-      );
-    });
-  }
+class _WardrobeSlotUpdateImpl implements _WardrobeSlotUpdate {
+  const _WardrobeSlotUpdateImpl(this.collection);
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterWhereClause> idBetween(
-    Id lowerId,
-    Id upperId, {
-    bool includeLower = true,
-    bool includeUpper = true,
+  final IsarCollection<int, WardrobeSlot> collection;
+
+  @override
+  bool call({
+    required int id,
+    Object? status = ignore,
+    Object? isPaid = ignore,
+    Object? paymentMethod = ignore,
+    Object? secret = ignore,
+    Object? updatedAt = ignore,
   }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+    return collection.updateProperties([
+          id
+        ], {
+          if (status != ignore) 1: status as String?,
+          if (isPaid != ignore) 2: isPaid as bool?,
+          if (paymentMethod != ignore) 3: paymentMethod as String?,
+          if (secret != ignore) 4: secret as String?,
+          if (updatedAt != ignore) 5: updatedAt as DateTime?,
+        }) >
+        0;
+  }
+}
+
+sealed class _WardrobeSlotUpdateAll {
+  int call({
+    required List<int> id,
+    String? status,
+    bool? isPaid,
+    String? paymentMethod,
+    String? secret,
+    DateTime? updatedAt,
+  });
+}
+
+class _WardrobeSlotUpdateAllImpl implements _WardrobeSlotUpdateAll {
+  const _WardrobeSlotUpdateAllImpl(this.collection);
+
+  final IsarCollection<int, WardrobeSlot> collection;
+
+  @override
+  int call({
+    required List<int> id,
+    Object? status = ignore,
+    Object? isPaid = ignore,
+    Object? paymentMethod = ignore,
+    Object? secret = ignore,
+    Object? updatedAt = ignore,
+  }) {
+    return collection.updateProperties(id, {
+      if (status != ignore) 1: status as String?,
+      if (isPaid != ignore) 2: isPaid as bool?,
+      if (paymentMethod != ignore) 3: paymentMethod as String?,
+      if (secret != ignore) 4: secret as String?,
+      if (updatedAt != ignore) 5: updatedAt as DateTime?,
     });
   }
+}
+
+extension WardrobeSlotUpdate on IsarCollection<int, WardrobeSlot> {
+  _WardrobeSlotUpdate get update => _WardrobeSlotUpdateImpl(this);
+
+  _WardrobeSlotUpdateAll get updateAll => _WardrobeSlotUpdateAllImpl(this);
+}
+
+sealed class _WardrobeSlotQueryUpdate {
+  int call({
+    String? status,
+    bool? isPaid,
+    String? paymentMethod,
+    String? secret,
+    DateTime? updatedAt,
+  });
+}
+
+class _WardrobeSlotQueryUpdateImpl implements _WardrobeSlotQueryUpdate {
+  const _WardrobeSlotQueryUpdateImpl(this.query, {this.limit});
+
+  final IsarQuery<WardrobeSlot> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? status = ignore,
+    Object? isPaid = ignore,
+    Object? paymentMethod = ignore,
+    Object? secret = ignore,
+    Object? updatedAt = ignore,
+  }) {
+    return query.updateProperties(limit: limit, {
+      if (status != ignore) 1: status as String?,
+      if (isPaid != ignore) 2: isPaid as bool?,
+      if (paymentMethod != ignore) 3: paymentMethod as String?,
+      if (secret != ignore) 4: secret as String?,
+      if (updatedAt != ignore) 5: updatedAt as DateTime?,
+    });
+  }
+}
+
+extension WardrobeSlotQueryUpdate on IsarQuery<WardrobeSlot> {
+  _WardrobeSlotQueryUpdate get updateFirst =>
+      _WardrobeSlotQueryUpdateImpl(this, limit: 1);
+
+  _WardrobeSlotQueryUpdate get updateAll => _WardrobeSlotQueryUpdateImpl(this);
+}
+
+class _WardrobeSlotQueryBuilderUpdateImpl implements _WardrobeSlotQueryUpdate {
+  const _WardrobeSlotQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<WardrobeSlot, WardrobeSlot, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? status = ignore,
+    Object? isPaid = ignore,
+    Object? paymentMethod = ignore,
+    Object? secret = ignore,
+    Object? updatedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (status != ignore) 1: status as String?,
+        if (isPaid != ignore) 2: isPaid as bool?,
+        if (paymentMethod != ignore) 3: paymentMethod as String?,
+        if (secret != ignore) 4: secret as String?,
+        if (updatedAt != ignore) 5: updatedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension WardrobeSlotQueryBuilderUpdate
+    on QueryBuilder<WardrobeSlot, WardrobeSlot, QOperations> {
+  _WardrobeSlotQueryUpdate get updateFirst =>
+      _WardrobeSlotQueryBuilderUpdateImpl(this, limit: 1);
+
+  _WardrobeSlotQueryUpdate get updateAll =>
+      _WardrobeSlotQueryBuilderUpdateImpl(this);
 }
 
 extension WardrobeSlotQueryFilter
     on QueryBuilder<WardrobeSlot, WardrobeSlot, QFilterCondition> {
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> idEqualTo(
-      Id value) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      idGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      idLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> idBetween(
-    Id lower,
-    Id upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
+    int lower,
+    int upper,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> isPaidEqualTo(
-      bool value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'isPaid',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'paymentMethod',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'paymentMethod',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'paymentMethod',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'paymentMethod',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'paymentMethod',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'paymentMethod',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'paymentMethod',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'paymentMethod',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'paymentMethod',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      paymentMethodIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'paymentMethod',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> secretEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'secret',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      secretGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'secret',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      secretLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'secret',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> secretBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'secret',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      secretStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'secret',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      secretEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'secret',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      secretContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'secret',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> secretMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'secret',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      secretIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'secret',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      secretIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'secret',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 0,
+          lower: lower,
+          upper: upper,
+        ),
+      );
     });
   }
 
@@ -550,62 +367,94 @@ extension WardrobeSlotQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'status',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
       statusGreaterThan(
     String value, {
-    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'status',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      statusGreaterThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
       statusLessThan(
     String value, {
-    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'status',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      statusLessThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> statusBetween(
     String lower,
     String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'status',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 1,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -615,11 +464,13 @@ extension WardrobeSlotQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'status',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -629,22 +480,26 @@ extension WardrobeSlotQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'status',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
       statusContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'status',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 1,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -652,87 +507,495 @@ extension WardrobeSlotQueryFilter
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'status',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 1,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
       statusIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'status',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 1,
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
       statusIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'status',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 1,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> isPaidEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 2,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
-      updatedAtEqualTo(DateTime value) {
+      paymentMethodEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'updatedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 3,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodGreaterThan(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 3,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodGreaterThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 3,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodLessThan(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 3,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodLessThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 3,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodBetween(
+    String lower,
+    String upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 3,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 3,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 3,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 3,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 3,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 3,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      paymentMethodIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 3,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> secretEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      secretGreaterThan(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      secretGreaterThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      secretLessThan(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      secretLessThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> secretBetween(
+    String lower,
+    String upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 4,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      secretStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      secretEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      secretContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 4,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition> secretMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 4,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      secretIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 4,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      secretIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 4,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      updatedAtEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 5,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
       updatedAtGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
+    DateTime value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'updatedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 5,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      updatedAtGreaterThanOrEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 5,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
       updatedAtLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
+    DateTime value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'updatedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 5,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
+      updatedAtLessThanOrEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 5,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterFilterCondition>
       updatedAtBetween(
     DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
+    DateTime upper,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'updatedAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 5,
+          lower: lower,
+          upper: upper,
+        ),
+      );
     });
   }
 }
@@ -740,69 +1003,104 @@ extension WardrobeSlotQueryFilter
 extension WardrobeSlotQueryObject
     on QueryBuilder<WardrobeSlot, WardrobeSlot, QFilterCondition> {}
 
-extension WardrobeSlotQueryLinks
-    on QueryBuilder<WardrobeSlot, WardrobeSlot, QFilterCondition> {}
-
 extension WardrobeSlotQuerySortBy
     on QueryBuilder<WardrobeSlot, WardrobeSlot, QSortBy> {
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByStatus(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        1,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByStatusDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        1,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByIsPaid() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isPaid', Sort.asc);
+      return query.addSortBy(2);
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByIsPaidDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isPaid', Sort.desc);
+      return query.addSortBy(2, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByPaymentMethod() {
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByPaymentMethod(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'paymentMethod', Sort.asc);
+      return query.addSortBy(
+        3,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy>
-      sortByPaymentMethodDesc() {
+      sortByPaymentMethodDesc({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'paymentMethod', Sort.desc);
+      return query.addSortBy(
+        3,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortBySecret() {
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortBySecret(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'secret', Sort.asc);
+      return query.addSortBy(
+        4,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortBySecretDesc() {
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortBySecretDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'secret', Sort.desc);
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByStatus() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.asc);
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByStatusDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.desc);
+      return query.addSortBy(
+        4,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updatedAt', Sort.asc);
+      return query.addSortBy(5);
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> sortByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updatedAt', Sort.desc);
+      return query.addSortBy(5, sort: Sort.desc);
     });
   }
 }
@@ -811,150 +1109,237 @@ extension WardrobeSlotQuerySortThenBy
     on QueryBuilder<WardrobeSlot, WardrobeSlot, QSortThenBy> {
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.asc);
+      return query.addSortBy(0);
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.desc);
+      return query.addSortBy(0, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByStatus(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(1, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByStatusDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByIsPaid() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isPaid', Sort.asc);
+      return query.addSortBy(2);
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByIsPaidDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isPaid', Sort.desc);
+      return query.addSortBy(2, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByPaymentMethod() {
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByPaymentMethod(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'paymentMethod', Sort.asc);
+      return query.addSortBy(3, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy>
-      thenByPaymentMethodDesc() {
+      thenByPaymentMethodDesc({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'paymentMethod', Sort.desc);
+      return query.addSortBy(3, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenBySecret() {
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenBySecret(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'secret', Sort.asc);
+      return query.addSortBy(4, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenBySecretDesc() {
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenBySecretDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'secret', Sort.desc);
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByStatus() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.asc);
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByStatusDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'status', Sort.desc);
+      return query.addSortBy(4, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updatedAt', Sort.asc);
+      return query.addSortBy(5);
     });
   }
 
   QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterSortBy> thenByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'updatedAt', Sort.desc);
+      return query.addSortBy(5, sort: Sort.desc);
     });
   }
 }
 
 extension WardrobeSlotQueryWhereDistinct
     on QueryBuilder<WardrobeSlot, WardrobeSlot, QDistinct> {
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QDistinct> distinctByIsPaid() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isPaid');
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QDistinct> distinctByPaymentMethod(
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterDistinct> distinctByStatus(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'paymentMethod',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(1, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QDistinct> distinctBySecret(
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterDistinct> distinctByIsPaid() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(2);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterDistinct>
+      distinctByPaymentMethod({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(3, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterDistinct> distinctBySecret(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'secret', caseSensitive: caseSensitive);
+      return query.addDistinctBy(4, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QDistinct> distinctByStatus(
-      {bool caseSensitive = true}) {
+  QueryBuilder<WardrobeSlot, WardrobeSlot, QAfterDistinct>
+      distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'status', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<WardrobeSlot, WardrobeSlot, QDistinct> distinctByUpdatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'updatedAt');
+      return query.addDistinctBy(5);
     });
   }
 }
 
-extension WardrobeSlotQueryProperty
-    on QueryBuilder<WardrobeSlot, WardrobeSlot, QQueryProperty> {
-  QueryBuilder<WardrobeSlot, int, QQueryOperations> idProperty() {
+extension WardrobeSlotQueryProperty1
+    on QueryBuilder<WardrobeSlot, WardrobeSlot, QProperty> {
+  QueryBuilder<WardrobeSlot, int, QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
+      return query.addProperty(0);
     });
   }
 
-  QueryBuilder<WardrobeSlot, bool, QQueryOperations> isPaidProperty() {
+  QueryBuilder<WardrobeSlot, String, QAfterProperty> statusProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isPaid');
+      return query.addProperty(1);
     });
   }
 
-  QueryBuilder<WardrobeSlot, String, QQueryOperations> paymentMethodProperty() {
+  QueryBuilder<WardrobeSlot, bool, QAfterProperty> isPaidProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'paymentMethod');
+      return query.addProperty(2);
     });
   }
 
-  QueryBuilder<WardrobeSlot, String, QQueryOperations> secretProperty() {
+  QueryBuilder<WardrobeSlot, String, QAfterProperty> paymentMethodProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'secret');
+      return query.addProperty(3);
     });
   }
 
-  QueryBuilder<WardrobeSlot, String, QQueryOperations> statusProperty() {
+  QueryBuilder<WardrobeSlot, String, QAfterProperty> secretProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'status');
+      return query.addProperty(4);
     });
   }
 
-  QueryBuilder<WardrobeSlot, DateTime, QQueryOperations> updatedAtProperty() {
+  QueryBuilder<WardrobeSlot, DateTime, QAfterProperty> updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'updatedAt');
+      return query.addProperty(5);
+    });
+  }
+}
+
+extension WardrobeSlotQueryProperty2<R>
+    on QueryBuilder<WardrobeSlot, R, QAfterProperty> {
+  QueryBuilder<WardrobeSlot, (R, int), QAfterProperty> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R, String), QAfterProperty> statusProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(1);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R, bool), QAfterProperty> isPaidProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R, String), QAfterProperty>
+      paymentMethodProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(3);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R, String), QAfterProperty> secretProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R, DateTime), QAfterProperty>
+      updatedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
+    });
+  }
+}
+
+extension WardrobeSlotQueryProperty3<R1, R2>
+    on QueryBuilder<WardrobeSlot, (R1, R2), QAfterProperty> {
+  QueryBuilder<WardrobeSlot, (R1, R2, int), QOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R1, R2, String), QOperations> statusProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(1);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R1, R2, bool), QOperations> isPaidProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R1, R2, String), QOperations>
+      paymentMethodProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(3);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R1, R2, String), QOperations> secretProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<WardrobeSlot, (R1, R2, DateTime), QOperations>
+      updatedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
     });
   }
 }

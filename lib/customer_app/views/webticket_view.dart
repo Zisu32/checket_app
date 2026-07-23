@@ -47,16 +47,16 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
                     const SizedBox(height: 16),
                     Text(statusText, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 24),
-                    Text('${widget.ticketId}', style: TextStyle(fontSize: 110, fontWeight: FontWeight.black, color: statusFarbe, height: 1)),
+                    Text('${widget.ticketId}', style: TextStyle(fontSize: 110, fontWeight: FontWeight.w900, color: statusFarbe, height: 1)),
                   ],
                 ),
               ),
               if (widget.status == 'active' && !_hatBerechtigungGefragt) _bauePushPrompt(),
               if (widget.status == 'unpaid') ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 50)), onPressed: () {}, child: const Text('Jetzt bezahlen'))
               else Column(children: [
-                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), icon: const Icon(Icons.add_to_home_screen), label: const Text('Zu Apple Wallet hinzufügen'), onPressed: () => html.window.open('https://deine-garderobe.de{widget.ticketId}&secret=${widget.secret}', '_blank')),
+                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), icon: const Icon(Icons.add_to_home_screen), label: const Text('Zu Apple Wallet hinzufügen'), onPressed: () => html.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')),
                 const SizedBox(height: 8),
-                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4285F4), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), icon: const Icon(Icons.google), label: const Text('Zu Google Wallet hinzufügen'), onPressed: () => html.window.open('https://deine-garderobe.de{widget.ticketId}&secret=${widget.secret}', '_blank')),
+                ElevatedButton.icon(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4285F4), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), icon: const Icon(Icons.account_balance_wallet), label: const Text('Zu Google Wallet hinzufügen'), onPressed: () => html.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')),
               ])
             ],
           ),
@@ -67,7 +67,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
 
   Widget _bauePushPrompt() {
     return Container(
-      padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white05, borderRadius: BorderRadius.circular(16)),
+      padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
           const Text('Jacke am Ende nicht vergessen! 🧥', style: TextStyle(fontWeight: FontWeight.bold)),

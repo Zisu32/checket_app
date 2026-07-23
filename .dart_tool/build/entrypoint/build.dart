@@ -1,7 +1,7 @@
 // ignore_for_file: directives_ordering
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:build_runner_core/build_runner_core.dart' as _i1;
-import 'package:isar_generator/isar_generator.dart' as _i2;
+import 'package:isar/src/generator/isar_generator.dart' as _i2;
 import 'package:source_gen/builder.dart' as _i3;
 import 'package:build_resolvers/builder.dart' as _i4;
 import 'dart:isolate' as _i5;
@@ -10,9 +10,9 @@ import 'dart:io' as _i7;
 
 final _builders = <_i1.BuilderApplication>[
   _i1.apply(
-    r'isar_generator:isar_generator',
+    r'isar:isar_generator',
     [_i2.getIsarGenerator],
-    _i1.toDependentsOf(r'isar_generator'),
+    _i1.toDependentsOf(r'isar'),
     hideOutput: true,
     appliesBuilders: const [r'source_gen:combining_builder'],
   ),

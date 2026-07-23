@@ -4,7 +4,7 @@ part 'wardrobe_slot.g.dart';
 
 @collection
 class WardrobeSlot {
-  Id id;
+  int id;
   String status;
   bool isPaid;
   String paymentMethod;
