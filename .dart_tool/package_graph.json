@@ -10,6 +10,7 @@
         "crypto",
         "cupertino_icons",
         "flutter",
+        "flutter_web_plugins",
         "isar",
         "isar_flutter_libs",
         "qr_flutter",
@@ -85,6 +86,13 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter"
       ]
     },
     {
@@ -1078,13 +1086,6 @@
         "flutter",
         "platform",
         "plugin_platform_interface"
-      ]
-    },
-    {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
-      "dependencies": [
-        "flutter"
       ]
     },
     {

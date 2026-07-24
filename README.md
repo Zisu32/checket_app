@@ -1,45 +1,51 @@
 # Checket - Smart Wardrobe System
 
-Checket ist ein digitales Garderoben-Management-System, das physische Garderobenmarken durch digitale Tickets ersetzt. Es ist als hochperformante **Progressive Web App (PWA)** konzipiert und nutzt ein serverloses Backend auf Basis von Supabase.
+Checket ist ein digitales Garderoben-Management-System, das physische Garderobenmarken durch digitale Tickets ersetzt. Es ist als **Progressive Web App (PWA)** konzipiert und nutzt eine **Local-First-Architektur** mit Isar und Supabase.
 
 ## Features
 
-*   **Mitarbeiter-Dashboard**: Übersicht über alle Bügel, Status-Verwaltung (Check-in, Check-out, Bezahlung).
-*   **Digitales Kunden-Ticket**: Web-Ansicht für Kunden mit Status-Updates in Echtzeit.
+*   **Mitarbeiter-Dashboard**: Echtzeit-Übersicht über alle Bügel, Status-Verwaltung (Check-in, Check-out, Bezahlung).
+*   **Digitales Kunden-Ticket**: Web-Ansicht für Kunden mit Live-Updates via Supabase Realtime.
+*   **Local-First Sync**: Ultraschneller Abgleich durch Isar-Cache; automatischer Abgleich mit der Cloud.
 *   **Stripe Payment**: Kunden können ihre Garderobe direkt online bezahlen.
-*   **Wallet Integration**: Kunden können ihr Ticket zu Apple oder Google Wallet hinzufügen.
-*   **Push-Benachrichtigung**: Kunden könnem Push-Benachrichtigung aktivieren, falls Sie Ihre Jacke vergessen haben
+*   **Wallet Integration**: Support für Apple und Google Wallet.
+*   **Push-Benachrichtigungen**: Kunden können sich benachrichtigen lassen, falls sie ihre Jacke vergessen haben.
 
 ## Architektur & Konzept
 
-Checket basiert auf einer modernen, entkoppelten Architektur:
+Checket nutzt ein modernes Cloud-Native-Setup:
 
-*   **Frontend (PWA)**: Entwickelt mit Flutter Web. Durch den PWA-Standard können beide Apps (Mitarbeiter & Kunden) direkt über den Browser auf mobilen Geräten installiert werden, ohne einen App Store zu nutzen. Sie verhalten sich wie native Apps (Vollbild, Homescreen-Icon).
-*   **Backend (BaaS)**: Supabase übernimmt die Datenbank-Echtzeit-Synchronisierung, Authentifizierung und das Hosting der Web-Dateien.
-*   **Serverless Logic**: Kritische Prozesse wie die Stripe-Zahlungsabwicklung laufen in isolierten Supabase Edge Functions (Deno), um Sicherheit und Skalierbarkeit zu gewährleisten.
-    
-## Verzeichnisstruktur
-
-### `lib/` (Kern der Anwendung)
-Hier liegt der gesamte Flutter-Code.
-*   `main_staff.dart` & `main_customer.dart`: Die jeweiligen "Motoren" für die beiden App-Varianten.
-*   `shared/models/`: Enthält die Datenstrukturen, die sowohl vom Mitarbeiter als auch vom Kunden genutzt werden.
-*   `staff_app/views/`: Das UI für das Mitarbeiter-Dashboard zur Verwaltung der Bügel.
-*   `customer_app/views/`: Das UI für die digitale Ticket-Ansicht des Kunden.
-
-### `supabase/` (Backend & Cloud)
-Alles, was nicht direkt im Browser läuft.
-*   `functions/stripe-checkout/`: Eine TypeScript-Funktion, die sicher mit der Stripe-API kommuniziert, um Bezahlsitzungen zu erstellen.
-*   `config.toml`: Die Konfigurationsdatei für deine Supabase-Projektverbindung.
-
-### `web/` (Web-Spezifisches)
-Notwendig für die PWA-Funktionalität.
-*   `manifest.json`: Definiert, wie die App auf dem Handy aussieht (Icon, Name, Farben), wenn sie installiert wird.
-*   `index.html`: Das Grundgerüst, das die Flutter-Engine im Browser startet.
+*   **Frontend (PWA)**: Entwickelt mit Flutter Web. Gehostet auf **GitHub Pages**. Installierbar auf Android, Windows und iOS für ein natives App-Gefühl.
+*   **Data Layer (Hybrid)**:
+    *   **Isar Database**: Dient als lokaler Hochgeschwindigkeitsspeicher im Browser.
+    *   **Supabase**: Agiert als "Source of Truth" (Zentrale Datenbank) und bietet Realtime-Events.
+*   **CI/CD**: Vollautomatisches Deployment über **GitHub Actions**. Jedes `git push` aktualisiert die Live-Systeme.
 
 ---
 
-## Installation
+## Verzeichnisstruktur unter der Lupe
+
+### `.github/workflows/`
+Enthält die **CI/CD-Logik**. Die Datei `deploy.yml` steuert den automatischen Build-Prozess und verteilt die Apps je nach Branch auf die Produktions- oder Entwicklungsumgebung von GitHub Pages.
+
+### `lib/` (Kern der Anwendung)
+*   **`main_staff.dart` & `main_customer.dart`**: Die Startpunkte für die beiden spezialisierten Apps.
+*   **`shared/services/sync_service.dart`**: Die Verbindung zwischen Isar und Supabase. Kümmert sich um den Datenabgleich und Realtime-Updates.
+*   **`shared/models/`**: Definition des DataModels, die in der DB und im UI genutzt werden.
+*   **`staff_app/views/`**: Das UI des Garderoben-Managers.
+*   **`customer_app/views/`**: Die Ticket-Ansicht für den Endnutzer.
+
+### `supabase/` (Backend-Infrastruktur)
+*   **`functions/`**: Edge Functions für sicherheitskritische Aufgaben wie die Stripe-Zahlungsabwicklung.
+*   **`config.toml`**: Verknüpfung des lokalen Projekts mit der Supabase-Cloud.
+
+### `web/` (Web-Plattform Konfiguration)
+*   **`manifest.json`**: Die PWA-Konfiguration (Icons, Start-URL, Farben für den Homescreen).
+*   **`index.html`**: Das HTML-Grundgerüst, in dem Flutter geladen wird.
+
+---
+
+## Installation & Setup
 
 1.  **Repository klonen:**
     ```bash
@@ -52,53 +58,32 @@ Notwendig für die PWA-Funktionalität.
     flutter pub get
     ```
 
-3.  **Supabase CLI einrichten:**
-    Stelle sicher, dass die [Supabase CLI](https://supabase.com/docs/guides/cli) installiert ist.
-    ```bash
-    supabase login
-    supabase link --project-ref ppyqacryhhvdjorjdezu
-    ```
+3.  **GitHub Secrets einrichten:**
+    Hinterlege in deinem Repository unter *Settings > Secrets > Actions*
 
-## Lokal Starten
+## Entwicklung & Deployment
 
-Da das Projekt zwei Apps enthält, musst du beim Starten die entsprechende Datei angeben:
-
-**Mitarbeiter-App:**
+### Lokal Testen
+Die App nutzt lokal standardmäßig das **Checket-Dev** Projekt.
 ```bash
+# Mitarbeiter-App
 flutter run -d chrome -t lib/main_staff.dart
-```
 
-**Kunden-App:**
-```bash
+# Kunden-App
 flutter run -d chrome -t lib/main_customer.dart
 ```
 
-## Deployment
+### Deployment (Automatisch)
+Das Deployment erfolgt über GitHub-Action:
 
-### 1. Backend (Edge Functions)
-Um die Bezahlfunktion zu aktualisieren:
-```bash
-supabase functions deploy stripe-checkout --no-verify-jwt
-```
-
-### 2. Frontend (Web-Apps)
-2 Skripte, die den Build erstellen und direkt in den Supabase Storage hochladen:
-
-**Mitarbeiter-App hochladen:**
-```bash
-chmod +x deploy_staff.sh
-./deploy_staff.sh
-```
-
-**Kunden-App hochladen:**
-```bash
-chmod +x deploy_customer.sh
-./deploy_customer.sh
-```
+*   **Entwicklung**: Push auf den Branch `dev`. Die App ist unter `.../checket_app/dev/` erreichbar.
+*   **Produktion**: Push auf den Branch `main`. Die App ist unter der Haupt-URL erreichbar.
 
 ---
 
-## 🔗 Live Links
+## 🔗 Live Umgebungen (GitHub Pages)
 
-*   **Mitarbeiter-Dashboard:** [https://ppyqacryhhvdjorjdezu.supabase.co/storage/v1/object/public/checket-staff/index.html](https://ppyqacryhhvdjorjdezu.supabase.co/storage/v1/object/public/checket-staff/index.html)
-*   **Kunden-Ticket (Beispiel):** [https://ppyqacryhhvdjorjdezu.supabase.co/storage/v1/object/public/checket-customer/index.html?id=1&secret=test](https://ppyqacryhhvdjorjdezu.supabase.co/storage/v1/object/public/checket-customer/index.html?id=1&secret=test)
+*   **Produktion (Mitarbeiter):** `https://<dein-nutzer>.github.io/checket_app/staff/`
+*   **Produktion (Kunden):** `https://<dein-nutzer>.github.io/checket_app/`
+*   **Entwicklung (Mitarbeiter):** `https://<dein-nutzer>.github.io/checket_app/dev/staff/`
+*   **Entwicklung (Kunden):** `https://<dein-nutzer>.github.io/checket_app/dev/`
