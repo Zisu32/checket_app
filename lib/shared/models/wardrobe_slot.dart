@@ -4,9 +4,14 @@ part 'wardrobe_slot.g.dart';
 
 @collection
 class WardrobeSlot {
-  Id id;
+  // Id is non-nullable in Isar 4.0.0-dev.14
+  int id;
+  
   String status;
+  
+  @Index()
   bool isPaid;
+  
   String paymentMethod;
   String secret;
   DateTime updatedAt;
@@ -20,7 +25,7 @@ class WardrobeSlot {
     required this.updatedAt,
   });
 
-  factory WardrobeSlot.fromJson(Map<String, dynamic> json) {
+  factory WardrobeSlot.fromSupabase(Map<String, dynamic> json) {
     return WardrobeSlot(
       id: json['id'] as int,
       status: json['status'] as String? ?? 'free',
@@ -31,7 +36,7 @@ class WardrobeSlot {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toSupabase() {
     return {
       'id': id,
       'status': status,
