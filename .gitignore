@@ -57,3 +57,4 @@ supabase/.temp/
 .packages
 .flutter-plugins
 /build/
+/.metadata
