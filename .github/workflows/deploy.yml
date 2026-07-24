@@ -1,0 +1,71 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Set Environment Variables
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "URL=${{ secrets.SUPABASE_URL_PROD }}" >> $GITHUB_ENV
+            echo "KEY=${{ secrets.SUPABASE_ANON_KEY_PROD }}" >> $GITHUB_ENV
+            echo "BASE_HREF=/${{ github.event.repository.name }}/" >> $GITHUB_ENV
+            echo "TARGET_FOLDER=." >> $GITHUB_ENV
+          else
+            echo "URL=${{ secrets.SUPABASE_URL_DEV }}" >> $GITHUB_ENV
+            echo "KEY=${{ secrets.SUPABASE_ANON_KEY_DEV }}" >> $GITHUB_ENV
+            echo "BASE_HREF=/${{ github.event.repository.name }}/dev/" >> $GITHUB_ENV
+            echo "TARGET_FOLDER=dev" >> $GITHUB_ENV
+          fi
+
+      - name: Build Customer App
+        run: |
+          flutter build web --release \
+            -t lib/main_customer.dart \
+            --base-href "${{ env.BASE_HREF }}" \
+            --dart-define=SUPABASE_URL="${{ env.URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}"
+          
+          mkdir -p deploy_out/${{ env.TARGET_FOLDER }}
+          cp -r build/web/* deploy_out/${{ env.TARGET_FOLDER }}/
+
+      - name: Build Staff App
+        run: |
+          # Staff app always lives in /staff/ relative to its environment
+          STAFF_BASE_HREF="${{ env.BASE_HREF }}staff/"
+          
+          flutter build web --release \
+            -t lib/main_staff.dart \
+            --base-href "$STAFF_BASE_HREF" \
+            --dart-define=SUPABASE_URL="${{ env.URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}"
+          
+          mkdir -p deploy_out/${{ env.TARGET_FOLDER }}/staff
+          cp -r build/web/* deploy_out/${{ env.TARGET_FOLDER }}/staff/
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: deploy_out
+          branch: gh-pages
+          clean: false # Do not delete existing files in gh-pages to allow main and dev to coexist

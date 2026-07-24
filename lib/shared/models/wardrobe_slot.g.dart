@@ -41,7 +41,16 @@ const WardrobeSlotSchema = IsarGeneratedSchema(
         type: IsarType.dateTime,
       ),
     ],
-    indexes: [],
+    indexes: [
+      IsarIndexSchema(
+        name: 'isPaid',
+        properties: [
+          "isPaid",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
   ),
   converter: IsarObjectConverter<int, WardrobeSlot>(
     serialize: serializeWardrobeSlot,
