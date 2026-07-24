@@ -43,3 +43,17 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Web related
+**/web/index.html_bootstrap.js
+**/web/flutter_service_worker.js
+
+# Supabase related
+supabase/.temp/
+.env*
+!.env.example
+
+# Additional Flutter/Dart
+.packages
+.flutter-plugins
+/build/
