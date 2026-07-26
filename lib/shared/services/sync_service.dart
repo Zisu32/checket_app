@@ -1,50 +1,24 @@
-import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/wardrobe_slot.dart';
+import '../database/database.dart';
+import 'package:drift/drift.dart';
 
 class SyncService {
   static final SyncService _instance = SyncService._internal();
   factory SyncService() => _instance;
   SyncService._internal();
 
-  late Isar isar;
+  late AppDatabase db;
   final supabase = Supabase.instance.client;
-  
-  // Manual notifier for Web support
-  final ValueNotifier<List<WardrobeSlot>> slotsNotifier = ValueNotifier<List<WardrobeSlot>>([]);
-  final ValueNotifier<String?> errorNotifier = ValueNotifier<String?>(null);
 
   Future<void> init() async {
-    print('Sync: Initializing Service...');
+    print('Sync: Initializing Drift Database...');
+    db = AppDatabase();
     
-    try {
-      // 1. Manually initialize Isar for the Web
-      if (kIsWeb) {
-        print('Sync: Initializing Isar Core for Web...');
-        await Isar.initialize();
-      }
+    // Initial Pull from Supabase to fill local DB
+    await pullFromSupabase();
 
-      // 2. Initialize Isar Instance
-      print('Sync: Opening Isar Database...');
-      isar = Isar.open(
-        schemas: [WardrobeSlotSchema],
-        directory: kIsWeb ? Isar.sqliteInMemory : '', 
-        engine: kIsWeb ? IsarEngine.sqlite : IsarEngine.isar,
-      );
-      print('Sync: Isar Database opened successfully');
-
-      // 3. Initial Pull
-      await pullFromSupabase();
-
-      // 4. Realtime Listeners
-      _setupRealtime();
-      
-    } catch (e, stack) {
-      print('Sync CRITICAL ERROR during init: $e');
-      print(stack);
-      errorNotifier.value = 'Fehler beim Starten der Datenbank: $e';
-    }
+    // Setup Realtime listener
+    _setupRealtime();
   }
 
   Future<void> pullFromSupabase() async {
@@ -55,25 +29,22 @@ class SyncService {
           .select()
           .order('id', ascending: true);
 
-      final slots = (data as List)
-          .map((json) => WardrobeSlot.fromSupabase(json))
-          .toList();
+      final entries = (data as List).map((json) => db.companionFromJson(json)).toList();
 
-      print('Sync: Received ${slots.length} slots from Supabase');
+      print('Sync: Received ${entries.length} slots from Supabase');
 
-      // Update Isar
-      await isar.writeAsync((isar) {
-        isar.wardrobeSlots.clear();
-        isar.wardrobeSlots.putAll(slots);
+      // Update local Drift DB (Insert or Replace)
+      await db.batch((batch) {
+        batch.insertAll(
+          db.wardrobeSlots, 
+          entries, 
+          mode: InsertMode.insertOrReplace
+        );
       });
       
-      // Update Notifier
-      slotsNotifier.value = slots;
-      print('Sync: Local cache updated');
-      
+      print('Sync: Local Drift cache updated');
     } catch (e) {
       print('Sync Error (Pull): $e');
-      errorNotifier.value = 'Daten konnten nicht geladen werden: $e';
     }
   }
 
@@ -88,12 +59,15 @@ class SyncService {
             table: 'checket_garderobe',
             callback: (payload) async {
               print('Sync: Realtime change detected');
-              await pullFromSupabase();
+              if (payload.newRecord.isNotEmpty) {
+                final entry = db.companionFromJson(payload.newRecord);
+                await db.into(db.wardrobeSlots).insertOnConflictUpdate(entry);
+                print('Sync: Realtime update applied to local DB');
+              }
             },
           )
           .subscribe((status, [error]) {
             print('Sync: Realtime Status changed to: $status');
-            if (error != null) print('Sync Realtime Error: $error');
           });
     } catch (e) {
       print('Sync Error (Realtime Setup): $e');
@@ -103,31 +77,25 @@ class SyncService {
   Future<void> updateSlot(WardrobeSlot slot) async {
     print('Sync: Updating Slot ${slot.id}...');
     
-    // UI-Update vorab für Schnelligkeit
-    final currentSlots = List<WardrobeSlot>.from(slotsNotifier.value);
-    final index = currentSlots.indexWhere((s) => s.id == slot.id);
-    if (index != -1) {
-      currentSlots[index] = slot;
-      slotsNotifier.value = currentSlots;
-    }
+    // 1. Update locally in Drift (UI will update automatically via Stream)
+    await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
 
+    // 2. Update Supabase
     try {
-      // Isar Update
-      await isar.writeAsync((isar) {
-        isar.wardrobeSlots.put(slot);
-      });
-
-      // Supabase Update
       await supabase
           .from('checket_garderobe')
-          .update(slot.toSupabase())
+          .update(db.toJson(slot))
           .eq('id', slot.id);
           
       print('Sync: Slot ${slot.id} updated successfully in Cloud');
     } catch (e) {
       print('Sync Error (Push): $e');
-      // Im Fehlerfall Liste neu laden, um konsistent zu bleiben
+      // If push fails, we might want to re-pull to ensure consistency
       await pullFromSupabase();
     }
+  }
+
+  Stream<List<WardrobeSlot>> watchSlots() {
+    return (db.select(db.wardrobeSlots)..orderBy([(t) => OrderingTerm(expression: t.id)])).watch();
   }
 }

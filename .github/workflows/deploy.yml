@@ -24,6 +24,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Download Drift Web Assets
+        run: |
+          # Download sqlite3.wasm and drift_worker.js required for Drift on Web
+          # Using versions compatible with your project
+          curl -L https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-2.4.3/sqlite3.wasm -o web/sqlite3.wasm
+          curl -L https://github.com/simolus3/drift/releases/download/drift-2.20.0/drift_worker.js -o web/drift_worker.js
+
       - name: Set Environment Variables
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
@@ -44,6 +51,7 @@ jobs:
             -t lib/main_customer.dart \
             --base-href "${{ env.BASE_HREF }}" \
             --no-source-maps \
+            --wasm \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}"
           
@@ -59,6 +67,7 @@ jobs:
             -t lib/main_staff.dart \
             --base-href "$STAFF_BASE_HREF" \
             --no-source-maps \
+            --wasm \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}"
           
