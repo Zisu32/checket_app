@@ -11,14 +11,13 @@ void main() async {
   usePathUrlStrategy();
 
   // Initialize Supabase with environment variables (injected by GitHub Actions)
-  // Default values are for local Development (Checket-Dev)
   await Supabase.initialize(
     url: const String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://dtvozyjaljzptarkyzgo.supabase.co'),
     anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_pfzZGNSHyrnIZ-tfdrGvfw_50HpC1U2'),
   );
 
-  // Initialize Sync Service (Isar & Supabase)
-  await SyncService().init();
+  // Initialize Sync Service (Drift & Supabase) with unique name
+  await SyncService().init(dbName: 'checket_staff_db');
 
   runApp(const ChecketStaffApp());
 }
