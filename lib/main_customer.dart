@@ -3,7 +3,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'customer_app/views/webticket_view.dart';
 import 'shared/services/sync_service.dart';
-import 'package:universal_html/html.dart' as html;
+import 'package:web/web.dart' as web;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,18 +28,18 @@ class ChecketCustomerWebApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    final uri = Uri.parse(html.window.location.href);
+    final uri = Uri.parse(web.window.location.href);
     
     String ticketId = uri.queryParameters['id'] ?? '';
     String secret = uri.queryParameters['secret'] ?? '';
 
     // Simple fallback to localStorage for PWA behavior
     if (ticketId.isEmpty || secret.isEmpty) {
-      ticketId = html.window.localStorage['last_ticket_id'] ?? '';
-      secret = html.window.localStorage['last_ticket_secret'] ?? '';
+      ticketId = web.window.localStorage.getItem('last_ticket_id') ?? '';
+      secret = web.window.localStorage.getItem('last_ticket_secret') ?? '';
     } else {
-      html.window.localStorage['last_ticket_id'] = ticketId;
-      html.window.localStorage['last_ticket_secret'] = secret;
+      web.window.localStorage.setItem('last_ticket_id', ticketId);
+      web.window.localStorage.setItem('last_ticket_secret', secret);
     }
 
     if (ticketId.isEmpty) {

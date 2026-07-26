@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:js_interop';
 import 'package:flutter/material.dart';
-import 'package:universal_html/html.dart' as html;
+import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
 
@@ -28,7 +29,9 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
   @override
   void initState() {
     super.initState();
-    if (html.Notification.permission == 'granted' || html.Notification.permission == 'denied') {
+    // Notification.permission returns a JSString in package:web
+    final permission = web.Notification.permission;
+    if (permission == 'granted' || permission == 'denied') {
       _hatBerechtigungGefragt = true;
     }
     
@@ -46,7 +49,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
   }
 
   Future<void> _frageNachPush() async {
-    await html.Notification.requestPermission();
+    // requestPermission() returns a JSPromise<JSString> in package:web
+    await web.Notification.requestPermission().toDart;
     setState(() { _hatBerechtigungGefragt = true; });
   }
 
@@ -149,14 +153,14 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), 
                       icon: const Icon(Icons.add_to_home_screen), 
                       label: const Text('Zu Apple Wallet hinzufügen'), 
-                      onPressed: () => html.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
+                      onPressed: () => web.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4285F4), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), 
                       icon: const Icon(Icons.account_balance_wallet), 
                       label: const Text('Zu Google Wallet hinzufügen'), 
-                      onPressed: () => html.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
+                      onPressed: () => web.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
                     ),
                   ])
                   else const SizedBox(height: 100), // Spacer for loading state
