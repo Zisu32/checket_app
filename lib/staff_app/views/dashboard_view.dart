@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
 
@@ -108,7 +109,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
                             child: Text('${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
                           ),
                           title: Text('Bügel ${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
-                          subtitle: Text('Vom: ${item.createdAt.day}.${item.createdAt.month}. ${item.createdAt.hour}:${item.createdAt.minute} Uhr', style: const TextStyle(color: Colors.white70)),
+                          subtitle: Text('Code: ${item.secret}', style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
                           trailing: ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: brandActiveGreen, foregroundColor: Colors.white),
                             onPressed: () => _syncService.handOverLostItem(item),
@@ -276,7 +277,24 @@ class _StaffDashboardState extends State<StaffDashboard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('Bügel ${slot.id} verwalten', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
+              if (slot.status != 'free') ...[
+                Text('Geheimcode: ${slot.secret}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    // Logic to find current base URL
+                    final baseUrl = web.window.location.origin + web.window.location.pathname.replaceAll('/staff/', '/');
+                    final ticketUrl = '$baseUrl?id=${slot.id}&secret=${slot.secret}';
+                    web.window.open(ticketUrl, '_blank');
+                  },
+                  icon: const Icon(Icons.open_in_new, size: 18),
+                  label: const Text('Kunden-Ticket öffnen'),
+                  style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+                ),
+                const Divider(height: 32, color: Colors.white12),
+              ],
+              const SizedBox(height: 8),
               
               if (slot.status == 'free') 
                 ListTile(

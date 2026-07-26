@@ -128,7 +128,6 @@ class SyncService {
         'updated_at': DateTime.now().toIso8601String()
       }).neq('status', 'free');
 
-      // Crucial: Pull Lost Items FIRST or simultaneously to avoid flackering to 'free'
       await Future.wait([
         pullLostItemsFromSupabase(),
         pullFromSupabase(),
@@ -143,11 +142,9 @@ class SyncService {
 
   Future<void> handOverLostItem(LostItem item) async {
     try {
-      // 1. Update Local DB immediately for instant UI feedback
       await (db.update(db.lostItems)..where((t) => t.id.equals(item.id)))
           .write(const LostItemsCompanion(isHandedOver: Value(true)));
 
-      // 2. Update Supabase
       await supabase.from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
           
       print('Sync: Lost item handed over');
@@ -182,23 +179,29 @@ class SyncService {
   }
 
   /// Refined method for Customer App to track a specific ticket across both tables
+  /// Returns a WardrobeSlot if valid, OR a special slot with status 'wrong_secret' or 'free'.
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
     final controller = StreamController<WardrobeSlot?>();
 
     Future<void> update() async {
       if (controller.isClosed) return;
 
-      // 1. Check Active Wardrobe first - match ID AND Secret
-      final activeSlot = await (db.select(db.wardrobeSlots)
-            ..where((t) => t.id.equals(id) & t.secret.equals(secret)))
-          .getSingleOrNull();
+      // 1. First check if the hook exists at all
+      final anyActiveSlot = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
+      
+      // If hook is active but secret is wrong
+      if (anyActiveSlot != null && anyActiveSlot.status != 'free' && anyActiveSlot.secret != secret) {
+         controller.add(anyActiveSlot.copyWith(status: 'wrong_secret'));
+         return;
+      }
 
-      if (activeSlot != null) {
-        controller.add(activeSlot);
+      // If hook matches perfectly in active
+      if (anyActiveSlot != null && anyActiveSlot.secret == secret) {
+        controller.add(anyActiveSlot);
         return;
       }
 
-      // 2. Check Lost & Found if not in active - match ID AND Secret
+      // 2. Check Lost & Found if not matched in active
       final lostItem = await (db.select(db.lostItems)
             ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret) & t.isHandedOver.equals(false)))
           .getSingleOrNull();
@@ -214,13 +217,28 @@ class SyncService {
         ));
         return;
       }
+      
+      // If we found the hook in Lost & Found but with a WRONG secret
+      final anyLostItem = await (db.select(db.lostItems)
+            ..where((t) => t.originalSlotId.equals(id) & t.isHandedOver.equals(false)))
+          .getSingleOrNull();
+      if (anyLostItem != null && anyLostItem.secret != secret) {
+         controller.add(WardrobeSlot(
+          id: id,
+          status: 'wrong_secret',
+          isPaid: false,
+          paymentMethod: 'none',
+          secret: '',
+          updatedAt: DateTime.now(),
+        ));
+        return;
+      }
 
-      // 3. Fallback: If secret doesn't match anywhere, check if hook is just free
-      final plainSlot = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (plainSlot != null && plainSlot.status == 'free') {
-        controller.add(plainSlot);
+      // 3. Fallback: The hook is really free
+      if (anyActiveSlot != null && anyActiveSlot.status == 'free') {
+        controller.add(anyActiveSlot);
       } else {
-        // Ticket invalid (another secret is present on this hook or something went wrong)
+        // Not found at all or other error
         controller.add(null);
       }
     }

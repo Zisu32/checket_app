@@ -30,6 +30,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   late Animation<double> _pulseAnimation;
 
   // Image-based Brand Colors
+  static const Color brandBackground = Color(0xFF1A2229);
   static const Color brandActiveGreen = Color(0xFF2ABB85);
 
   @override
@@ -111,11 +112,15 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                 statusFarbe = Colors.grey;
                 statusIcon = Icons.check_circle_outline;
                 statusText = 'Bügel wieder frei';
+              } else if (slot.status == 'wrong_secret') {
+                statusFarbe = Colors.orangeAccent;
+                statusIcon = Icons.lock_person_outlined;
+                statusText = 'Geheimcode veraltet';
               }
             }
 
             return Scaffold(
-              backgroundColor: Colors.black,
+              backgroundColor: brandBackground, // Updated background
               body: SafeArea(
                 child: Center(
                   child: Container(
@@ -181,7 +186,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                                   else ...[
                                     Icon(statusIcon, color: statusFarbe, size: isShortScreen ? 48 : 64),
                                     SizedBox(height: isShortScreen ? 8 : 16),
-                                    Text(statusText, style: TextStyle(fontSize: isShortScreen ? 16 : 18, fontWeight: FontWeight.w500)),
+                                    Text(statusText, textAlign: TextAlign.center, style: TextStyle(fontSize: isShortScreen ? 16 : 18, fontWeight: FontWeight.w500, color: Colors.white)),
                                     SizedBox(height: isShortScreen ? 12 : 24),
                                     FittedBox(
                                       fit: BoxFit.scaleDown,
@@ -210,32 +215,39 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Text(error, style: const TextStyle(color: Colors.red, fontSize: 12), textAlign: TextAlign.center),
                           )
+                        else if (slot != null && slot.status == 'wrong_secret')
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 16),
+                            child: Text('Dieser Link gehört zu einem vorherigen Gast. Bitte scanne den neuen Code am Bügel.', 
+                                 style: TextStyle(color: Colors.orangeAccent, fontSize: 12), textAlign: TextAlign.center),
+                          )
                         else if (_showTimeoutMessage && isSearching)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Column(
                               children: [
                                 const Text('Wird synchronisiert...', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                                TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Reload'))
+                                TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Reload', style: TextStyle(color: brandActiveGreen)))
                               ],
                             ),
                           ),
 
-                        // Actions (Wallet / Payment / Push)
+                        // Actions
                         if (slot != null && slot.status == 'active' && !_hatBerechtigungGefragt) 
                           _bauePushPrompt(isShortScreen),
                         
                         if (slot != null && slot.status == 'unpaid') 
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white, 
-                              foregroundColor: Colors.black, 
-                              minimumSize: const Size(double.infinity, 50)
+                              backgroundColor: brandActiveGreen, 
+                              foregroundColor: Colors.white, 
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                             ), 
                             onPressed: () {}, 
                             child: const Text('JETZT BEZAHLEN', style: TextStyle(fontWeight: FontWeight.bold))
                           )
-                        else if (slot != null && slot.status != 'free' && slot.status != 'loading') 
+                        else if (slot != null && slot.status != 'free' && slot.status != 'loading' && slot.status != 'wrong_secret') 
                           Column(
                             children: [
                               ElevatedButton.icon(
@@ -243,7 +255,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                                   backgroundColor: Colors.black, 
                                   foregroundColor: Colors.white, 
                                   minimumSize: const Size(double.infinity, 44),
-                                  side: const BorderSide(color: Colors.white24)
+                                  side: const BorderSide(color: Colors.white24),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                                 ), 
                                 icon: const Icon(Icons.add_to_home_screen, size: 20), 
                                 label: const Text('Apple Wallet'), 
@@ -254,14 +267,16 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF4285F4), 
                                   foregroundColor: Colors.white, 
-                                  minimumSize: const Size(double.infinity, 44)
+                                  minimumSize: const Size(double.infinity, 44),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                                 ), 
                                 icon: const Icon(Icons.account_balance_wallet, size: 20), 
                                 label: const Text('Google Wallet'), 
                                 onPressed: () => web.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
                               ),
                             ],
-                          ),
+                          )
+                        else const SizedBox(height: 100),
                         
                         SizedBox(height: isShortScreen ? 12 : 24),
                       ],
@@ -283,13 +298,17 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Jacke am Ende nicht vergessen! 🧥', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          const Text('Jacke am Ende nicht vergessen! 🧥', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
           SizedBox(height: isShort ? 4 : 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end, 
             children: [
               TextButton(onPressed: () => setState(() => _hatBerechtigungGefragt = true), child: const Text('Nein')), 
-              ElevatedButton(onPressed: _frageNachPush, child: const Text('Ja, gerne'))
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: brandActiveGreen),
+                onPressed: _frageNachPush, 
+                child: const Text('Ja, gerne', style: TextStyle(color: Colors.white))
+              )
             ]
           )
         ],
