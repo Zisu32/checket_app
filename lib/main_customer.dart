@@ -28,15 +28,30 @@ class ChecketCustomerWebApp extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    final uri = Uri.parse(web.window.location.href);
+    // Robust URL parsing for GitHub Pages
+    final fullUrl = web.window.location.href;
+    final uri = Uri.parse(fullUrl);
     
-    String ticketId = uri.queryParameters['id'] ?? '';
-    String secret = uri.queryParameters['secret'] ?? '';
+    // Check both standard query parameters AND hash parameters
+    Map<String, String> params = Map.from(uri.queryParameters);
+    
+    // If we are using hash routing, parameters might be in the fragment
+    if (uri.hasFragment) {
+      final fragmentUri = Uri.parse(uri.fragment);
+      params.addAll(fragmentUri.queryParameters);
+    }
+
+    String ticketId = params['id'] ?? '';
+    String secret = params['secret'] ?? '';
+
+    print('Sync: URL detected -> $fullUrl');
+    print('Sync: Extracted Params -> id: $ticketId, secret: $secret');
 
     // Simple fallback to localStorage for PWA behavior
     if (ticketId.isEmpty || secret.isEmpty) {
       ticketId = web.window.localStorage.getItem('last_ticket_id') ?? '';
       secret = web.window.localStorage.getItem('last_ticket_secret') ?? '';
+      print('Sync: Fallback to localStorage -> id: $ticketId');
     } else {
       web.window.localStorage.setItem('last_ticket_id', ticketId);
       web.window.localStorage.setItem('last_ticket_secret', secret);
