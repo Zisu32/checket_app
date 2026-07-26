@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
+import '../../shared/theme/brand_colors.dart';
 
 class CustomerWebTicketView extends StatefulWidget {
   final int ticketId;
@@ -28,10 +29,6 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
-
-  // Image-based Brand Colors
-  static const Color brandBackground = Color(0xFF1A2229);
-  static const Color brandActiveGreen = Color(0xFF2ABB85);
 
   @override
   void initState() {
@@ -82,7 +79,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
           builder: (context, snapshot) {
             final slot = snapshot.data;
             
-            Color statusFarbe = brandActiveGreen; 
+            Color statusFarbe = BrandColors.active; 
             IconData statusIcon = Icons.verified_user_outlined; 
             String statusText = 'Garderoben-Platz aktiv';
             bool isSearching = !snapshot.hasData;
@@ -92,16 +89,16 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
               statusIcon = Icons.sync;
               statusText = _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...';
             } else if (slot == null) {
-              statusFarbe = Colors.redAccent;
+              statusFarbe = BrandColors.unpaid;
               statusIcon = Icons.error_outline;
               statusText = 'Ticket ungültig';
             } else {
               if (slot.status == 'unpaid') { 
-                statusFarbe = Colors.redAccent; 
+                statusFarbe = BrandColors.unpaid; 
                 statusIcon = Icons.credit_card_off_outlined; 
                 statusText = 'Zahlung ausstehend'; 
               } else if (slot.status == 'temporary') { 
-                statusFarbe = Colors.orangeAccent; 
+                statusFarbe = BrandColors.temporary; 
                 statusIcon = Icons.timer_outlined; 
                 statusText = 'Jacke temporär draußen'; 
               } else if (slot.status == 'forgotten') { 
@@ -109,18 +106,18 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                 statusIcon = Icons.inventory_2_outlined; 
                 statusText = 'Jacke im Fundbüro'; 
               } else if (slot.status == 'free') {
-                statusFarbe = Colors.grey;
+                statusFarbe = BrandColors.free;
                 statusIcon = Icons.check_circle_outline;
                 statusText = 'Bügel wieder frei';
               } else if (slot.status == 'wrong_secret') {
-                statusFarbe = Colors.orangeAccent;
+                statusFarbe = BrandColors.free; // Grey for "Already picked up"
                 statusIcon = Icons.lock_person_outlined;
-                statusText = 'Geheimcode veraltet';
+                statusText = 'Jacke bereits abgeholt';
               }
             }
 
             return Scaffold(
-              backgroundColor: brandBackground, // Updated background
+              backgroundColor: BrandColors.background,
               body: SafeArea(
                 child: Center(
                   child: Container(
@@ -144,7 +141,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: (isSearching || slot == null) 
-                                        ? Colors.grey 
+                                        ? BrandColors.free 
                                         : Colors.red.withValues(alpha: _pulseAnimation.value),
                                   ),
                                 );
@@ -165,7 +162,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                               width: double.infinity, 
                               padding: EdgeInsets.all(isShortScreen ? 20 : 32),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1A1A1A), 
+                                color: BrandColors.surface, // Matched with Dashboard tiles
                                 borderRadius: BorderRadius.circular(24), 
                                 border: Border.all(
                                   color: statusFarbe.withValues(alpha: _pulseAnimation.value), 
@@ -218,8 +215,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         else if (slot != null && slot.status == 'wrong_secret')
                           const Padding(
                             padding: EdgeInsets.only(bottom: 16),
-                            child: Text('Dieser Link gehört zu einem vorherigen Gast. Bitte scanne den neuen Code am Bügel.', 
-                                 style: TextStyle(color: Colors.orangeAccent, fontSize: 12), textAlign: TextAlign.center),
+                            child: Text('Dieser Link ist veraltet. Bitte scanne den neuen Code am Bügel.', 
+                                 style: TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
                           )
                         else if (_showTimeoutMessage && isSearching)
                           Padding(
@@ -227,7 +224,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                             child: Column(
                               children: [
                                 const Text('Wird synchronisiert...', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                                TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Reload', style: TextStyle(color: brandActiveGreen)))
+                                TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Reload', style: TextStyle(color: BrandColors.active)))
                               ],
                             ),
                           ),
@@ -239,7 +236,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         if (slot != null && slot.status == 'unpaid') 
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: brandActiveGreen, 
+                              backgroundColor: BrandColors.active, 
                               foregroundColor: Colors.white, 
                               minimumSize: const Size(double.infinity, 50),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
@@ -305,7 +302,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
             children: [
               TextButton(onPressed: () => setState(() => _hatBerechtigungGefragt = true), child: const Text('Nein')), 
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: brandActiveGreen),
+                style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active),
                 onPressed: _frageNachPush, 
                 child: const Text('Ja, gerne', style: TextStyle(color: Colors.white))
               )

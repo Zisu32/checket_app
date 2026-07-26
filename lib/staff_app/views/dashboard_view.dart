@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
+import '../../shared/theme/brand_colors.dart';
 
 class StaffDashboard extends StatefulWidget {
   const StaffDashboard({super.key});
@@ -18,11 +19,6 @@ class _StaffDashboardState extends State<StaffDashboard> {
   
   int _currentPage = 0;
   final int _itemsPerPage = 100;
-
-  // Image-based Brand Colors
-  static const Color brandBackground = Color(0xFF1A2229);
-  static const Color brandActiveGreen = Color(0xFF2ABB85);
-  static const Color brandButtonBase = Color(0xFF2C3E50);
 
   @override
   void initState() {
@@ -53,13 +49,13 @@ class _StaffDashboardState extends State<StaffDashboard> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: brandButtonBase,
+        backgroundColor: BrandColors.surface,
         title: const Text('Schicht beenden?', style: TextStyle(color: Colors.white)),
         content: Text('Sollen die $occupiedCount belegten Bügel ins FUNDBÜRO verschoben und das Raster geleert werden?', style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Abbrechen')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade900),
+            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.unpaid),
             onPressed: () async {
               await _syncService.archiveAndResetShift();
               if (mounted) Navigator.pop(dialogContext);
@@ -75,7 +71,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: brandBackground,
+      backgroundColor: BrandColors.background,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.8,
         padding: const EdgeInsets.all(24),
@@ -101,17 +97,17 @@ class _StaffDashboardState extends State<StaffDashboard> {
                     itemBuilder: (context, index) {
                       final item = items[index];
                       return Card(
-                        color: brandButtonBase,
+                        color: BrandColors.surface,
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
                           leading: CircleAvatar(
-                            backgroundColor: Colors.blueGrey,
+                            backgroundColor: BrandColors.forgotten,
                             child: Text('${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
                           ),
                           title: Text('Bügel ${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
                           subtitle: Text('Code: ${item.secret}', style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
                           trailing: ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: brandActiveGreen, foregroundColor: Colors.white),
+                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: Colors.white),
                             onPressed: () => _syncService.handOverLostItem(item),
                             child: const Text('Aushändigen'),
                           ),
@@ -137,19 +133,19 @@ class _StaffDashboardState extends State<StaffDashboard> {
         
         if (allSlots.isEmpty) {
           return Scaffold(
-            backgroundColor: brandBackground,
+            backgroundColor: BrandColors.background,
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const CircularProgressIndicator(color: brandActiveGreen),
+                  const CircularProgressIndicator(color: BrandColors.active),
                   if (_showTimeoutMessage) ...[
                     const SizedBox(height: 24),
                     const Text('Synchronisierung läuft...', textAlign: TextAlign.center, style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => _syncService.pullFromSupabase(),
-                      child: const Text('Manueller Reload', style: TextStyle(color: brandActiveGreen)),
+                      child: const Text('Manueller Reload', style: TextStyle(color: BrandColors.active)),
                     ),
                   ]
                 ],
@@ -162,15 +158,15 @@ class _StaffDashboardState extends State<StaffDashboard> {
         final displaySlots = allSlots.skip(_currentPage * _itemsPerPage).take(_itemsPerPage).toList();
 
         return Scaffold(
-          backgroundColor: brandBackground,
+          backgroundColor: BrandColors.background,
           appBar: AppBar(
-            backgroundColor: brandBackground,
-            elevation: 0,
+            backgroundColor: BrandColors.header,
+            elevation: 2,
             toolbarHeight: 70,
             title: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               decoration: BoxDecoration(
-                color: brandButtonBase,
+                color: BrandColors.surface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -200,7 +196,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
               padding: const EdgeInsets.all(12.0),
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: brandButtonBase,
+                  backgroundColor: BrandColors.surface,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -216,7 +212,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
                 padding: const EdgeInsets.all(12.0),
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: brandButtonBase,
+                    backgroundColor: BrandColors.surface,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -240,12 +236,12 @@ class _StaffDashboardState extends State<StaffDashboard> {
             itemCount: displaySlots.length,
             itemBuilder: (context, index) {
               final slot = displaySlots[index];
-              Color kachelFarbe = brandButtonBase;
+              Color kachelFarbe = BrandColors.surface;
               
-              if (slot.status == 'unpaid') kachelFarbe = Colors.red.shade900;
-              if (slot.status == 'active') kachelFarbe = brandActiveGreen;
-              if (slot.status == 'temporary') kachelFarbe = Colors.orange.shade900;
-              if (slot.status == 'forgotten') kachelFarbe = Colors.blueGrey.shade800;
+              if (slot.status == 'unpaid') kachelFarbe = BrandColors.unpaid;
+              if (slot.status == 'active') kachelFarbe = BrandColors.active;
+              if (slot.status == 'temporary') kachelFarbe = BrandColors.temporary;
+              if (slot.status == 'forgotten') kachelFarbe = BrandColors.forgotten;
 
               return InkWell(
                 onTap: () => _zeigeAktionen(context, slot),
@@ -269,7 +265,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
   void _zeigeAktionen(BuildContext context, WardrobeSlot slot) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: brandBackground,
+      backgroundColor: BrandColors.background,
       builder: (modalContext) {
         return Container(
           padding: const EdgeInsets.all(24),
@@ -283,7 +279,6 @@ class _StaffDashboardState extends State<StaffDashboard> {
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: () {
-                    // Logic to find current base URL
                     final baseUrl = web.window.location.origin + web.window.location.pathname.replaceAll('/staff/', '/');
                     final ticketUrl = '$baseUrl?id=${slot.id}&secret=${slot.secret}';
                     web.window.open(ticketUrl, '_blank');
@@ -315,7 +310,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
                 
               if (slot.status == 'unpaid') ...[
                 ListTile(
-                  leading: const Icon(Icons.contactless_outlined, color: brandActiveGreen), 
+                  leading: const Icon(Icons.contactless_outlined, color: BrandColors.active), 
                   title: const Text('NFC Tap-to-Pay', style: TextStyle(color: Colors.white)), 
                   onTap: () async { 
                     final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'nfc', updatedAt: DateTime.now());
@@ -363,7 +358,7 @@ class _StaffDashboardState extends State<StaffDashboard> {
               
               if (slot.status == 'temporary') 
                 ListTile(
-                  leading: const Icon(Icons.play_arrow, color: brandActiveGreen), 
+                  leading: const Icon(Icons.play_arrow, color: BrandColors.active), 
                   title: const Text('Wieder zurück', style: TextStyle(color: Colors.white)), 
                   onTap: () async { 
                     final updated = slot.copyWith(status: 'active', updatedAt: DateTime.now());
