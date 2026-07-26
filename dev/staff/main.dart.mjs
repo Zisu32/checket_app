@@ -693,6 +693,7 @@ class CompiledApp {
       _1612: (x0,x1,x2) => x0.sqlite3_result_subtype(x1,x2),
       _1615: (x0,x1) => x0.sqlite3_step(x1),
       _1616: (x0,x1) => x0.sqlite3_reset(x1),
+      _1617: (x0,x1) => x0.sqlite3_changes(x1),
       _1618: (x0,x1) => x0.sqlite3_stmt_isexplain(x1),
       _1620: (x0,x1) => x0.sqlite3_last_insert_rowid(x1),
       _1637: (x0,x1,x2,x3) => x0.dart_sqlite3_register_vfs(x1,x2,x3),
