@@ -29,10 +29,12 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
+  // Image-based Brand Colors
+  static const Color brandActiveGreen = Color(0xFF2ABB85);
+
   @override
   void initState() {
     super.initState();
-    // Notification.permission returns a JSString in package:web
     final permission = web.Notification.permission;
     if (permission == 'granted' || permission == 'denied') {
       _hatBerechtigungGefragt = true;
@@ -49,8 +51,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
     
-    // Increased range for more visible pulsing
-    _pulseAnimation = Tween<double>(begin: 0.2, end: 1.0).animate(
+    _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
   }
@@ -69,6 +70,9 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isShortScreen = screenHeight < 700;
+
     return ValueListenableBuilder<String?>(
       valueListenable: _syncService.errorNotifier,
       builder: (context, error, _) {
@@ -77,7 +81,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
           builder: (context, snapshot) {
             final slot = snapshot.data;
             
-            Color statusFarbe = Colors.greenAccent; 
+            Color statusFarbe = brandActiveGreen; 
             IconData statusIcon = Icons.verified_user_outlined; 
             String statusText = 'Garderoben-Platz aktiv';
             bool isSearching = !snapshot.hasData;
@@ -112,125 +116,156 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
 
             return Scaffold(
               backgroundColor: Colors.black,
-              body: Center(
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 400), 
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AnimatedBuilder(
-                            animation: _pulseAnimation,
-                            builder: (context, child) {
-                              return Container(
-                                width: 10, height: 10,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: (isSearching || slot == null) 
-                                      ? Colors.grey 
-                                      : Colors.red.withValues(alpha: _pulseAnimation.value),
-                                  boxShadow: [
-                                    if (!isSearching && slot != null)
-                                      BoxShadow(
-                                        color: Colors.red.withValues(alpha: _pulseAnimation.value * 0.5),
-                                        blurRadius: 8,
-                                        spreadRadius: 2 * _pulseAnimation.value,
-                                      )
-                                  ]
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                          const Text('LIVE TICKET', style: TextStyle(color: Colors.grey, letterSpacing: 2, fontWeight: FontWeight.bold, fontSize: 13)),
-                        ],
-                      ),
-                      AnimatedBuilder(
-                        animation: _pulseAnimation,
-                        builder: (context, child) {
-                          return Container(
-                            width: double.infinity, 
-                            padding: const EdgeInsets.all(32),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1A1A1A), 
-                              borderRadius: BorderRadius.circular(24), 
-                              // Thicker border as requested
-                              border: Border.all(
-                                color: statusFarbe.withValues(alpha: _pulseAnimation.value), 
-                                width: 5.0
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: statusFarbe.withValues(alpha: _pulseAnimation.value * 0.4),
-                                  blurRadius: 25 * _pulseAnimation.value,
-                                  spreadRadius: 4 * _pulseAnimation.value,
-                                )
-                              ]
-                            ),
-                            child: Column(
-                              children: [
-                                if (isSearching)
-                                  const Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: CircularProgressIndicator(color: Colors.white24),
-                                  )
-                                else
-                                  Icon(statusIcon, color: statusFarbe, size: 64),
-                                const SizedBox(height: 16),
-                                Text(statusText, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                                const SizedBox(height: 24),
-                                Text('${widget.ticketId}', style: TextStyle(fontSize: 110, fontWeight: FontWeight.w900, color: statusFarbe, height: 1)),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                      
-                      if (error != null)
-                        Text(error, style: const TextStyle(color: Colors.red, fontSize: 12), textAlign: TextAlign.center)
-                      else if (_showTimeoutMessage && isSearching)
-                        Column(
+              body: SafeArea(
+                child: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 400), 
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24, 
+                      vertical: isShortScreen ? 12 : 24
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Live Dot & Label
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text('Das Ticket wurde noch nicht in der Datenbank gefunden.', 
-                                 style: TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
-                            TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Erneut versuchen'))
+                            AnimatedBuilder(
+                              animation: _pulseAnimation,
+                              builder: (context, child) {
+                                return Container(
+                                  width: 10, height: 10,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: (isSearching || slot == null) 
+                                        ? Colors.grey 
+                                        : Colors.red.withValues(alpha: _pulseAnimation.value),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                            const Text('LIVE TICKET', style: TextStyle(color: Colors.grey, letterSpacing: 2, fontWeight: FontWeight.bold, fontSize: 13)),
                           ],
                         ),
+                        
+                        SizedBox(height: isShortScreen ? 12 : 30),
 
-                      if (slot != null && slot.status == 'active' && !_hatBerechtigungGefragt) _bauePushPrompt(),
-                      
-                      if (slot != null && slot.status == 'unpaid') 
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white, 
-                            foregroundColor: Colors.black, 
-                            minimumSize: const Size(double.infinity, 50)
-                          ), 
-                          onPressed: () {
-                            // Stripe logic...
-                          }, 
-                          child: const Text('Jetzt bezahlen')
-                        )
-                      else if (slot != null && slot.status != 'free' && slot.status != 'loading') Column(children: [
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), 
-                          icon: const Icon(Icons.add_to_home_screen), 
-                          label: const Text('Zu Apple Wallet hinzufügen'), 
-                          onPressed: () => web.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
+                        // Main Ticket Card
+                        AnimatedBuilder(
+                          animation: _pulseAnimation,
+                          builder: (context, child) {
+                            return Container(
+                              width: double.infinity, 
+                              padding: EdgeInsets.all(isShortScreen ? 20 : 32),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1A1A1A), 
+                                borderRadius: BorderRadius.circular(24), 
+                                border: Border.all(
+                                  color: statusFarbe.withValues(alpha: _pulseAnimation.value), 
+                                  width: 5.0
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: statusFarbe.withValues(alpha: _pulseAnimation.value * 0.4),
+                                    blurRadius: 25 * _pulseAnimation.value,
+                                    spreadRadius: 4 * _pulseAnimation.value,
+                                  )
+                                ]
+                              ),
+                              child: Column(
+                                children: [
+                                  if (isSearching)
+                                    const CircularProgressIndicator(color: Colors.white24)
+                                  else ...[
+                                    Icon(statusIcon, color: statusFarbe, size: isShortScreen ? 48 : 64),
+                                    SizedBox(height: isShortScreen ? 8 : 16),
+                                    Text(statusText, style: TextStyle(fontSize: isShortScreen ? 16 : 18, fontWeight: FontWeight.w500)),
+                                    SizedBox(height: isShortScreen ? 12 : 24),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        '${widget.ticketId}', 
+                                        style: TextStyle(
+                                          fontSize: isShortScreen ? 80 : 110, 
+                                          fontWeight: FontWeight.w900, 
+                                          color: statusFarbe, 
+                                          height: 1
+                                        )
+                                      ),
+                                    ),
+                                  ]
+                                ],
+                              ),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 8),
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4285F4), foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), 
-                          icon: const Icon(Icons.account_balance_wallet), 
-                          label: const Text('Zu Google Wallet hinzufügen'), 
-                          onPressed: () => web.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
-                        ),
-                      ])
-                      else const SizedBox(height: 100),
-                    ],
+                        
+                        const Spacer(),
+
+                        // Error or Timeout Messages
+                        if (error != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Text(error, style: const TextStyle(color: Colors.red, fontSize: 12), textAlign: TextAlign.center),
+                          )
+                        else if (_showTimeoutMessage && isSearching)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Column(
+                              children: [
+                                const Text('Wird synchronisiert...', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Reload'))
+                              ],
+                            ),
+                          ),
+
+                        // Actions (Wallet / Payment / Push)
+                        if (slot != null && slot.status == 'active' && !_hatBerechtigungGefragt) 
+                          _bauePushPrompt(isShortScreen),
+                        
+                        if (slot != null && slot.status == 'unpaid') 
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white, 
+                              foregroundColor: Colors.black, 
+                              minimumSize: const Size(double.infinity, 50)
+                            ), 
+                            onPressed: () {}, 
+                            child: const Text('JETZT BEZAHLEN', style: TextStyle(fontWeight: FontWeight.bold))
+                          )
+                        else if (slot != null && slot.status != 'free' && slot.status != 'loading') 
+                          Column(
+                            children: [
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black, 
+                                  foregroundColor: Colors.white, 
+                                  minimumSize: const Size(double.infinity, 44),
+                                  side: const BorderSide(color: Colors.white24)
+                                ), 
+                                icon: const Icon(Icons.add_to_home_screen, size: 20), 
+                                label: const Text('Apple Wallet'), 
+                                onPressed: () => web.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF4285F4), 
+                                  foregroundColor: Colors.white, 
+                                  minimumSize: const Size(double.infinity, 44)
+                                ), 
+                                icon: const Icon(Icons.account_balance_wallet, size: 20), 
+                                label: const Text('Google Wallet'), 
+                                onPressed: () => web.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
+                              ),
+                            ],
+                          ),
+                        
+                        SizedBox(height: isShortScreen ? 12 : 24),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -241,14 +276,15 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
     );
   }
 
-  Widget _bauePushPrompt() {
+  Widget _bauePushPrompt(bool isShort) {
     return Container(
-      padding: const EdgeInsets.all(16), 
+      padding: const EdgeInsets.all(12), 
       decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Jacke am Ende nicht vergessen! 🧥', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
+          const Text('Jacke am Ende nicht vergessen! 🧥', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          SizedBox(height: isShort ? 4 : 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end, 
             children: [

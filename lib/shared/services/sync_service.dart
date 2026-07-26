@@ -114,6 +114,7 @@ class SyncService {
           'original_slot_id': s.id,
           'secret': s.secret,
           'is_paid': s.isPaid,
+          'created_at': DateTime.now().toIso8601String(),
         }).toList();
         
         await supabase.from('checket_lost_found').insert(lostEntries);
@@ -127,8 +128,11 @@ class SyncService {
         'updated_at': DateTime.now().toIso8601String()
       }).neq('status', 'free');
 
-      await pullFromSupabase();
-      await pullLostItemsFromSupabase();
+      // Crucial: Pull Lost Items FIRST or simultaneously to avoid flackering to 'free'
+      await Future.wait([
+        pullLostItemsFromSupabase(),
+        pullFromSupabase(),
+      ]);
       
       print('Sync: Shift reset complete');
     } catch (e) {
@@ -139,14 +143,17 @@ class SyncService {
 
   Future<void> handOverLostItem(LostItem item) async {
     try {
-      await supabase.from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
-      
+      // 1. Update Local DB immediately for instant UI feedback
       await (db.update(db.lostItems)..where((t) => t.id.equals(item.id)))
           .write(const LostItemsCompanion(isHandedOver: Value(true)));
+
+      // 2. Update Supabase
+      await supabase.from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
           
       print('Sync: Lost item handed over');
     } catch (e) {
       print('Sync Error (Handover): $e');
+      await pullLostItemsFromSupabase();
     }
   }
 
@@ -174,14 +181,14 @@ class SyncService {
       .watch();
   }
 
-  /// New method for Customer App to track a specific ticket across both tables
+  /// Refined method for Customer App to track a specific ticket across both tables
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
     final controller = StreamController<WardrobeSlot?>();
 
     Future<void> update() async {
       if (controller.isClosed) return;
 
-      // 1. Check Active Wardrobe
+      // 1. Check Active Wardrobe first - match ID AND Secret
       final activeSlot = await (db.select(db.wardrobeSlots)
             ..where((t) => t.id.equals(id) & t.secret.equals(secret)))
           .getSingleOrNull();
@@ -191,7 +198,7 @@ class SyncService {
         return;
       }
 
-      // 2. Check Lost & Found
+      // 2. Check Lost & Found if not in active - match ID AND Secret
       final lostItem = await (db.select(db.lostItems)
             ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret) & t.isHandedOver.equals(false)))
           .getSingleOrNull();
@@ -208,16 +215,19 @@ class SyncService {
         return;
       }
 
-      // 3. Fallback: Show the slot as free if it's not occupied by this ticket
+      // 3. Fallback: If secret doesn't match anywhere, check if hook is just free
       final plainSlot = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
-      controller.add(plainSlot);
+      if (plainSlot != null && plainSlot.status == 'free') {
+        controller.add(plainSlot);
+      } else {
+        // Ticket invalid (another secret is present on this hook or something went wrong)
+        controller.add(null);
+      }
     }
 
-    // Listen to both tables
     final sub1 = db.wardrobeSlots.all().watch().listen((_) => update());
     final sub2 = db.lostItems.all().watch().listen((_) => update());
     
-    // Initial update
     update();
 
     controller.onCancel = () {
