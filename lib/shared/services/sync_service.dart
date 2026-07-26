@@ -11,23 +11,30 @@ class SyncService {
   late AppDatabase db;
   final supabase = Supabase.instance.client;
   
-  // Manual notifier for Web support
   final ValueNotifier<List<WardrobeSlot>> slotsNotifier = ValueNotifier<List<WardrobeSlot>>([]);
   final ValueNotifier<String?> errorNotifier = ValueNotifier<String?>(null);
   final ValueNotifier<bool> isInitialized = ValueNotifier<bool>(false);
 
-  Future<void> init() async {
-    print('Sync: Initializing Drift Database...');
-    db = AppDatabase();
-    
-    // Perform initial pull in background, don't await it to avoid blocking UI
-    pullFromSupabase().then((_) {
-      print('Sync: Initial background pull completed');
-      isInitialized.value = true;
-    });
+  Future<void> init({String dbName = 'checket_db'}) async {
+    print('Sync: Initializing Database ($dbName)...');
+    try {
+      db = AppDatabase(name: dbName);
+      
+      // Perform initial pull in background
+      pullFromSupabase().then((_) {
+        print('Sync: Initial background pull completed');
+        isInitialized.value = true;
+      }).catchError((e) {
+        print('Sync: Background pull failed: $e');
+        errorNotifier.value = 'Datenabgleich fehlgeschlagen. Bitte Seite neu laden.';
+      });
 
-    // Setup Realtime listener
-    _setupRealtime();
+      _setupRealtime();
+      
+    } catch (e) {
+      print('Sync CRITICAL ERROR during init: $e');
+      errorNotifier.value = 'Datenbank konnte nicht gestartet werden: $e';
+    }
   }
 
   Future<void> pullFromSupabase() async {
@@ -42,7 +49,6 @@ class SyncService {
 
       print('Sync: Received ${entries.length} slots from Supabase');
 
-      // Update local Drift DB (Insert or Replace)
       await db.batch((batch) {
         batch.insertAll(
           db.wardrobeSlots, 
@@ -51,14 +57,18 @@ class SyncService {
         );
       });
       
-      // Update Notifier
       final slots = await db.select(db.wardrobeSlots).get();
       slotsNotifier.value = slots;
       
-      print('Sync: Local Drift cache updated with ${slots.length} slots');
+      print('Sync: Local cache updated');
     } catch (e) {
       print('Sync Error (Pull): $e');
-      errorNotifier.value = 'Fehler beim Laden: $e';
+      if (e.toString().contains('NoModificationAllowedError')) {
+        errorNotifier.value = 'Datenbank-Sperre erkannt. Bitte alle anderen Tabs dieser App schließen.';
+      } else {
+        errorNotifier.value = 'Fehler beim Laden: $e';
+      }
+      rethrow;
     }
   }
 
@@ -77,16 +87,13 @@ class SyncService {
                 final entry = db.companionFromJson(payload.newRecord);
                 await db.into(db.wardrobeSlots).insertOnConflictUpdate(entry);
                 
-                // Refresh full list for notifier
                 final slots = await db.select(db.wardrobeSlots).get();
                 slotsNotifier.value = slots;
-                print('Sync: Realtime update applied and UI notified');
               }
             },
           )
           .subscribe((status, [error]) {
             print('Sync: Realtime Status changed to: $status');
-            if (error != null) print('Sync Realtime Error Detail: $error');
           });
     } catch (e) {
       print('Sync Error (Realtime Setup): $e');
@@ -96,14 +103,11 @@ class SyncService {
   Future<void> updateSlot(WardrobeSlot slot) async {
     print('Sync: Updating Slot ${slot.id}...');
     
-    // 1. Update locally in Drift
     await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
     
-    // Update notifier value to trigger UI
     final slots = await db.select(db.wardrobeSlots).get();
     slotsNotifier.value = slots;
 
-    // 2. Update Supabase
     try {
       await supabase
           .from('checket_garderobe')

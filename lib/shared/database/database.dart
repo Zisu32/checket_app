@@ -21,14 +21,14 @@ class WardrobeSlots extends Table {
 
 @DriftDatabase(tables: [WardrobeSlots])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase({String name = 'checket_db'}) : super(_openConnection(name));
 
   @override
   int get schemaVersion => 1;
 
-  static QueryExecutor _openConnection() {
+  static QueryExecutor _openConnection(String name) {
     return driftDatabase(
-      name: 'checket_db',
+      name: name,
       web: DriftWebOptions(
         sqlite3Wasm: Uri.parse('sqlite3.wasm'),
         driftWorker: Uri.parse('drift_worker.js'),

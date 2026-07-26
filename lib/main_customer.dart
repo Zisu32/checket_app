@@ -17,8 +17,8 @@ void main() async {
     anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_pfzZGNSHyrnIZ-tfdrGvfw_50HpC1U2'),
   );
 
-  // Initialize Sync Service (Drift & Supabase)
-  await SyncService().init();
+  // Initialize Sync Service (Drift & Supabase) with unique name
+  await SyncService().init(dbName: 'checket_customer_db');
 
   runApp(const ChecketCustomerWebApp());
 }

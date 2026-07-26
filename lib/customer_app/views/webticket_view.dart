@@ -81,7 +81,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
               statusIcon = Icons.sync;
               statusText = _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...';
             } else {
-              if (slot!.status == 'unpaid') { 
+              if (slot.status == 'unpaid') { 
                 statusFarbe = Colors.redAccent; 
                 statusIcon = Icons.credit_card_off_outlined; 
                 statusText = 'Zahlung ausstehend'; 
@@ -142,9 +142,9 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
                           ],
                         ),
 
-                      if (!isLoading && slot!.status == 'active' && !_hatBerechtigungGefragt) _bauePushPrompt(),
+                      if (!isLoading && slot.status == 'active' && !_hatBerechtigungGefragt) _bauePushPrompt(),
                       
-                      if (!isLoading && slot!.status == 'unpaid') 
+                      if (!isLoading && slot.status == 'unpaid') 
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white, 
