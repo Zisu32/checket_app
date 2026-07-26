@@ -20,101 +20,141 @@ class SyncService {
     try {
       db = AppDatabase(name: dbName);
       
-      // Perform initial pull in background
-      pullFromSupabase().then((_) {
-        print('Sync: Initial background pull completed');
+      // Perform initial pulls in background
+      Future.wait([
+        pullFromSupabase(),
+        pullLostItemsFromSupabase(),
+      ]).then((_) {
+        print('Sync: Initial background pulls completed');
         isInitialized.value = true;
       }).catchError((e) {
         print('Sync: Background pull failed: $e');
-        errorNotifier.value = 'Datenabgleich fehlgeschlagen. Bitte Seite neu laden.';
+        errorNotifier.value = 'Datenabgleich fehlgeschlagen.';
       });
 
       _setupRealtime();
+      _setupLostFoundRealtime();
       
     } catch (e) {
       print('Sync CRITICAL ERROR during init: $e');
-      errorNotifier.value = 'Datenbank konnte nicht gestartet werden: $e';
+      errorNotifier.value = 'Datenbank-Fehler: $e';
     }
   }
 
   Future<void> pullFromSupabase() async {
-    print('Sync: Fetching data from Supabase...');
+    print('Sync: Fetching Garderobe data...');
     try {
-      final data = await supabase
-          .from('checket_garderobe')
-          .select()
-          .order('id', ascending: true);
-
+      final data = await supabase.from('checket_garderobe').select().order('id', ascending: true);
       final entries = (data as List).map((json) => db.companionFromJson(json)).toList();
 
-      print('Sync: Received ${entries.length} slots from Supabase');
-
       await db.batch((batch) {
-        batch.insertAll(
-          db.wardrobeSlots, 
-          entries, 
-          mode: InsertMode.insertOrReplace
-        );
+        batch.insertAll(db.wardrobeSlots, entries, mode: InsertMode.insertOrReplace);
       });
       
       final slots = await db.select(db.wardrobeSlots).get();
       slotsNotifier.value = slots;
-      
-      print('Sync: Local cache updated');
+      print('Sync: Garderobe cache updated');
     } catch (e) {
-      print('Sync Error (Pull): $e');
+      print('Sync Error (Pull Garderobe): $e');
       if (e.toString().contains('NoModificationAllowedError')) {
-        errorNotifier.value = 'Datenbank-Sperre erkannt. Bitte alle anderen Tabs dieser App schließen.';
-      } else {
-        errorNotifier.value = 'Fehler beim Laden: $e';
+        errorNotifier.value = 'Datenbank-Sperre erkannt. Bitte andere Tabs schließen.';
       }
       rethrow;
     }
   }
 
-  void _setupRealtime() {
-    print('Sync: Setting up Realtime listeners...');
+  Future<void> pullLostItemsFromSupabase() async {
+    print('Sync: Fetching Lost & Found data...');
     try {
-      supabase
-          .channel('public:checket_garderobe')
-          .onPostgresChanges(
-            event: PostgresChangeEvent.all,
-            schema: 'public',
-            table: 'checket_garderobe',
-            callback: (payload) async {
-              print('Sync: Realtime change detected');
-              if (payload.newRecord.isNotEmpty) {
-                final entry = db.companionFromJson(payload.newRecord);
-                await db.into(db.wardrobeSlots).insertOnConflictUpdate(entry);
-                
-                final slots = await db.select(db.wardrobeSlots).get();
-                slotsNotifier.value = slots;
-              }
-            },
-          )
-          .subscribe((status, [error]) {
-            print('Sync: Realtime Status changed to: $status');
-          });
+      final data = await supabase.from('checket_lost_found').select().eq('is_handed_over', false);
+      final entries = (data as List).map((json) => db.lostItemCompanionFromJson(json)).toList();
+
+      await db.batch((batch) {
+        batch.insertAll(db.lostItems, entries, mode: InsertMode.insertOrReplace);
+      });
+      print('Sync: Lost & Found cache updated');
     } catch (e) {
-      print('Sync Error (Realtime Setup): $e');
+      print('Sync Error (Pull Lost): $e');
+    }
+  }
+
+  void _setupRealtime() {
+    supabase.channel('public:checket_garderobe').onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'checket_garderobe',
+      callback: (payload) async {
+        print('Sync: Realtime change in Garderobe');
+        await pullFromSupabase();
+      },
+    ).subscribe();
+  }
+
+  void _setupLostFoundRealtime() {
+    supabase.channel('public:checket_lost_found').onPostgresChanges(
+      event: PostgresChangeEvent.all,
+      schema: 'public',
+      table: 'checket_lost_found',
+      callback: (payload) async {
+        print('Sync: Realtime change in Lost & Found');
+        await pullLostItemsFromSupabase();
+      },
+    ).subscribe();
+  }
+
+  Future<void> archiveAndResetShift() async {
+    print('Sync: Starting Shift Reset...');
+    try {
+      // 1. Get occupied slots
+      final occupied = await (db.select(db.wardrobeSlots)..where((t) => t.status.isNotValue('free'))).get();
+      
+      if (occupied.isNotEmpty) {
+        // 2. Insert into Lost & Found Cloud
+        final lostEntries = occupied.map((s) => {
+          'original_slot_id': s.id,
+          'secret': s.secret,
+          'is_paid': s.isPaid,
+        }).toList();
+        
+        await supabase.from('checket_lost_found').insert(lostEntries);
+      }
+
+      // 3. Reset Cloud Garderobe
+      await supabase.from('checket_garderobe').update({
+        'status': 'free',
+        'is_paid': false,
+        'payment_method': 'none',
+        'secret': '',
+        'updated_at': DateTime.now().toIso8601String()
+      }).neq('status', 'free');
+
+      // 4. Local Update
+      await pullFromSupabase();
+      await pullLostItemsFromSupabase();
+      
+      print('Sync: Shift reset complete');
+    } catch (e) {
+      print('Sync Error (Reset): $e');
+      rethrow;
+    }
+  }
+
+  Future<void> handOverLostItem(LostItem item) async {
+    try {
+      await supabase.from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
+      await pullLostItemsFromSupabase();
+    } catch (e) {
+      print('Sync Error (Handover): $e');
     }
   }
 
   Future<void> updateSlot(WardrobeSlot slot) async {
-    print('Sync: Updating Slot ${slot.id}...');
-    
     await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
-    
     final slots = await db.select(db.wardrobeSlots).get();
     slotsNotifier.value = slots;
 
     try {
-      await supabase
-          .from('checket_garderobe')
-          .update(db.toJson(slot))
-          .eq('id', slot.id);
-          
-      print('Sync: Slot ${slot.id} updated successfully in Cloud');
+      await supabase.from('checket_garderobe').update(db.toJson(slot)).eq('id', slot.id);
     } catch (e) {
       print('Sync Error (Push): $e');
       await pullFromSupabase();
@@ -123,5 +163,9 @@ class SyncService {
 
   Stream<List<WardrobeSlot>> watchSlots() {
     return (db.select(db.wardrobeSlots)..orderBy([(t) => OrderingTerm(expression: t.id)])).watch();
+  }
+
+  Stream<List<LostItem>> watchLostItems() {
+    return (db.select(db.lostItems)..where((t) => t.isHandedOver.equals(false))..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)])).watch();
   }
 }

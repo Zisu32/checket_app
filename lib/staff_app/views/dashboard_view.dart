@@ -13,6 +13,9 @@ class _StaffDashboardState extends State<StaffDashboard> {
   final _syncService = SyncService();
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
+  
+  int _currentPage = 0;
+  final int _itemsPerPage = 100;
 
   @override
   void initState() {
@@ -30,28 +33,81 @@ class _StaffDashboardState extends State<StaffDashboard> {
     super.dispose();
   }
 
-  void _schliesseGarderobeUndFeierabend(List<WardrobeSlot> slots) {
+  void _schichtBeendenDialog(List<WardrobeSlot> allSlots) {
+    final occupiedCount = allSlots.where((s) => s.status != 'free').length;
+    
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Garderobe schließen?'),
-        content: const Text('Alle noch belegten Bügel werden als "VERGESSEN" markiert. Kunden erhalten automatisch eine Push-Benachrichtigung.'),
+        title: const Text('Schicht beenden?'),
+        content: Text('Sollen die $occupiedCount belegten Bügel ins FUNDBÜRO verschoben und das Raster geleert werden?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Abbrechen')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade900),
             onPressed: () async {
-              for (var slot in slots) {
-                if (slot.status == 'active' || slot.status == 'temporary') {
-                  final updated = slot.copyWith(status: 'forgotten', updatedAt: DateTime.now());
-                  await _syncService.updateSlot(updated);
-                }
-              }
+              await _syncService.archiveAndResetShift();
               if (mounted) Navigator.pop(dialogContext);
             },
-            child: const Text('Ja, Feierabend!'),
+            child: const Text('Ja, Schicht beenden'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _zeigeFundbuero() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E1E1E),
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Digitales Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+              ],
+            ),
+            const Divider(height: 32),
+            Expanded(
+              child: StreamBuilder<List<LostItem>>(
+                stream: _syncService.watchLostItems(),
+                builder: (context, snapshot) {
+                  final items = snapshot.data ?? [];
+                  if (items.isEmpty) return const Center(child: Text('Keine Gegenstände im Fundbüro.', style: TextStyle(color: Colors.grey)));
+                  
+                  return ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return Card(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.blueGrey,
+                            child: Text('${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
+                          ),
+                          title: Text('Bügel ${item.originalSlotId}'),
+                          subtitle: Text('Vom: ${item.createdAt.day}.${item.createdAt.month}. ${item.createdAt.hour}:${item.createdAt.minute} Uhr'),
+                          trailing: ElevatedButton(
+                            onPressed: () => _syncService.handOverLostItem(item),
+                            child: const Text('Aushändigen'),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -61,9 +117,9 @@ class _StaffDashboardState extends State<StaffDashboard> {
     return StreamBuilder<List<WardrobeSlot>>(
       stream: _syncService.watchSlots(),
       builder: (context, snapshot) {
-        final slots = snapshot.data ?? [];
+        final allSlots = snapshot.data ?? [];
         
-        if (slots.isEmpty) {
+        if (allSlots.isEmpty) {
           return Scaffold(
             body: Center(
               child: Column(
@@ -85,28 +141,50 @@ class _StaffDashboardState extends State<StaffDashboard> {
           );
         }
 
+        final totalPages = (allSlots.length / _itemsPerPage).ceil();
+        final displaySlots = allSlots.skip(_currentPage * _itemsPerPage).take(_itemsPerPage).toList();
+
         return Scaffold(
           backgroundColor: const Color(0xFF121212),
           appBar: AppBar(
-            title: const Text('Checket - Garderoben-Manager'),
             backgroundColor: const Color(0xFF1E1E1E),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
+                ),
+                Text('Seite ${_currentPage + 1} / $totalPages'),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: _currentPage < totalPages - 1 ? () => setState(() => _currentPage++) : null,
+                ),
+              ],
+            ),
+            centerTitle: true,
+            leading: IconButton(
+              icon: const Icon(Icons.inventory_2_outlined, color: Colors.blueAccent), 
+              onPressed: _zeigeFundbuero
+            ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.nightlight_round, color: Colors.orangeAccent), 
-                onPressed: () => _schliesseGarderobeUndFeierabend(slots)
+                onPressed: () => _schichtBeendenDialog(allSlots)
               )
             ],
           ),
           body: GridView.builder(
             padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5, 
-              crossAxisSpacing: 8, 
-              mainAxisSpacing: 8
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 40, 
+              mainAxisSpacing: 6, 
+              crossAxisSpacing: 6,
+              mainAxisExtent: 40,
             ),
-            itemCount: slots.length,
+            itemCount: displaySlots.length,
             itemBuilder: (context, index) {
-              final slot = slots[index];
+              final slot = displaySlots[index];
               Color kachelFarbe = const Color(0xFF2C2C2C);
               
               if (slot.status == 'unpaid') kachelFarbe = Colors.red.shade900;
@@ -117,8 +195,13 @@ class _StaffDashboardState extends State<StaffDashboard> {
               return InkWell(
                 onTap: () => _zeigeAktionen(context, slot),
                 child: Container(
-                  decoration: BoxDecoration(color: kachelFarbe, borderRadius: BorderRadius.circular(12)),
-                  child: Center(child: Text('${slot.id}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                  decoration: BoxDecoration(color: kachelFarbe, borderRadius: BorderRadius.circular(8)),
+                  child: Center(
+                    child: Text(
+                      '${slot.id}', 
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                    )
+                  ),
                 ),
               );
             },
@@ -200,17 +283,6 @@ class _StaffDashboardState extends State<StaffDashboard> {
                   title: const Text('Wieder zurück'), 
                   onTap: () async { 
                     final updated = slot.copyWith(status: 'active', updatedAt: DateTime.now());
-                    await _syncService.updateSlot(updated);
-                    if (mounted) Navigator.pop(modalContext); 
-                  }
-                ),
-                
-              if (slot.status == 'forgotten') 
-                ListTile(
-                  leading: const Icon(Icons.assignment_turned_in, color: Colors.teal), 
-                  title: const Text('Aus Fundbüro übergeben'), 
-                  onTap: () async { 
-                    final updated = slot.copyWith(status: 'free', isPaid: false, updatedAt: DateTime.now());
                     await _syncService.updateSlot(updated);
                     if (mounted) Navigator.pop(modalContext); 
                   }

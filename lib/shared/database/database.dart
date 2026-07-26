@@ -19,7 +19,23 @@ class WardrobeSlots extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [WardrobeSlots])
+@DataClassName('LostItem')
+class LostItems extends Table {
+  @override
+  String get tableName => 'checket_lost_found';
+
+  TextColumn get id => text()(); // UUID from Supabase
+  IntColumn get originalSlotId => integer()();
+  TextColumn get secret => text()();
+  BoolColumn get isPaid => boolean()();
+  DateTimeColumn get createdAt => dateTime()();
+  BoolColumn get isHandedOver => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DriftDatabase(tables: [WardrobeSlots, LostItems])
 class AppDatabase extends _$AppDatabase {
   AppDatabase({String name = 'checket_db'}) : super(_openConnection(name));
 
@@ -36,9 +52,9 @@ class AppDatabase extends _$AppDatabase {
     );
   }
   
-  // Helper to convert Supabase JSON to Drift Companion
+  // Helpers for WardrobeSlot
   WardrobeSlotsCompanion companionFromJson(Map<String, dynamic> json) {
-    return WardrobeSlotsCompanion.insert(
+    return WardrobeSlotsCompanion(
       id: Value(json['id'] as int),
       status: Value(json['status'] as String? ?? 'free'),
       isPaid: Value(json['is_paid'] as bool? ?? false),
@@ -48,7 +64,6 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  // Helper to convert Drift Data Class to Supabase JSON
   Map<String, dynamic> toJson(WardrobeSlot entry) {
     return {
       'id': entry.id,
@@ -57,6 +72,29 @@ class AppDatabase extends _$AppDatabase {
       'payment_method': entry.paymentMethod,
       'secret': entry.secret,
       'updated_at': entry.updatedAt.toIso8601String(),
+    };
+  }
+
+  // Helpers for LostItem
+  LostItemsCompanion lostItemCompanionFromJson(Map<String, dynamic> json) {
+    return LostItemsCompanion(
+      id: Value(json['id'] as String),
+      originalSlotId: Value(json['original_slot_id'] as int),
+      secret: Value(json['secret'] as String? ?? ''),
+      isPaid: Value(json['is_paid'] as bool? ?? false),
+      createdAt: Value(DateTime.parse(json['created_at'] as String)),
+      isHandedOver: Value(json['is_handed_over'] as bool? ?? false),
+    );
+  }
+
+  Map<String, dynamic> lostItemToJson(LostItem entry) {
+    return {
+      'id': entry.id,
+      'original_slot_id': entry.originalSlotId,
+      'secret': entry.secret,
+      'is_paid': entry.isPaid,
+      'created_at': entry.createdAt.toIso8601String(),
+      'is_handed_over': entry.isHandedOver,
     };
   }
 }
