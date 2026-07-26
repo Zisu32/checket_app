@@ -20,11 +20,14 @@ class CustomerWebTicketView extends StatefulWidget {
   State<CustomerWebTicketView> createState() => _CustomerWebTicketViewState();
 }
 
-class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
+class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with SingleTickerProviderStateMixin {
   bool _hatBerechtigungGefragt = false;
   final _syncService = SyncService();
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
+  
+  late AnimationController _animationController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -40,11 +43,21 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
         setState(() => _showTimeoutMessage = true);
       }
     });
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+    
+    _pulseAnimation = Tween<double>(begin: 0.1, end: 0.5).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void dispose() {
     _timeoutTimer?.cancel();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -109,30 +122,63 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('CHECKET - DIGITAL TICKET', style: TextStyle(color: Colors.grey, letterSpacing: 2, fontWeight: FontWeight.bold)),
-                      Container(
-                        width: double.infinity, 
-                        padding: const EdgeInsets.all(32),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1A1A1A), 
-                          borderRadius: BorderRadius.circular(24), 
-                          border: Border.all(color: statusFarbe.withValues(alpha: 0.3), width: 2)
-                        ),
-                        child: Column(
-                          children: [
-                            if (isLoading)
-                              const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: CircularProgressIndicator(color: Colors.white24),
-                              )
-                            else
-                              Icon(statusIcon, color: statusFarbe, size: 64),
-                            const SizedBox(height: 16),
-                            Text(statusText, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                            const SizedBox(height: 24),
-                            Text('${widget.ticketId}', style: TextStyle(fontSize: 110, fontWeight: FontWeight.w900, color: statusFarbe, height: 1)),
-                          ],
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AnimatedBuilder(
+                            animation: _pulseAnimation,
+                            builder: (context, child) {
+                              return Container(
+                                width: 8, height: 8,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.red.withValues(alpha: _pulseAnimation.value * 2),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          const Text('LIVE TICKET', style: TextStyle(color: Colors.grey, letterSpacing: 2, fontWeight: FontWeight.bold, fontSize: 12)),
+                        ],
+                      ),
+                      AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Container(
+                            width: double.infinity, 
+                            padding: const EdgeInsets.all(32),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1A1A1A), 
+                              borderRadius: BorderRadius.circular(24), 
+                              border: Border.all(
+                                color: statusFarbe.withValues(alpha: _pulseAnimation.value), 
+                                width: 3
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: statusFarbe.withValues(alpha: _pulseAnimation.value * 0.5),
+                                  blurRadius: 15 * _pulseAnimation.value,
+                                  spreadRadius: 2 * _pulseAnimation.value,
+                                )
+                              ]
+                            ),
+                            child: Column(
+                              children: [
+                                if (isLoading)
+                                  const Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: CircularProgressIndicator(color: Colors.white24),
+                                  )
+                                else
+                                  Icon(statusIcon, color: statusFarbe, size: 64),
+                                const SizedBox(height: 16),
+                                Text(statusText, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                                const SizedBox(height: 24),
+                                Text('${widget.ticketId}', style: TextStyle(fontSize: 110, fontWeight: FontWeight.w900, color: statusFarbe, height: 1)),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                       
                       if (error != null)
@@ -155,9 +201,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
                             foregroundColor: Colors.black, 
                             minimumSize: const Size(double.infinity, 50)
                           ), 
-                          onPressed: () {
-                            // Stripe call will be implemented here
-                          }, 
+                          onPressed: () {}, 
                           child: const Text('Jetzt bezahlen')
                         )
                       else if (!isLoading && slot.status != 'free') Column(children: [
