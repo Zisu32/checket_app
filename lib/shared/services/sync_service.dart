@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../database/database.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 
 class SyncService {
   static final SyncService _instance = SyncService._internal();
@@ -70,7 +71,6 @@ class SyncService {
       final entries = (data as List).map((json) => db.lostItemCompanionFromJson(json)).toList();
 
       await db.batch((batch) {
-        // Clear local Lost & Found first to ensure handed over items disappear
         batch.deleteWhere(db.lostItems, (t) => const Constant(true));
         batch.insertAll(db.lostItems, entries, mode: InsertMode.insertOrReplace);
       });
@@ -139,10 +139,8 @@ class SyncService {
 
   Future<void> handOverLostItem(LostItem item) async {
     try {
-      // 1. Update Supabase
       await supabase.from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
       
-      // 2. Update Local DB immediately for instant UI feedback
       await (db.update(db.lostItems)..where((t) => t.id.equals(item.id)))
           .write(const LostItemsCompanion(isHandedOver: Value(true)));
           
@@ -174,5 +172,60 @@ class SyncService {
       ..where((t) => t.isHandedOver.equals(false))
       ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
       .watch();
+  }
+
+  /// New method for Customer App to track a specific ticket across both tables
+  Stream<WardrobeSlot?> watchTicket(int id, String secret) {
+    final controller = StreamController<WardrobeSlot?>();
+
+    Future<void> update() async {
+      if (controller.isClosed) return;
+
+      // 1. Check Active Wardrobe
+      final activeSlot = await (db.select(db.wardrobeSlots)
+            ..where((t) => t.id.equals(id) & t.secret.equals(secret)))
+          .getSingleOrNull();
+
+      if (activeSlot != null) {
+        controller.add(activeSlot);
+        return;
+      }
+
+      // 2. Check Lost & Found
+      final lostItem = await (db.select(db.lostItems)
+            ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret) & t.isHandedOver.equals(false)))
+          .getSingleOrNull();
+
+      if (lostItem != null) {
+        controller.add(WardrobeSlot(
+          id: lostItem.originalSlotId,
+          status: 'forgotten',
+          isPaid: lostItem.isPaid,
+          paymentMethod: 'none',
+          secret: lostItem.secret,
+          updatedAt: lostItem.createdAt,
+        ));
+        return;
+      }
+
+      // 3. Fallback: Show the slot as free if it's not occupied by this ticket
+      final plainSlot = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
+      controller.add(plainSlot);
+    }
+
+    // Listen to both tables
+    final sub1 = db.wardrobeSlots.all().watch().listen((_) => update());
+    final sub2 = db.lostItems.all().watch().listen((_) => update());
+    
+    // Initial update
+    update();
+
+    controller.onCancel = () {
+      sub1.cancel();
+      sub2.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
   }
 }

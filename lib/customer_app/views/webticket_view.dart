@@ -71,28 +71,24 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
     return ValueListenableBuilder<String?>(
       valueListenable: _syncService.errorNotifier,
       builder: (context, error, _) {
-        return StreamBuilder<List<WardrobeSlot>>(
-          stream: _syncService.watchSlots(),
+        return StreamBuilder<WardrobeSlot?>(
+          stream: _syncService.watchTicket(widget.ticketId, widget.secret),
           builder: (context, snapshot) {
-            final slots = snapshot.data ?? [];
+            final slot = snapshot.data;
             
-            // Try to find the specific slot
-            WardrobeSlot? slot;
-            try {
-              slot = slots.firstWhere((s) => s.id == widget.ticketId);
-            } catch (_) {
-              slot = null;
-            }
-
             Color statusFarbe = Colors.greenAccent; 
             IconData statusIcon = Icons.verified_user_outlined; 
             String statusText = 'Garderoben-Platz aktiv';
-            bool isLoading = slots.isEmpty || slot == null;
+            bool isSearching = !snapshot.hasData;
 
-            if (isLoading) {
+            if (isSearching) {
               statusFarbe = Colors.white24;
               statusIcon = Icons.sync;
               statusText = _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...';
+            } else if (slot == null) {
+              statusFarbe = Colors.redAccent;
+              statusIcon = Icons.error_outline;
+              statusText = 'Ticket ungültig';
             } else {
               if (slot.status == 'unpaid') { 
                 statusFarbe = Colors.redAccent; 
@@ -103,11 +99,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                 statusIcon = Icons.timer_outlined; 
                 statusText = 'Jacke temporär draußen'; 
               } else if (slot.status == 'forgotten') { 
-                statusFarbe = Colors.grey; 
+                statusFarbe = Colors.blueAccent; 
                 statusIcon = Icons.inventory_2_outlined; 
                 statusText = 'Jacke im Fundbüro'; 
               } else if (slot.status == 'free') {
-                statusFarbe = Colors.white24;
+                statusFarbe = Colors.grey;
                 statusIcon = Icons.check_circle_outline;
                 statusText = 'Bügel wieder frei';
               }
@@ -132,7 +128,9 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                                 width: 8, height: 8,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.red.withValues(alpha: _pulseAnimation.value * 2),
+                                  color: (isSearching || slot == null) 
+                                      ? Colors.grey 
+                                      : Colors.red.withValues(alpha: _pulseAnimation.value * 2),
                                 ),
                               );
                             },
@@ -164,7 +162,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                             ),
                             child: Column(
                               children: [
-                                if (isLoading)
+                                if (isSearching)
                                   const Padding(
                                     padding: EdgeInsets.all(16.0),
                                     child: CircularProgressIndicator(color: Colors.white24),
@@ -183,7 +181,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                       
                       if (error != null)
                         Text(error, style: const TextStyle(color: Colors.red, fontSize: 12), textAlign: TextAlign.center)
-                      else if (_showTimeoutMessage && isLoading)
+                      else if (_showTimeoutMessage && isSearching)
                         Column(
                           children: [
                             const Text('Das Ticket wurde noch nicht in der Datenbank gefunden.', 
@@ -192,19 +190,21 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                           ],
                         ),
 
-                      if (!isLoading && slot.status == 'active' && !_hatBerechtigungGefragt) _bauePushPrompt(),
+                      if (slot != null && slot.status == 'active' && !_hatBerechtigungGefragt) _bauePushPrompt(),
                       
-                      if (!isLoading && slot.status == 'unpaid') 
+                      if (slot != null && slot.status == 'unpaid') 
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white, 
                             foregroundColor: Colors.black, 
                             minimumSize: const Size(double.infinity, 50)
                           ), 
-                          onPressed: () {}, 
+                          onPressed: () {
+                            // Stripe logic...
+                          }, 
                           child: const Text('Jetzt bezahlen')
                         )
-                      else if (!isLoading && slot.status != 'free') Column(children: [
+                      else if (slot != null && slot.status != 'free' && slot.status != 'loading') Column(children: [
                         ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), 
                           icon: const Icon(Icons.add_to_home_screen), 
