@@ -43,11 +43,9 @@ class _StaffDashboardState extends State<StaffDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<WardrobeSlot>>(
-      stream: _syncService.watchSlots(),
-      builder: (context, snapshot) {
-        final slots = snapshot.data ?? [];
-        
+    return ValueListenableBuilder<List<WardrobeSlot>>(
+      valueListenable: _syncService.slotsNotifier,
+      builder: (context, slots, _) {
         return Scaffold(
           backgroundColor: const Color(0xFF121212),
           appBar: AppBar(

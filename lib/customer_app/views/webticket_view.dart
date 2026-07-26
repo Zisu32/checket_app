@@ -37,11 +37,10 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<WardrobeSlot>>(
-      stream: _syncService.watchSlots(),
-      builder: (context, snapshot) {
+    return ValueListenableBuilder<List<WardrobeSlot>>(
+      valueListenable: _syncService.slotsNotifier,
+      builder: (context, slots, _) {
         // Find the specific slot for this ticket
-        final slots = snapshot.data ?? [];
         final slot = slots.firstWhere(
           (s) => s.id == widget.ticketId, 
           orElse: () => WardrobeSlot(id: widget.ticketId, updatedAt: DateTime.now(), status: 'error')
@@ -66,7 +65,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
         } else if (slot.status == 'error') {
           statusFarbe = Colors.white24;
           statusIcon = Icons.error_outline;
-          statusText = 'Ticket ungültig';
+          statusText = 'Ticket lädt...'; // Better user feedback while syncing
         }
 
         return Scaffold(

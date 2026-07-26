@@ -86,4 +86,4 @@ Das Deployment erfolgt über GitHub-Action:
 *   **Produktion (Mitarbeiter):** `https://<dein-nutzer>.github.io/checket_app/staff/`
 *   **Produktion (Kunden):** `https://<dein-nutzer>.github.io/checket_app/`
 *   **Entwicklung (Mitarbeiter):** `https://<dein-nutzer>.github.io/checket_app/dev/staff/`
-*   **Entwicklung (Kunden):** `https://<dein-nutzer>.github.io/checket_app/dev/`
+*   **Entwicklung (Kunden):** `https://<dein-nutzer>.github.io/checket_app/dev/?id=5&secret=test`
