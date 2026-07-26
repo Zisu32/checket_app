@@ -40,7 +40,22 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase({String name = 'checket_db'}) : super(_openConnection(name));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => const int.fromEnvironment('DB_VERSION', defaultValue: 1);
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onUpgrade: (m, from, to) async {
+        // Destructive migration: Whenever the version changes, 
+        // we drop everything and recreate it to ensure the local 
+        // schema matches the current code perfectly.
+        for (final table in allTables) {
+          await m.deleteTable(table.actualTableName);
+        }
+        await m.createAll();
+      },
+    );
+  }
 
   static QueryExecutor _openConnection(String name) {
     return driftDatabase(

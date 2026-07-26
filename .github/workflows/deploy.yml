@@ -34,6 +34,7 @@ jobs:
 
       - name: Set Environment Variables
         run: |
+          echo "DB_VERSION=$(date +%s)" >> $GITHUB_ENV
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "URL=${{ secrets.SUPABASE_URL_PROD }}" >> $GITHUB_ENV
             echo "KEY=${{ secrets.SUPABASE_ANON_KEY_PROD }}" >> $GITHUB_ENV
@@ -54,7 +55,8 @@ jobs:
             --no-source-maps \
             --wasm \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
-            --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}"
+            --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \
+            --dart-define=DB_VERSION="${{ env.DB_VERSION }}"
           
           mkdir -p deploy_out/${{ env.TARGET_FOLDER }}
           cp -r build/web/* deploy_out/${{ env.TARGET_FOLDER }}/
@@ -70,7 +72,8 @@ jobs:
             --no-source-maps \
             --wasm \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
-            --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}"
+            --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \
+            --dart-define=DB_VERSION="${{ env.DB_VERSION }}"
           
           mkdir -p deploy_out/${{ env.TARGET_FOLDER }}/staff
           cp -r build/web/* deploy_out/${{ env.TARGET_FOLDER }}/staff/
