@@ -70,6 +70,8 @@ class SyncService {
       final entries = (data as List).map((json) => db.lostItemCompanionFromJson(json)).toList();
 
       await db.batch((batch) {
+        // Clear local Lost & Found first to ensure handed over items disappear
+        batch.deleteWhere(db.lostItems, (t) => const Constant(true));
         batch.insertAll(db.lostItems, entries, mode: InsertMode.insertOrReplace);
       });
       print('Sync: Lost & Found cache updated');
@@ -105,11 +107,9 @@ class SyncService {
   Future<void> archiveAndResetShift() async {
     print('Sync: Starting Shift Reset...');
     try {
-      // 1. Get occupied slots
       final occupied = await (db.select(db.wardrobeSlots)..where((t) => t.status.isNotValue('free'))).get();
       
       if (occupied.isNotEmpty) {
-        // 2. Insert into Lost & Found Cloud
         final lostEntries = occupied.map((s) => {
           'original_slot_id': s.id,
           'secret': s.secret,
@@ -119,7 +119,6 @@ class SyncService {
         await supabase.from('checket_lost_found').insert(lostEntries);
       }
 
-      // 3. Reset Cloud Garderobe
       await supabase.from('checket_garderobe').update({
         'status': 'free',
         'is_paid': false,
@@ -128,7 +127,6 @@ class SyncService {
         'updated_at': DateTime.now().toIso8601String()
       }).neq('status', 'free');
 
-      // 4. Local Update
       await pullFromSupabase();
       await pullLostItemsFromSupabase();
       
@@ -141,8 +139,14 @@ class SyncService {
 
   Future<void> handOverLostItem(LostItem item) async {
     try {
+      // 1. Update Supabase
       await supabase.from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
-      await pullLostItemsFromSupabase();
+      
+      // 2. Update Local DB immediately for instant UI feedback
+      await (db.update(db.lostItems)..where((t) => t.id.equals(item.id)))
+          .write(const LostItemsCompanion(isHandedOver: Value(true)));
+          
+      print('Sync: Lost item handed over');
     } catch (e) {
       print('Sync Error (Handover): $e');
     }
@@ -166,6 +170,9 @@ class SyncService {
   }
 
   Stream<List<LostItem>> watchLostItems() {
-    return (db.select(db.lostItems)..where((t) => t.isHandedOver.equals(false))..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)])).watch();
+    return (db.select(db.lostItems)
+      ..where((t) => t.isHandedOver.equals(false))
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
+      .watch();
   }
 }

@@ -93,6 +93,10 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
                 statusFarbe = Colors.grey; 
                 statusIcon = Icons.inventory_2_outlined; 
                 statusText = 'Jacke im Fundbüro'; 
+              } else if (slot.status == 'free') {
+                statusFarbe = Colors.white24;
+                statusIcon = Icons.check_circle_outline;
+                statusText = 'Bügel wieder frei';
               }
             }
 
@@ -151,10 +155,12 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> {
                             foregroundColor: Colors.black, 
                             minimumSize: const Size(double.infinity, 50)
                           ), 
-                          onPressed: () {}, 
+                          onPressed: () {
+                            // Stripe call will be implemented here
+                          }, 
                           child: const Text('Jetzt bezahlen')
                         )
-                      else if (!isLoading) Column(children: [
+                      else if (!isLoading && slot.status != 'free') Column(children: [
                         ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 44)), 
                           icon: const Icon(Icons.add_to_home_screen), 
