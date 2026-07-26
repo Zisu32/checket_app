@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../shared/models/wardrobe_slot.dart';
 import '../../shared/services/sync_service.dart';
@@ -10,6 +11,25 @@ class StaffDashboard extends StatefulWidget {
 
 class _StaffDashboardState extends State<StaffDashboard> {
   final _syncService = SyncService();
+  bool _showTimeoutMessage = false;
+  Timer? _timeoutTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start timer to show a message if nothing loads after 10 seconds
+    _timeoutTimer = Timer(const Duration(seconds: 10), () {
+      if (mounted && _syncService.slotsNotifier.value.isEmpty) {
+        setState(() => _showTimeoutMessage = true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timeoutTimer?.cancel();
+    super.dispose();
+  }
 
   void _schliesseGarderobeUndFeierabend(List<WardrobeSlot> slots) {
     showDialog(
@@ -43,24 +63,68 @@ class _StaffDashboardState extends State<StaffDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<List<WardrobeSlot>>(
-      valueListenable: _syncService.slotsNotifier,
-      builder: (context, slots, _) {
-        return Scaffold(
-          backgroundColor: const Color(0xFF121212),
-          appBar: AppBar(
-            title: const Text('Checket - Garderoben-Manager'),
-            backgroundColor: const Color(0xFF1E1E1E),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.nightlight_round, color: Colors.orangeAccent), 
-                onPressed: () => _schliesseGarderobeUndFeierabend(slots)
-              )
-            ],
-          ),
-          body: slots.isEmpty 
-            ? const Center(child: CircularProgressIndicator())
-            : GridView.builder(
+    return ValueListenableBuilder<String?>(
+      valueListenable: _syncService.errorNotifier,
+      builder: (context, error, _) {
+        if (error != null) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 64),
+                  const SizedBox(height: 16),
+                  Text(error, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => _syncService.pullFromSupabase(),
+                    child: const Text('Erneut versuchen'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return ValueListenableBuilder<List<WardrobeSlot>>(
+          valueListenable: _syncService.slotsNotifier,
+          builder: (context, slots, _) {
+            if (slots.isEmpty) {
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      if (_showTimeoutMessage) ...[
+                        const SizedBox(height: 24),
+                        const Text('Die Verbindung dauert länger als gewöhnlich...', textAlign: TextAlign.center),
+                        const SizedBox(height: 8),
+                        const Text('Prüfe deine Internetverbindung oder ob Supabase online ist.', style: TextStyle(color: Colors.grey)),
+                        TextButton(
+                          onPressed: () => _syncService.pullFromSupabase(),
+                          child: const Text('Manueller Reload'),
+                        ),
+                      ]
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return Scaffold(
+              backgroundColor: const Color(0xFF121212),
+              appBar: AppBar(
+                title: const Text('Checket - Garderoben-Manager'),
+                backgroundColor: const Color(0xFF1E1E1E),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.nightlight_round, color: Colors.orangeAccent), 
+                    onPressed: () => _schliesseGarderobeUndFeierabend(slots)
+                  )
+                ],
+              ),
+              body: GridView.builder(
                 padding: const EdgeInsets.all(12),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 5, 
@@ -86,6 +150,8 @@ class _StaffDashboardState extends State<StaffDashboard> {
                   );
                 },
               ),
+            );
+          },
         );
       }
     );
