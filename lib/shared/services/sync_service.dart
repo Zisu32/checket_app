@@ -12,7 +12,12 @@ class SyncService {
   final supabase = Supabase.instance.client;
 
   Future<void> init() async {
-    // Initialize Isar
+    // 1. Manually initialize Isar for the Web (Required for dev.14)
+    if (kIsWeb) {
+      await Isar.initialize();
+    }
+
+    // 2. Initialize Isar Instance
     // In Isar 4.0.0-dev.14, Isar.open is synchronous!
     isar = Isar.open(
       schemas: [WardrobeSlotSchema],

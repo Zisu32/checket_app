@@ -43,6 +43,8 @@ jobs:
           flutter build web --release \
             -t lib/main_customer.dart \
             --base-href "${{ env.BASE_HREF }}" \
+            --no-source-maps \
+            --web-renderer canvaskit \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}"
           
@@ -57,6 +59,8 @@ jobs:
           flutter build web --release \
             -t lib/main_staff.dart \
             --base-href "$STAFF_BASE_HREF" \
+            --no-source-maps \
+            --web-renderer canvaskit \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}"
           
