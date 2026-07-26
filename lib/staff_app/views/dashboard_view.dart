@@ -148,30 +148,69 @@ class _StaffDashboardState extends State<StaffDashboard> {
           backgroundColor: const Color(0xFF121212),
           appBar: AppBar(
             backgroundColor: const Color(0xFF1E1E1E),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
-                ),
-                Text('Seite ${_currentPage + 1} / $totalPages'),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  onPressed: _currentPage < totalPages - 1 ? () => setState(() => _currentPage++) : null,
-                ),
-              ],
+            toolbarHeight: 70, // Slightly taller for buttons
+            title: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton.filledTonal(
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.chevron_left, size: 20),
+                    onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Seite ${_currentPage + 1} / $totalPages',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.chevron_right, size: 20),
+                    onPressed: _currentPage < totalPages - 1 ? () => setState(() => _currentPage++) : null,
+                  ),
+                ],
+              ),
             ),
             centerTitle: true,
-            leading: IconButton(
-              icon: const Icon(Icons.inventory_2_outlined, color: Colors.blueAccent), 
-              onPressed: _zeigeFundbuero
+            leadingWidth: 140,
+            leading: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent.withValues(alpha: 0.2),
+                  foregroundColor: Colors.blueAccent,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.inventory_2_outlined, size: 18),
+                label: const Text('Fundbüro', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                onPressed: _zeigeFundbuero,
+              ),
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.nightlight_round, color: Colors.orangeAccent), 
-                onPressed: () => _schichtBeendenDialog(allSlots)
-              )
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent.withValues(alpha: 0.2),
+                    foregroundColor: Colors.orangeAccent,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.nightlight_round, size: 18),
+                  label: const Text('Schichtwechsel', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  onPressed: () => _schichtBeendenDialog(allSlots),
+                ),
+              ),
             ],
           ),
           body: GridView.builder(

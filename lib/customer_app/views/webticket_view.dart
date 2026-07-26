@@ -46,10 +46,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
     
-    _pulseAnimation = Tween<double>(begin: 0.1, end: 0.5).animate(
+    // Increased range for more visible pulsing
+    _pulseAnimation = Tween<double>(begin: 0.2, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
   }
@@ -125,18 +126,26 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                             animation: _pulseAnimation,
                             builder: (context, child) {
                               return Container(
-                                width: 8, height: 8,
+                                width: 10, height: 10,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: (isSearching || slot == null) 
                                       ? Colors.grey 
-                                      : Colors.red.withValues(alpha: _pulseAnimation.value * 2),
+                                      : Colors.red.withValues(alpha: _pulseAnimation.value),
+                                  boxShadow: [
+                                    if (!isSearching && slot != null)
+                                      BoxShadow(
+                                        color: Colors.red.withValues(alpha: _pulseAnimation.value * 0.5),
+                                        blurRadius: 8,
+                                        spreadRadius: 2 * _pulseAnimation.value,
+                                      )
+                                  ]
                                 ),
                               );
                             },
                           ),
-                          const SizedBox(width: 8),
-                          const Text('LIVE TICKET', style: TextStyle(color: Colors.grey, letterSpacing: 2, fontWeight: FontWeight.bold, fontSize: 12)),
+                          const SizedBox(width: 10),
+                          const Text('LIVE TICKET', style: TextStyle(color: Colors.grey, letterSpacing: 2, fontWeight: FontWeight.bold, fontSize: 13)),
                         ],
                       ),
                       AnimatedBuilder(
@@ -148,15 +157,16 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                             decoration: BoxDecoration(
                               color: const Color(0xFF1A1A1A), 
                               borderRadius: BorderRadius.circular(24), 
+                              // Thicker border as requested
                               border: Border.all(
                                 color: statusFarbe.withValues(alpha: _pulseAnimation.value), 
-                                width: 3
+                                width: 5.0
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: statusFarbe.withValues(alpha: _pulseAnimation.value * 0.5),
-                                  blurRadius: 15 * _pulseAnimation.value,
-                                  spreadRadius: 2 * _pulseAnimation.value,
+                                  color: statusFarbe.withValues(alpha: _pulseAnimation.value * 0.4),
+                                  blurRadius: 25 * _pulseAnimation.value,
+                                  spreadRadius: 4 * _pulseAnimation.value,
                                 )
                               ]
                             ),
