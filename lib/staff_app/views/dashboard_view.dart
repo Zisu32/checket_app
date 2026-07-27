@@ -71,6 +71,29 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   }
 
   void _schichtBeendenDialog(List<WardrobeSlot> allSlots) {
+    final unpaidCount = allSlots.where((s) => s.status == 'unpaid').length;
+    
+    if (unpaidCount > 0) {
+      showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: BrandColors.surface,
+          title: const Text('Schichtwechsel nicht möglich', style: TextStyle(color: Colors.white)),
+          content: const Text(
+            'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht geschlossen werden kann.',
+            style: TextStyle(color: Colors.white70)
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Okay', style: TextStyle(color: Colors.white))
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     final occupiedCount = allSlots.where((s) => s.status != 'free').length;
     
     showDialog(
