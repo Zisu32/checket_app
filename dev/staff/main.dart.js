@@ -44123,10 +44123,10 @@ $0(){A.f7(this.a,!1).iz(null)
 return null},
 $S:0}
 A.arZ.prototype={
-$1(a){return a.b!=="free"},
+$1(a){return a.b==="active"},
 $S:90}
 A.as_.prototype={
-$1(a){var s=null,r=A.nD("Sollen die "+this.b+" belegten B\xfcgel ins FUNDB\xdcRO verschoben und das Raster geleert werden?",B.kI,s)
+$1(a){var s=null,r=A.nD("Sollen die "+this.b+" Jacken ins FUNDB\xdcRO verschoben und das gesamte Raster geleert werden?",B.kI,s)
 return A.aAJ(A.c([A.aEf(B.VQ,new A.arU(a)),A.awN(B.VK,new A.arV(this.a,a),A.z2(s,s,B.dG,s,s,s,s,s,s,B.i,s,s,s,s,s,s,s,s,s,s))],t.E),B.c4,r,B.VP)},
 $S:143}
 A.arU.prototype={
@@ -44735,7 +44735,7 @@ var $async$ff=A.u(function(b,c){if(b===1)return A.p(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.qL(new A.mr(1785157128,p.b),t.hU).aJ(new A.aqy(),t.y):o
+q=o==null?p.d=n.a.qL(new A.mr(1785158403,p.b),t.hU).aJ(new A.aqy(),t.y):o
 s=1
 break
 case 1:return A.q(q,r)}})
@@ -45745,7 +45745,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.aad?2:4
 break
-case 2:p=1785157128
+case 2:p=1785158403
 s=3
 break
 case 4:s=n instanceof A.Gp?5:7
@@ -45758,10 +45758,10 @@ break
 case 7:throw A.e(A.cL("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.l(a.T5(new A.QF(q,new A.py()),new A.AS(p,1785157128)),$async$p9)
-case 9:s=n instanceof A.Gp&&p!==1785157128?10:11
+return A.l(a.T5(new A.QF(q,new A.py()),new A.AS(p,1785158403)),$async$p9)
+case 9:s=n instanceof A.Gp&&p!==1785158403?10:11
 break
-case 10:n.a.UG("PRAGMA user_version = 1785157128;")
+case 10:n.a.UG("PRAGMA user_version = 1785158403;")
 s=12
 return A.l(A.cU(null,t.H),$async$p9)
 case 12:case 11:return A.q(null,r)}})
