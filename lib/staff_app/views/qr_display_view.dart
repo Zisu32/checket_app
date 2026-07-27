@@ -30,59 +30,68 @@ class QrDisplayView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: BrandColors.background,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(50),
+        child: AppBar(
+          backgroundColor: BrandColors.header,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          centerTitle: true,
+          title: Image.asset(
+            'assets/images/full-icon.png', 
+            height: 28, 
+          ),
+        ),
+      ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(40.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/images/full-icon.png',
-                height: 80,
-                errorBuilder: (_, __, ___) => const Icon(Icons.checkroom, color: Colors.white, size: 80),
-              ),
-              const SizedBox(height: 40),
-              Text(
-                isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET #$ticketId',
-                style: const TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: 2,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET #$ticketId',
+                  style: const TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                isRecovery ? 'BITTE BASIS-URL SCANNEN' : 'BITTE SCANNEN',
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: Colors.white54,
-                  letterSpacing: 4,
+                const SizedBox(height: 10),
+                Text(
+                  isRecovery ? 'BITTE BASIS-URL SCANNEN' : 'BITTE SCANNEN',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.white54,
+                    letterSpacing: 4,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 50),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
+                const SizedBox(height: 40),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: QrImageView(
+                    data: qrData,
+                    version: QrVersions.auto,
+                    size: MediaQuery.of(context).size.shortestSide * 0.6,
+                    gapless: false,
+                  ),
                 ),
-                child: QrImageView(
-                  data: qrData,
-                  version: QrVersions.auto,
-                  size: MediaQuery.of(context).size.shortestSide * 0.5,
-                  gapless: false,
+                const SizedBox(height: 40),
+                Text(
+                  isRecovery 
+                    ? 'Dein Handy lädt dein Ticket automatisch aus dem Speicher.' 
+                    : 'Dein digitales Ticket für die Garderobe.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white38, fontSize: 16),
                 ),
-              ),
-              const SizedBox(height: 50),
-              Text(
-                isRecovery 
-                  ? 'Dein Handy lädt dein Ticket automatisch aus dem Speicher.' 
-                  : 'Dein digitales Ticket für die Garderobe.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white38, fontSize: 16),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

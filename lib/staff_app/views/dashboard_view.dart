@@ -57,16 +57,19 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   }
 
   void _openQrDisplay(int id, String secret) {
-    // Current URL format: .../staff/#/
-    // We want to open: .../staff/#/qr?id=X&secret=Y
-    final base = web.window.location.href.split('#').first;
-    final qrUrl = '${base}#/qr?id=$id&secret=$secret';
+    // Correct URL for Hash routing: .../staff/#/qr?id=X&secret=Y
+    final currentUrl = web.window.location.href;
+    final baseUrl = currentUrl.split('#').first;
+    final qrUrl = '$baseUrl#/qr?id=$id&secret=$secret';
+    
+    // Reuses the same tab named 'checket_display'
     web.window.open(qrUrl, 'checket_display');
   }
 
   void _openRecoveryQrDisplay() {
-    final base = web.window.location.href.split('#').first;
-    final qrUrl = '${base}#/qr?id=-1&secret=recovery';
+    final currentUrl = web.window.location.href;
+    final baseUrl = currentUrl.split('#').first;
+    final qrUrl = '$baseUrl#/qr?id=-1&secret=recovery';
     web.window.open(qrUrl, 'checket_display');
   }
 

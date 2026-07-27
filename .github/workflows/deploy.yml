@@ -53,7 +53,6 @@ jobs:
             -t lib/main_customer.dart \
             --base-href "${{ env.BASE_HREF }}" \
             --no-source-maps \
-            --wasm \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \
             --dart-define=DB_VERSION="${{ env.DB_VERSION }}"
@@ -70,7 +69,6 @@ jobs:
             -t lib/main_staff.dart \
             --base-href "$STAFF_BASE_HREF" \
             --no-source-maps \
-            --wasm \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \
             --dart-define=DB_VERSION="${{ env.DB_VERSION }}"
