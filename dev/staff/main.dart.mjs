@@ -222,7 +222,6 @@ class CompiledApp {
       _747: x0 => x0.timeStamp,
       _748: x0 => x0.type,
       _750: (x0,x1,x2,x3) => x0.initEvent(x1,x2,x3),
-      _756: x0 => x0.baseURI,
       _757: x0 => x0.firstChild,
       _761: x0 => x0.parentElement,
       _763: (x0,x1) => { x0.textContent = x1 },
