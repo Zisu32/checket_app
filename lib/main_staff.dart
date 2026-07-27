@@ -12,8 +12,8 @@ void main() async {
 
   // Initialize Supabase with environment variables (injected by GitHub Actions)
   await Supabase.initialize(
-    url: const String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://dtvozyjaljzptarkyzgo.supabase.co'),
-    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_pfzZGNSHyrnIZ-tfdrGvfw_50HpC1U2'),
+    url: const String.fromEnvironment('SUPABASE_URL'),
+    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
   );
 
   // Initialize Sync Service (Drift & Supabase) with unique name

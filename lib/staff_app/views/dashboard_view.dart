@@ -98,14 +98,15 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
       return;
     }
 
-    final occupiedCount = allSlots.where((s) => s.status != 'free').length;
+    // Only archive 'active' jackets. 'temporary' or unpaid are ignored for Fundbüro.
+    final archiveCount = allSlots.where((s) => s.status == 'active').length;
     
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: BrandColors.surface,
         title: const Text('Schichtwechsel', style: TextStyle(color: Colors.white)),
-        content: Text('Sollen die $occupiedCount belegten Bügel ins FUNDBÜRO verschoben und das Raster geleert werden?', style: const TextStyle(color: Colors.white70)),
+        content: Text('Sollen die $archiveCount Jacken ins FUNDBÜRO verschoben und das gesamte Raster geleert werden?', style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext), 
