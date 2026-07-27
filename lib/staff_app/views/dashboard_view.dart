@@ -57,16 +57,16 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   }
 
   void _openQrDisplay(int id, String secret) {
-    final currentUrl = web.window.location.href;
-    final baseUrl = currentUrl.split('#').first;
-    final qrUrl = '$baseUrl#/qr?id=$id&secret=$secret';
+    // Current URL format: .../staff/#/
+    // We want to open: .../staff/#/qr?id=X&secret=Y
+    final base = web.window.location.href.split('#').first;
+    final qrUrl = '${base}#/qr?id=$id&secret=$secret';
     web.window.open(qrUrl, 'checket_display');
   }
 
   void _openRecoveryQrDisplay() {
-    final currentUrl = web.window.location.href;
-    final baseUrl = currentUrl.split('/staff/').first;
-    final qrUrl = '$baseUrl/staff/#/qr?id=-1&secret=recovery';
+    final base = web.window.location.href.split('#').first;
+    final qrUrl = '${base}#/qr?id=-1&secret=recovery';
     web.window.open(qrUrl, 'checket_display');
   }
 
@@ -135,7 +135,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             child: Text('${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
                           ),
                           title: Text('Bügel ${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
-                          subtitle: Text('Code: ${item.secret}', style: const TextStyle(color: BrandColors.free, fontWeight: FontWeight.bold)),
+                          subtitle: const Text('Archiviert', style: TextStyle(color: Colors.white38)),
                           trailing: ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: BrandColors.surface, foregroundColor: Colors.white),
                             onPressed: () => _syncService.handOverLostItem(item),
@@ -362,11 +362,9 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Bügel ${slot.id} verwalten', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       
                       if (slot.status != 'free') ...[
-                        Text('Geheimcode: ${slot.secret}', style: const TextStyle(color: BrandColors.free, fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
                         Center(
                           child: ElevatedButton.icon(
                             onPressed: () => _openRecoveryQrDisplay(),
@@ -380,17 +378,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        TextButton.icon(
-                          onPressed: () {
-                            final baseUrl = web.window.location.origin + web.window.location.pathname.replaceAll('/staff/', '/');
-                            final ticketUrl = '$baseUrl?id=${slot.id}&secret=${slot.secret}';
-                            web.window.open(ticketUrl, '_blank');
-                          },
-                          icon: const Icon(Icons.open_in_new, size: 14),
-                          label: const Text('Ticket-Vorschau (Nur Mitarbeiter)', style: TextStyle(fontSize: 12)),
-                          style: TextButton.styleFrom(foregroundColor: Colors.white38),
-                        ),
+                        const SizedBox(height: 16),
                         const Divider(height: 24, color: Colors.white12),
                       ],
                       const SizedBox(height: 8),
@@ -409,8 +397,6 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                               updatedAt: DateTime.now()
                             );
                             await _syncService.updateSlot(updated);
-                            
-                            // AUTO-OPEN FULL QR on check-in
                             _openQrDisplay(slot.id, secret);
                           }
                         ),
