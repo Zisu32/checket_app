@@ -88,7 +88,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           ),
           actions: [
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: BrandColors.aktive, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: Colors.white),
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
@@ -163,7 +163,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                           ),
                           title: Text('Garderobenplatz', style: const TextStyle(color: Colors.white)),
                           trailing: ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.aktive, foregroundColor: Colors.white),
+                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: Colors.white),
                             onPressed: () => _syncService.handOverLostItem(item),
                             child: const Text('Aushändigen', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
