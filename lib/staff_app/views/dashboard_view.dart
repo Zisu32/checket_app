@@ -83,7 +83,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           backgroundColor: BrandColors.surface,
           title: Row(
             children: [
-              const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 24),
+              const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
               const SizedBox(width: 12),
               const Text('Schichtwechsel nicht möglich', style: TextStyle(color: Colors.white)),
             ],
