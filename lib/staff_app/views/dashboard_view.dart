@@ -81,7 +81,13 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
         context: context,
         builder: (dialogContext) => AlertDialog(
           backgroundColor: BrandColors.surface,
-          title: const Text('Schichtwechsel nicht möglich', style: TextStyle(color: Colors.white)),
+          title: Row(
+            children: [
+              const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 24),
+              const SizedBox(width: 12),
+              const Text('Schichtwechsel nicht möglich', style: TextStyle(color: Colors.white)),
+            ],
+          ),
           content: const Text(
             'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht geschlossen werden kann.',
             style: TextStyle(color: Colors.white70)
