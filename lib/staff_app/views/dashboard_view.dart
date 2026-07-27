@@ -105,7 +105,13 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: BrandColors.surface,
-        title: const Text('Schichtwechsel', style: TextStyle(color: Colors.white)),
+        title: Row(
+          children: [
+            const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
+            const SizedBox(width: 12),
+            const Text('Schichtwechsel', style: TextStyle(color: Colors.white)),
+          ],
+        ),
         content: Text('Sollen die $archiveCount Jacken ins FUNDBÜRO verschoben und das gesamte Raster geleert werden?', style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
@@ -138,7 +144,13 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                Row(
+                  children: [
+                    const Icon(Icons.inventory_2_outlined, color: BrandColors.forgotten, size: 24),
+                    const SizedBox(width: 12),
+                    const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ],
+                ),
                 IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white)),
               ],
             ),
@@ -158,11 +170,25 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                         color: BrandColors.surface,
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: BrandColors.forgotten,
-                            child: Text('${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
+                          leading: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: BrandColors.forgotten,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${item.originalSlotId}',
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ),
                           ),
-                          title: Text('Garderobenplatz', style: const TextStyle(color: Colors.white)),
+                          title: const Text('Garderobenplatz', style: TextStyle(color: Colors.white)),
+                          subtitle: Text(
+                            '${item.createdAt.day}.${item.createdAt.month}.${item.createdAt.year}',
+                            style: const TextStyle(color: Colors.white38, fontSize: 12),
+                          ),
                           trailing: ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: Colors.white),
                             onPressed: () => _syncService.handOverLostItem(item),
