@@ -142,16 +142,10 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
         child: Column(
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.inventory_2_outlined, color: BrandColors.forgotten, size: 24),
-                    const SizedBox(width: 12),
-                    const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                  ],
-                ),
-                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white)),
+                const Icon(Icons.inventory_2_outlined, color: BrandColors.forgotten, size: 24),
+                const SizedBox(width: 12),
+                const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
               ],
             ),
             const Divider(height: 32, color: Colors.white24),
@@ -180,14 +174,14 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             child: Center(
                               child: Text(
                                 '${item.originalSlotId}',
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
                               ),
                             ),
                           ),
                           title: const Text('Garderobenplatz', style: TextStyle(color: Colors.white)),
                           subtitle: Text(
                             '${item.createdAt.day}.${item.createdAt.month}.${item.createdAt.year}',
-                            style: const TextStyle(color: Colors.white38, fontSize: 12),
+                            style: const TextStyle(color: Colors.white38, fontSize: 14),
                           ),
                           trailing: ElevatedButton(
                             style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: Colors.white),
