@@ -125,26 +125,10 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                   elevation: 0,
                   automaticallyImplyLeading: false,
                   centerTitle: true,
-                  title: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset('web/icons/full-icon.png', height: 26, errorBuilder: (_, __, ___) => const Icon(Icons.checkroom)),
-                      const SizedBox(width: 12),
-                      AnimatedBuilder(
-                        animation: _pulseAnimation,
-                        builder: (context, child) {
-                          return Container(
-                            width: 8, height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: (isSearching || slot == null) 
-                                  ? BrandColors.free 
-                                  : Colors.red.withValues(alpha: _pulseAnimation.value),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                  title: Image.asset(
+                    'assets/images/full-icon.png', 
+                    height: 28, 
+                    errorBuilder: (_, __, ___) => const Icon(Icons.checkroom, color: Colors.white)
                   ),
                 ),
               ),

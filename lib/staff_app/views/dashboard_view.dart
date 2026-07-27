@@ -50,7 +50,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   }
 
   String _generateSecret() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
     final rnd = Random();
     return String.fromCharCodes(Iterable.generate(
         6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
@@ -181,7 +181,11 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
               title: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset('web/icons/full-icon.png', height: 26, errorBuilder: (_, __, ___) => const Icon(Icons.checkroom)),
+                  Image.asset(
+                    'assets/images/full-icon.png', 
+                    height: 28, 
+                    errorBuilder: (_, __, ___) => const Icon(Icons.checkroom, color: Colors.white)
+                  ),
                   const SizedBox(width: 12),
                   ValueListenableBuilder<SyncStatus>(
                     valueListenable: _syncService.statusNotifier,
@@ -218,61 +222,64 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           ),
           bottomNavigationBar: BottomAppBar(
             color: BrandColors.header,
-            height: 70,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            height: 60,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 SizedBox(
-                  height: 40,
+                  height: 36,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.surface,
                       foregroundColor: Colors.white,
                       elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: const Icon(Icons.inventory_2_outlined, size: 16, color: Colors.blueAccent),
-                    label: const Text('Fundbüro', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    label: const Text('Fundbüro', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     onPressed: _zeigeFundbuero,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
                     color: BrandColors.surface,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.chevron_left, color: Colors.white, size: 20),
+                        icon: const Icon(Icons.chevron_left, color: Colors.white, size: 18),
                         onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
                       ),
                       Text(
                         '${_currentPage + 1} / $totalPages',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                        icon: const Icon(Icons.chevron_right, color: Colors.white, size: 18),
                         onPressed: _currentPage < totalPages - 1 ? () => setState(() => _currentPage++) : null,
                       ),
                     ],
                   ),
                 ),
                 SizedBox(
-                  height: 40,
+                  height: 36,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.surface,
                       foregroundColor: Colors.white,
                       elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: const Icon(Icons.nightlight_round, size: 16, color: Colors.orangeAccent),
-                    label: const Text('Schichtwechsel', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    label: const Text('Schichtwechsel', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     onPressed: () => _schichtBeendenDialog(allSlots),
                   ),
                 ),
@@ -370,6 +377,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                               updatedAt: DateTime.now()
                             );
                             await _syncService.updateSlot(updated);
+                            // Stay in menu for immediate payment processing
                           }
                         ),
                         
