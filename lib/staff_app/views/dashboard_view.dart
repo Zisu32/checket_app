@@ -12,13 +12,16 @@ class StaffDashboard extends StatefulWidget {
   State<StaffDashboard> createState() => _StaffDashboardState();
 }
 
-class _StaffDashboardState extends State<StaffDashboard> {
+class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProviderStateMixin {
   final _syncService = SyncService();
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
   
   int _currentPage = 0;
   final int _itemsPerPage = 100;
+
+  late AnimationController _animationController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -28,11 +31,21 @@ class _StaffDashboardState extends State<StaffDashboard> {
         setState(() => _showTimeoutMessage = true);
       }
     });
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    
+    _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void dispose() {
     _timeoutTimer?.cancel();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -159,71 +172,112 @@ class _StaffDashboardState extends State<StaffDashboard> {
 
         return Scaffold(
           backgroundColor: BrandColors.background,
-          appBar: AppBar(
-            backgroundColor: BrandColors.header,
-            elevation: 2,
-            toolbarHeight: 70,
-            title: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              decoration: BoxDecoration(
-                color: BrandColors.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(50),
+            child: AppBar(
+              backgroundColor: BrandColors.header,
+              elevation: 0,
+              centerTitle: true,
+              title: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left, color: Colors.white, size: 20),
-                    onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      'Seite ${_currentPage + 1} / $totalPages',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right, color: Colors.white, size: 20),
-                    onPressed: _currentPage < totalPages - 1 ? () => setState(() => _currentPage++) : null,
+                  Image.asset('web/icons/full-icon.png', height: 26, errorBuilder: (_, __, ___) => const Icon(Icons.checkroom)),
+                  const SizedBox(width: 12),
+                  ValueListenableBuilder<SyncStatus>(
+                    valueListenable: _syncService.statusNotifier,
+                    builder: (context, status, _) {
+                      Color statusColor = BrandColors.active;
+                      if (status == SyncStatus.syncing) statusColor = BrandColors.temporary;
+                      if (status == SyncStatus.offline) statusColor = BrandColors.unpaid;
+
+                      return AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Container(
+                            width: 8, height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: statusColor.withValues(alpha: _pulseAnimation.value),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: statusColor.withValues(alpha: _pulseAnimation.value * 0.5),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                )
+                              ]
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ],
               ),
+              automaticallyImplyLeading: false,
             ),
-            centerTitle: true,
-            leadingWidth: 150,
-            leading: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: BrandColors.surface,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                icon: const Icon(Icons.inventory_2_outlined, size: 16, color: Colors.blueAccent),
-                label: const Text('Fundbüro', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                onPressed: _zeigeFundbuero,
-              ),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: BrandColors.surface,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          bottomNavigationBar: BottomAppBar(
+            color: BrandColors.header,
+            height: 70,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  height: 40,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: BrandColors.surface,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.inventory_2_outlined, size: 16, color: Colors.blueAccent),
+                    label: const Text('Fundbüro', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    onPressed: _zeigeFundbuero,
                   ),
-                  icon: const Icon(Icons.nightlight_round, size: 16, color: Colors.orangeAccent),
-                  label: const Text('Schichtwechsel', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                  onPressed: () => _schichtBeendenDialog(allSlots),
                 ),
-              ),
-            ],
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: BrandColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.chevron_left, color: Colors.white, size: 20),
+                        onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
+                      ),
+                      Text(
+                        '${_currentPage + 1} / $totalPages',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                      ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.chevron_right, color: Colors.white, size: 20),
+                        onPressed: _currentPage < totalPages - 1 ? () => setState(() => _currentPage++) : null,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 40,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: BrandColors.surface,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    icon: const Icon(Icons.nightlight_round, size: 16, color: Colors.orangeAccent),
+                    label: const Text('Schichtwechsel', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    onPressed: () => _schichtBeendenDialog(allSlots),
+                  ),
+                ),
+              ],
+            ),
           ),
           body: GridView.builder(
             padding: const EdgeInsets.all(12),
@@ -262,112 +316,127 @@ class _StaffDashboardState extends State<StaffDashboard> {
     );
   }
 
-  void _zeigeAktionen(BuildContext context, WardrobeSlot slot) {
+  void _zeigeAktionen(BuildContext context, WardrobeSlot initialSlot) {
     showModalBottomSheet(
       context: context,
       backgroundColor: BrandColors.background,
+      isScrollControlled: true,
       builder: (modalContext) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Bügel ${slot.id} verwalten', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-              const SizedBox(height: 8),
-              if (slot.status != 'free') ...[
-                Text('Geheimcode: ${slot.secret}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    final baseUrl = web.window.location.origin + web.window.location.pathname.replaceAll('/staff/', '/');
-                    final ticketUrl = '$baseUrl?id=${slot.id}&secret=${slot.secret}';
-                    web.window.open(ticketUrl, '_blank');
-                  },
-                  icon: const Icon(Icons.open_in_new, size: 18),
-                  label: const Text('Kunden-Ticket öffnen'),
-                  style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
-                ),
-                const Divider(height: 32, color: Colors.white12),
-              ],
-              const SizedBox(height: 8),
-              
-              if (slot.status == 'free') 
-                ListTile(
-                  leading: const Icon(Icons.add_box, color: Colors.blue), 
-                  title: const Text('Jacke einchecken', style: TextStyle(color: Colors.white)), 
-                  onTap: () async { 
-                    final updated = slot.copyWith(
-                      status: 'unpaid', 
-                      secret: _generateSecret(),
-                      isPaid: false,
-                      paymentMethod: 'none',
-                      updatedAt: DateTime.now()
-                    );
-                    await _syncService.updateSlot(updated);
-                    if (mounted) Navigator.pop(modalContext); 
-                  }
-                ),
-                
-              if (slot.status == 'unpaid') ...[
-                ListTile(
-                  leading: const Icon(Icons.contactless_outlined, color: BrandColors.active), 
-                  title: const Text('NFC Tap-to-Pay', style: TextStyle(color: Colors.white)), 
-                  onTap: () async { 
-                    final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'nfc', updatedAt: DateTime.now());
-                    await _syncService.updateSlot(updated);
-                    if (mounted) Navigator.pop(modalContext); 
-                  }
-                ),
-                ListTile(
-                  leading: const Icon(Icons.attach_money, color: Colors.amber), 
-                  title: const Text('Bar bezahlt', style: TextStyle(color: Colors.white)), 
-                  onTap: () async { 
-                    final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'bar', updatedAt: DateTime.now());
-                    await _syncService.updateSlot(updated);
-                    if (mounted) Navigator.pop(modalContext); 
-                  }
-                ),
-              ],
-              
-              if (slot.status == 'active') ...[
-                ListTile(
-                  leading: const Icon(Icons.pause, color: Colors.orange), 
-                  title: const Text('Temporärer Ausgang', style: TextStyle(color: Colors.white)), 
-                  onTap: () async { 
-                    final updated = slot.copyWith(status: 'temporary', updatedAt: DateTime.now());
-                    await _syncService.updateSlot(updated);
-                    if (mounted) Navigator.pop(modalContext); 
-                  }
-                ),
-                ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.red), 
-                  title: const Text('Endgültig auschecken', style: TextStyle(color: Colors.white)), 
-                  onTap: () async { 
-                    final updated = slot.copyWith(
-                      status: 'free', 
-                      isPaid: false, 
-                      secret: '',
-                      paymentMethod: 'none',
-                      updatedAt: DateTime.now()
-                    );
-                    await _syncService.updateSlot(updated);
-                    if (mounted) Navigator.pop(modalContext); 
-                  }
-                ),
-              ],
-              
-              if (slot.status == 'temporary') 
-                ListTile(
-                  leading: const Icon(Icons.play_arrow, color: BrandColors.active), 
-                  title: const Text('Wieder zurück', style: TextStyle(color: Colors.white)), 
-                  onTap: () async { 
-                    final updated = slot.copyWith(status: 'active', updatedAt: DateTime.now());
-                    await _syncService.updateSlot(updated);
-                    if (mounted) Navigator.pop(modalContext); 
-                  }
-                ),
-            ],
-          ),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return StreamBuilder<List<WardrobeSlot>>(
+              stream: _syncService.watchSlots(),
+              builder: (context, snapshot) {
+                final slots = snapshot.data ?? [];
+                final slot = slots.firstWhere((s) => s.id == initialSlot.id, orElse: () => initialSlot);
+
+                return Container(
+                  padding: EdgeInsets.only(
+                    left: 24, right: 24, top: 24,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 24
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Bügel ${slot.id} verwalten', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(height: 8),
+                      if (slot.status != 'free') ...[
+                        Text('Geheimcode: ${slot.secret}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            final baseUrl = web.window.location.origin + web.window.location.pathname.replaceAll('/staff/', '/');
+                            final ticketUrl = '$baseUrl?id=${slot.id}&secret=${slot.secret}';
+                            web.window.open(ticketUrl, '_blank');
+                          },
+                          icon: const Icon(Icons.open_in_new, size: 18),
+                          label: const Text('Kunden-Ticket öffnen'),
+                          style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+                        ),
+                        const Divider(height: 32, color: Colors.white12),
+                      ],
+                      const SizedBox(height: 8),
+                      
+                      if (slot.status == 'free') 
+                        ListTile(
+                          leading: const Icon(Icons.add_box, color: Colors.blue), 
+                          title: const Text('Jacke einchecken', style: TextStyle(color: Colors.white)), 
+                          onTap: () async { 
+                            final updated = slot.copyWith(
+                              status: 'unpaid', 
+                              secret: _generateSecret(),
+                              isPaid: false,
+                              paymentMethod: 'none',
+                              updatedAt: DateTime.now()
+                            );
+                            await _syncService.updateSlot(updated);
+                          }
+                        ),
+                        
+                      if (slot.status == 'unpaid') ...[
+                        ListTile(
+                          leading: const Icon(Icons.contactless_outlined, color: BrandColors.active), 
+                          title: const Text('NFC Tap-to-Pay', style: TextStyle(color: Colors.white)), 
+                          onTap: () async { 
+                            final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'nfc', updatedAt: DateTime.now());
+                            await _syncService.updateSlot(updated);
+                            if (mounted) Navigator.pop(modalContext); 
+                          }
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.attach_money, color: Colors.amber), 
+                          title: const Text('Bar bezahlt', style: TextStyle(color: Colors.white)), 
+                          onTap: () async { 
+                            final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'bar', updatedAt: DateTime.now());
+                            await _syncService.updateSlot(updated);
+                            if (mounted) Navigator.pop(modalContext); 
+                          }
+                        ),
+                      ],
+                      
+                      if (slot.status == 'active' || slot.status == 'temporary') ...[
+                        if (slot.status == 'active')
+                          ListTile(
+                            leading: const Icon(Icons.pause, color: Colors.orange), 
+                            title: const Text('Temporärer Ausgang', style: TextStyle(color: Colors.white)), 
+                            onTap: () async { 
+                              final updated = slot.copyWith(status: 'temporary', updatedAt: DateTime.now());
+                              await _syncService.updateSlot(updated);
+                              if (mounted) Navigator.pop(modalContext); 
+                            }
+                          )
+                        else
+                          ListTile(
+                            leading: const Icon(Icons.play_arrow, color: BrandColors.active), 
+                            title: const Text('Wieder zurück', style: TextStyle(color: Colors.white)), 
+                            onTap: () async { 
+                              final updated = slot.copyWith(status: 'active', updatedAt: DateTime.now());
+                              await _syncService.updateSlot(updated);
+                              if (mounted) Navigator.pop(modalContext); 
+                            }
+                          ),
+                        ListTile(
+                          leading: const Icon(Icons.logout, color: Colors.red), 
+                          title: const Text('Endgültig auschecken', style: TextStyle(color: Colors.white)), 
+                          onTap: () async { 
+                            final updated = slot.copyWith(
+                              status: 'free', 
+                              isPaid: false, 
+                              secret: '',
+                              paymentMethod: 'none',
+                              updatedAt: DateTime.now()
+                            );
+                            await _syncService.updateSlot(updated);
+                            if (mounted) Navigator.pop(modalContext); 
+                          }
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              }
+            );
+          }
         );
       },
     );

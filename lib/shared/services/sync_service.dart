@@ -4,6 +4,8 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 
+enum SyncStatus { online, syncing, offline }
+
 class SyncService {
   static final SyncService _instance = SyncService._internal();
   factory SyncService() => _instance;
@@ -15,9 +17,12 @@ class SyncService {
   final ValueNotifier<List<WardrobeSlot>> slotsNotifier = ValueNotifier<List<WardrobeSlot>>([]);
   final ValueNotifier<String?> errorNotifier = ValueNotifier<String?>(null);
   final ValueNotifier<bool> isInitialized = ValueNotifier<bool>(false);
+  final ValueNotifier<SyncStatus> statusNotifier = ValueNotifier<SyncStatus>(SyncStatus.syncing);
 
   Future<void> init({String dbName = 'checket_db'}) async {
     print('Sync: Initializing Database ($dbName)...');
+    statusNotifier.value = SyncStatus.syncing;
+    
     try {
       db = AppDatabase(name: dbName);
       
@@ -28,9 +33,11 @@ class SyncService {
       ]).then((_) {
         print('Sync: Initial background pulls completed');
         isInitialized.value = true;
+        statusNotifier.value = SyncStatus.online;
       }).catchError((e) {
         print('Sync: Background pull failed: $e');
         errorNotifier.value = 'Datenabgleich fehlgeschlagen.';
+        statusNotifier.value = SyncStatus.offline;
       });
 
       _setupRealtime();
@@ -39,11 +46,14 @@ class SyncService {
     } catch (e) {
       print('Sync CRITICAL ERROR during init: $e');
       errorNotifier.value = 'Datenbank-Fehler: $e';
+      statusNotifier.value = SyncStatus.offline;
     }
   }
 
   Future<void> pullFromSupabase() async {
     print('Sync: Fetching Garderobe data...');
+    statusNotifier.value = SyncStatus.syncing;
+    
     try {
       final data = await supabase.from('checket_garderobe').select().order('id', ascending: true);
       final entries = (data as List).map((json) => db.companionFromJson(json)).toList();
@@ -55,8 +65,10 @@ class SyncService {
       final slots = await db.select(db.wardrobeSlots).get();
       slotsNotifier.value = slots;
       print('Sync: Garderobe cache updated');
+      statusNotifier.value = SyncStatus.online;
     } catch (e) {
       print('Sync Error (Pull Garderobe): $e');
+      statusNotifier.value = SyncStatus.offline;
       if (e.toString().contains('NoModificationAllowedError')) {
         errorNotifier.value = 'Datenbank-Sperre erkannt. Bitte andere Tabs schließen.';
       }
@@ -89,7 +101,11 @@ class SyncService {
         print('Sync: Realtime change in Garderobe');
         await pullFromSupabase();
       },
-    ).subscribe();
+    ).subscribe((status, [error]) {
+       if (status == RealtimeSubscribeStatus.channelError) {
+         statusNotifier.value = SyncStatus.offline;
+       }
+    });
   }
 
   void _setupLostFoundRealtime() {
@@ -106,6 +122,7 @@ class SyncService {
 
   Future<void> archiveAndResetShift() async {
     print('Sync: Starting Shift Reset...');
+    statusNotifier.value = SyncStatus.syncing;
     try {
       final occupied = await (db.select(db.wardrobeSlots)..where((t) => t.status.isNotValue('free'))).get();
       
@@ -134,13 +151,16 @@ class SyncService {
       ]);
       
       print('Sync: Shift reset complete');
+      statusNotifier.value = SyncStatus.online;
     } catch (e) {
       print('Sync Error (Reset): $e');
+      statusNotifier.value = SyncStatus.offline;
       rethrow;
     }
   }
 
   Future<void> handOverLostItem(LostItem item) async {
+    statusNotifier.value = SyncStatus.syncing;
     try {
       await (db.update(db.lostItems)..where((t) => t.id.equals(item.id)))
           .write(const LostItemsCompanion(isHandedOver: Value(true)));
@@ -148,21 +168,26 @@ class SyncService {
       await supabase.from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
           
       print('Sync: Lost item handed over');
+      statusNotifier.value = SyncStatus.online;
     } catch (e) {
       print('Sync Error (Handover): $e');
+      statusNotifier.value = SyncStatus.offline;
       await pullLostItemsFromSupabase();
     }
   }
 
   Future<void> updateSlot(WardrobeSlot slot) async {
+    statusNotifier.value = SyncStatus.syncing;
     await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
     final slots = await db.select(db.wardrobeSlots).get();
     slotsNotifier.value = slots;
 
     try {
       await supabase.from('checket_garderobe').update(db.toJson(slot)).eq('id', slot.id);
+      statusNotifier.value = SyncStatus.online;
     } catch (e) {
       print('Sync Error (Push): $e');
+      statusNotifier.value = SyncStatus.offline;
       await pullFromSupabase();
     }
   }
@@ -178,30 +203,24 @@ class SyncService {
       .watch();
   }
 
-  /// Refined method for Customer App to track a specific ticket across both tables
-  /// Returns a WardrobeSlot if valid, OR a special slot with status 'wrong_secret' or 'free'.
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
     final controller = StreamController<WardrobeSlot?>();
 
     Future<void> update() async {
       if (controller.isClosed) return;
 
-      // 1. First check if the hook exists at all
       final anyActiveSlot = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
       
-      // If hook is active but secret is wrong
       if (anyActiveSlot != null && anyActiveSlot.status != 'free' && anyActiveSlot.secret != secret) {
          controller.add(anyActiveSlot.copyWith(status: 'wrong_secret'));
          return;
       }
 
-      // If hook matches perfectly in active
       if (anyActiveSlot != null && anyActiveSlot.secret == secret) {
         controller.add(anyActiveSlot);
         return;
       }
 
-      // 2. Check Lost & Found if not matched in active
       final lostItem = await (db.select(db.lostItems)
             ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret) & t.isHandedOver.equals(false)))
           .getSingleOrNull();
@@ -218,7 +237,6 @@ class SyncService {
         return;
       }
       
-      // If we found the hook in Lost & Found but with a WRONG secret
       final anyLostItem = await (db.select(db.lostItems)
             ..where((t) => t.originalSlotId.equals(id) & t.isHandedOver.equals(false)))
           .getSingleOrNull();
@@ -234,11 +252,9 @@ class SyncService {
         return;
       }
 
-      // 3. Fallback: The hook is really free
       if (anyActiveSlot != null && anyActiveSlot.status == 'free') {
         controller.add(anyActiveSlot);
       } else {
-        // Not found at all or other error
         controller.add(null);
       }
     }

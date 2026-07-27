@@ -102,7 +102,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                 statusIcon = Icons.timer_outlined; 
                 statusText = 'Jacke temporär draußen'; 
               } else if (slot.status == 'forgotten') { 
-                statusFarbe = Colors.blueAccent; 
+                statusFarbe = BrandColors.forgotten; 
                 statusIcon = Icons.inventory_2_outlined; 
                 statusText = 'Jacke im Fundbüro'; 
               } else if (slot.status == 'free') {
@@ -110,7 +110,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                 statusIcon = Icons.check_circle_outline;
                 statusText = 'Bügel wieder frei';
               } else if (slot.status == 'wrong_secret') {
-                statusFarbe = BrandColors.free; // Grey for "Already picked up"
+                statusFarbe = BrandColors.free;
                 statusIcon = Icons.lock_person_outlined;
                 statusText = 'Jacke bereits abgeholt';
               }
@@ -118,6 +118,36 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
 
             return Scaffold(
               backgroundColor: BrandColors.background,
+              appBar: PreferredSize(
+                preferredSize: const Size.fromHeight(50),
+                child: AppBar(
+                  backgroundColor: BrandColors.header,
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  centerTitle: true,
+                  title: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset('web/icons/full-icon.png', height: 26, errorBuilder: (_, __, ___) => const Icon(Icons.checkroom)),
+                      const SizedBox(width: 12),
+                      AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Container(
+                            width: 8, height: 8,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: (isSearching || slot == null) 
+                                  ? BrandColors.free 
+                                  : Colors.red.withValues(alpha: _pulseAnimation.value),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               body: SafeArea(
                 child: Center(
                   child: Container(
@@ -129,30 +159,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Live Dot & Label
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AnimatedBuilder(
-                              animation: _pulseAnimation,
-                              builder: (context, child) {
-                                return Container(
-                                  width: 10, height: 10,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: (isSearching || slot == null) 
-                                        ? BrandColors.free 
-                                        : Colors.red.withValues(alpha: _pulseAnimation.value),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(width: 10),
-                            const Text('LIVE TICKET', style: TextStyle(color: Colors.grey, letterSpacing: 2, fontWeight: FontWeight.bold, fontSize: 13)),
-                          ],
-                        ),
-                        
-                        SizedBox(height: isShortScreen ? 12 : 30),
+                        SizedBox(height: isShortScreen ? 12 : 20),
 
                         // Main Ticket Card
                         AnimatedBuilder(
@@ -162,7 +169,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                               width: double.infinity, 
                               padding: EdgeInsets.all(isShortScreen ? 20 : 32),
                               decoration: BoxDecoration(
-                                color: BrandColors.surface, // Matched with Dashboard tiles
+                                color: BrandColors.surface, 
                                 borderRadius: BorderRadius.circular(24), 
                                 border: Border.all(
                                   color: statusFarbe.withValues(alpha: _pulseAnimation.value), 
