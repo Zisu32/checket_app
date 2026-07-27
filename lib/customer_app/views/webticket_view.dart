@@ -7,13 +7,13 @@ import '../../shared/services/sync_service.dart';
 import '../../shared/theme/brand_colors.dart';
 
 class CustomerWebTicketView extends StatefulWidget {
-  final int ticketId;
-  final String secret;
+  final int? ticketId;
+  final String? secret;
   
   const CustomerWebTicketView({
     super.key, 
-    required this.ticketId, 
-    required this.secret,
+    this.ticketId, 
+    this.secret,
     @Deprecated('Status is now fetched via SyncService') String? status,
   });
 
@@ -30,9 +30,14 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
+  int? _activeId;
+  String? _activeSecret;
+
   @override
   void initState() {
     super.initState();
+    _handlePersistence();
+
     final permission = web.Notification.permission;
     if (permission == 'granted' || permission == 'denied') {
       _hatBerechtigungGefragt = true;
@@ -54,6 +59,33 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
     );
   }
 
+  void _handlePersistence() {
+    final storage = web.window.localStorage;
+    
+    // 1. If parameters are provided in URL, use and SAVE them
+    if (widget.ticketId != null && widget.secret != null && widget.secret!.isNotEmpty) {
+      _activeId = widget.ticketId;
+      _activeSecret = widget.secret;
+      storage.setItem('last_ticket_id', _activeId.toString());
+      storage.setItem('last_ticket_secret', _activeSecret!);
+    } 
+    // 2. Otherwise, try to LOAD from storage
+    else {
+      final storedId = storage.getItem('last_ticket_id');
+      final storedSecret = storage.getItem('last_ticket_secret');
+      if (storedId != null && storedSecret != null) {
+        _activeId = int.tryParse(storedId);
+        _activeSecret = storedSecret;
+      }
+    }
+  }
+
+  void _clearPersistence() {
+    final storage = web.window.localStorage;
+    storage.removeItem('last_ticket_id');
+    storage.removeItem('last_ticket_secret');
+  }
+
   @override
   void dispose() {
     _timeoutTimer?.cancel();
@@ -71,11 +103,15 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
     final screenHeight = MediaQuery.of(context).size.height;
     final isShortScreen = screenHeight < 700;
 
+    if (_activeId == null || _activeSecret == null) {
+      return _buildNoTicketFoundUI();
+    }
+
     return ValueListenableBuilder<String?>(
       valueListenable: _syncService.errorNotifier,
       builder: (context, error, _) {
         return StreamBuilder<WardrobeSlot?>(
-          stream: _syncService.watchTicket(widget.ticketId, widget.secret),
+          stream: _syncService.watchTicket(_activeId!, _activeSecret!),
           builder: (context, snapshot) {
             final slot = snapshot.data;
             
@@ -109,14 +145,17 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                 statusFarbe = BrandColors.free;
                 statusIcon = Icons.check_circle_outline;
                 statusText = 'Bügel frei';
+                _clearPersistence();
               } else if (slot.status == 'picked_up') {
                 statusFarbe = BrandColors.free; 
                 statusIcon = Icons.task_alt;
                 statusText = 'Jacke bereits abgeholt';
+                _clearPersistence();
               } else if (slot.status == 'wrong_secret') {
                 statusFarbe = BrandColors.free;
                 statusIcon = Icons.lock_person_outlined;
                 statusText = 'Jacke bereits abgeholt';
+                _clearPersistence();
               }
             }
 
@@ -177,12 +216,12 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                                   else ...[
                                     Icon(statusIcon, color: statusFarbe, size: isShortScreen ? 48 : 64),
                                     SizedBox(height: isShortScreen ? 8 : 16),
-                                    Text(statusText, textAlign: TextAlign.center, style: TextStyle(fontSize: isShortScreen ? 16 : 18, fontWeight: FontWeight.w500, color: Colors.white)),
-                                    SizedBox(height: isShortScreen ? 12 : 24),
+                                    Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
+                                    const SizedBox(height: 12),
                                     FittedBox(
                                       fit: BoxFit.scaleDown,
                                       child: Text(
-                                        '${widget.ticketId}', 
+                                        '$_activeId', 
                                         style: TextStyle(
                                           fontSize: isShortScreen ? 80 : 110, 
                                           fontWeight: FontWeight.w900, 
@@ -200,7 +239,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         
                         const Spacer(),
 
-                        // Error or Messaging
+                        // Messaging
                         if (error != null)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16),
@@ -239,33 +278,13 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                             child: const Text('JETZT BEZAHLEN', style: TextStyle(fontWeight: FontWeight.bold))
                           )
                         else if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret') 
-                          Column(
-                            children: [
-                              ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.black, 
-                                  foregroundColor: Colors.white, 
-                                  minimumSize: const Size(double.infinity, 44),
-                                  side: const BorderSide(color: Colors.white24),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-                                ), 
-                                icon: const Icon(Icons.add_to_home_screen, size: 20), 
-                                label: const Text('Apple Wallet'), 
-                                onPressed: () => web.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
-                              ),
-                              const SizedBox(height: 8),
-                              ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF4285F4), 
-                                  foregroundColor: Colors.white, 
-                                  minimumSize: const Size(double.infinity, 44),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-                                ), 
-                                icon: const Icon(Icons.account_balance_wallet, size: 20), 
-                                label: const Text('Google Wallet'), 
-                                onPressed: () => web.window.open('https://deine-garderobe.de/${widget.ticketId}&secret=${widget.secret}', '_blank')
-                              ),
-                            ],
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 24),
+                            child: Text(
+                              'Bitte zeige dieses Ticket beim Abholen vor.',
+                              style: TextStyle(color: Colors.white38, fontSize: 13),
+                              textAlign: TextAlign.center,
+                            ),
                           )
                         else const SizedBox(height: 100),
                         
@@ -279,6 +298,36 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
           },
         );
       }
+    );
+  }
+
+  Widget _buildNoTicketFoundUI() {
+    return Scaffold(
+      backgroundColor: BrandColors.background,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/images/full-icon.png', height: 60),
+              const SizedBox(height: 40),
+              const Icon(Icons.search_off, color: Colors.white24, size: 64),
+              const SizedBox(height: 24),
+              const Text(
+                'Kein aktives Ticket gefunden',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Bitte scanne den QR-Code an deinem Bügel oder wende dich an das Personal.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white54, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

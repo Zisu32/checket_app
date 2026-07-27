@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'staff_app/views/dashboard_view.dart';
+import 'staff_app/views/qr_display_view.dart';
 import 'shared/services/sync_service.dart';
 
 void main() async {
@@ -28,10 +29,26 @@ class ChecketStaffApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Checket Staff',
-        theme: ThemeData.dark(),
-        home: const StaffDashboard(),
-        debugShowCheckedModeBanner: false
+      title: 'Checket Staff',
+      theme: ThemeData.dark(),
+      debugShowCheckedModeBanner: false,
+      onGenerateRoute: (settings) {
+        // Handle /qr?id=5&secret=ABC format
+        if (settings.name != null && settings.name!.startsWith('/qr')) {
+          final uri = Uri.parse(settings.name!);
+          final id = int.tryParse(uri.queryParameters['id'] ?? '');
+          final secret = uri.queryParameters['secret'] ?? '';
+
+          if (id != null) {
+            return MaterialPageRoute(
+              builder: (_) => QrDisplayView(ticketId: id, secret: secret),
+            );
+          }
+        }
+        
+        // Default to Dashboard
+        return MaterialPageRoute(builder: (_) => const StaffDashboard());
+      },
     );
   }
 }

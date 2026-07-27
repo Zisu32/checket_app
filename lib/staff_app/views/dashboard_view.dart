@@ -56,6 +56,20 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
         6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
+  void _openQrDisplay(int id, String secret) {
+    final currentUrl = web.window.location.href;
+    final baseUrl = currentUrl.split('#').first;
+    final qrUrl = '$baseUrl#/qr?id=$id&secret=$secret';
+    web.window.open(qrUrl, 'checket_display');
+  }
+
+  void _openRecoveryQrDisplay() {
+    final currentUrl = web.window.location.href;
+    final baseUrl = currentUrl.split('/staff/').first;
+    final qrUrl = '$baseUrl/staff/#/qr?id=-1&secret=recovery';
+    web.window.open(qrUrl, 'checket_display');
+  }
+
   void _schichtBeendenDialog(List<WardrobeSlot> allSlots) {
     final occupiedCount = allSlots.where((s) => s.status != 'free').length;
     
@@ -123,7 +137,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                           title: Text('Bügel ${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
                           subtitle: Text('Code: ${item.secret}', style: const TextStyle(color: BrandColors.free, fontWeight: FontWeight.bold)),
                           trailing: ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.forgotten, foregroundColor: Colors.white),
+                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.surface, foregroundColor: Colors.white),
                             onPressed: () => _syncService.handOverLostItem(item),
                             child: const Text('Aushändigen'),
                           ),
@@ -349,36 +363,55 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                     children: [
                       Text('Bügel ${slot.id} verwalten', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                       const SizedBox(height: 8),
+                      
                       if (slot.status != 'free') ...[
                         Text('Geheimcode: ${slot.secret}', style: const TextStyle(color: BrandColors.free, fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
-                        OutlinedButton.icon(
+                        Center(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _openRecoveryQrDisplay(),
+                            icon: const Icon(Icons.qr_code_2, size: 20),
+                            label: const Text('Ticket verloren?', style: TextStyle(fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: BrandColors.active,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(280, 44),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton.icon(
                           onPressed: () {
                             final baseUrl = web.window.location.origin + web.window.location.pathname.replaceAll('/staff/', '/');
                             final ticketUrl = '$baseUrl?id=${slot.id}&secret=${slot.secret}';
                             web.window.open(ticketUrl, '_blank');
                           },
-                          icon: const Icon(Icons.open_in_new, size: 18),
-                          label: const Text('Kunden-Ticket öffnen'),
-                          style: OutlinedButton.styleFrom(foregroundColor: Colors.white70),
+                          icon: const Icon(Icons.open_in_new, size: 14),
+                          label: const Text('Ticket-Vorschau (Nur Mitarbeiter)', style: TextStyle(fontSize: 12)),
+                          style: TextButton.styleFrom(foregroundColor: Colors.white38),
                         ),
-                        const Divider(height: 32, color: Colors.white12),
+                        const Divider(height: 24, color: Colors.white12),
                       ],
                       const SizedBox(height: 8),
                       
                       if (slot.status == 'free') 
                         ListTile(
-                          leading: const Icon(Icons.add_box, color: Colors.blue), 
+                          leading: const Icon(Icons.add_box, color: BrandColors.active), 
                           title: const Text('Jacke einchecken', style: TextStyle(color: Colors.white)), 
                           onTap: () async { 
+                            final secret = _generateSecret();
                             final updated = slot.copyWith(
                               status: 'unpaid', 
-                              secret: _generateSecret(),
+                              secret: secret,
                               isPaid: false,
                               paymentMethod: 'none',
                               updatedAt: DateTime.now()
                             );
                             await _syncService.updateSlot(updated);
+                            
+                            // AUTO-OPEN FULL QR on check-in
+                            _openQrDisplay(slot.id, secret);
                           }
                         ),
                         
