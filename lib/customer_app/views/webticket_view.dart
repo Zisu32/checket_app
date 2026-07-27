@@ -108,11 +108,15 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
               } else if (slot.status == 'free') {
                 statusFarbe = BrandColors.free;
                 statusIcon = Icons.check_circle_outline;
-                statusText = 'Bügel wieder frei';
+                statusText = 'Bügel frei';
+              } else if (slot.status == 'picked_up') {
+                statusFarbe = BrandColors.free; 
+                statusIcon = Icons.task_alt;
+                statusText = 'Jacke bereits abgeholt';
               } else if (slot.status == 'wrong_secret') {
                 statusFarbe = BrandColors.free;
                 statusIcon = Icons.lock_person_outlined;
-                statusText = 'Jacke bereits abgeholt';
+                statusText = 'Bügel frei';
               }
             }
 
@@ -128,7 +132,6 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                   title: Image.asset(
                     'assets/images/full-icon.png', 
                     height: 28, 
-                    errorBuilder: (_, __, ___) => const Icon(Icons.checkroom, color: Colors.white)
                   ),
                 ),
               ),
@@ -197,7 +200,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         
                         const Spacer(),
 
-                        // Error or Timeout Messages
+                        // Error or Messaging
                         if (error != null)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16),
@@ -206,7 +209,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         else if (slot != null && slot.status == 'wrong_secret')
                           const Padding(
                             padding: EdgeInsets.only(bottom: 16),
-                            child: Text('Dieser Link ist veraltet. Bitte scanne den neuen Code am Bügel.', 
+                            child: Text('Jacke wurde abgeholt. Dieser Link ist nicht mehr gültig.', 
                                  style: TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
                           )
                         else if (_showTimeoutMessage && isSearching)
@@ -235,7 +238,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                             onPressed: () {}, 
                             child: const Text('JETZT BEZAHLEN', style: TextStyle(fontWeight: FontWeight.bold))
                           )
-                        else if (slot != null && slot.status != 'free' && slot.status != 'loading' && slot.status != 'wrong_secret') 
+                        else if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret') 
                           Column(
                             children: [
                               ElevatedButton.icon(

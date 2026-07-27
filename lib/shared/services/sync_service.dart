@@ -203,57 +203,55 @@ class SyncService {
       .watch();
   }
 
+  /// High-precision lifecycle tracking for a specific customer ticket.
+  /// Identifies if a jacket is active, lost, picked up, or if the hook is just available.
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
     final controller = StreamController<WardrobeSlot?>();
 
     Future<void> update() async {
       if (controller.isClosed) return;
 
-      final anyActiveSlot = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
-      
-      if (anyActiveSlot != null && anyActiveSlot.status != 'free' && anyActiveSlot.secret != secret) {
-         controller.add(anyActiveSlot.copyWith(status: 'wrong_secret'));
-         return;
-      }
+      // 1. Check Active Grid for the unique secret
+      final activeBySecret = await (db.select(db.wardrobeSlots)
+            ..where((t) => t.id.equals(id) & t.secret.equals(secret)))
+          .getSingleOrNull();
 
-      if (anyActiveSlot != null && anyActiveSlot.secret == secret) {
-        controller.add(anyActiveSlot);
+      if (activeBySecret != null && activeBySecret.status != 'free') {
+        controller.add(activeBySecret);
         return;
       }
 
-      final lostItem = await (db.select(db.lostItems)
-            ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret) & t.isHandedOver.equals(false)))
+      // 2. Check Lost & Found for the unique secret (including handed over ones)
+      final lostBySecret = await (db.select(db.lostItems)
+            ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret)))
           .getSingleOrNull();
 
-      if (lostItem != null) {
+      if (lostBySecret != null) {
+        // Found our specific jacket in the archives
         controller.add(WardrobeSlot(
-          id: lostItem.originalSlotId,
-          status: 'forgotten',
-          isPaid: lostItem.isPaid,
+          id: lostBySecret.originalSlotId,
+          status: lostBySecret.isHandedOver ? 'picked_up' : 'forgotten',
+          isPaid: lostBySecret.isPaid,
           paymentMethod: 'none',
-          secret: lostItem.secret,
-          updatedAt: lostItem.createdAt,
+          secret: lostBySecret.secret,
+          updatedAt: lostBySecret.createdAt,
         ));
         return;
       }
       
-      final anyLostItem = await (db.select(db.lostItems)
-            ..where((t) => t.originalSlotId.equals(id) & t.isHandedOver.equals(false)))
-          .getSingleOrNull();
-      if (anyLostItem != null && anyLostItem.secret != secret) {
-         controller.add(WardrobeSlot(
-          id: id,
-          status: 'wrong_secret',
-          isPaid: false,
-          paymentMethod: 'none',
-          secret: '',
-          updatedAt: DateTime.now(),
-        ));
-        return;
-      }
-
-      if (anyActiveSlot != null && anyActiveSlot.status == 'free') {
-        controller.add(anyActiveSlot);
+      // 3. Secret not found -> Determine if hook is free or occupied by someone else
+      final hookInGrid = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
+      
+      if (hookInGrid != null) {
+        if (hookInGrid.status == 'free') {
+          // No active guest on this hook -> "Bügel frei"
+          controller.add(hookInGrid);
+        } else {
+          // Hook is occupied by someone else -> "Already picked up" or "Invalid"
+          // Since the current guest's secret wasn't found in active OR lost,
+          // it likely means their transaction is complete and a new one started.
+          controller.add(hookInGrid.copyWith(status: 'picked_up'));
+        }
       } else {
         controller.add(null);
       }
