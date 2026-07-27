@@ -63,7 +63,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: BrandColors.surface,
-        title: const Text('Schicht beenden?', style: TextStyle(color: Colors.white)),
+        title: const Text('Schichtwechsel', style: TextStyle(color: Colors.white)),
         content: Text('Sollen die $occupiedCount belegten Bügel ins FUNDBÜRO verschoben und das Raster geleert werden?', style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
@@ -96,7 +96,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Digitales Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                 IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white)),
               ],
             ),
@@ -123,7 +123,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                           title: Text('Bügel ${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
                           subtitle: Text('Code: ${item.secret}', style: const TextStyle(color: BrandColors.free, fontWeight: FontWeight.bold)),
                           trailing: ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.surface, foregroundColor: Colors.white),
+                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.forgotten, foregroundColor: Colors.white),
                             onPressed: () => _syncService.handOverLostItem(item),
                             child: const Text('Aushändigen'),
                           ),
@@ -280,7 +280,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    icon: const Icon(Icons.refresh, size: 16, color: Colors.white),
+                    icon: const Icon(Icons.refresh, size: 16, color: BrandColors.unpaid),
                     label: const Text('Schichtwechsel', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     onPressed: () => _schichtBeendenDialog(allSlots),
                   ),

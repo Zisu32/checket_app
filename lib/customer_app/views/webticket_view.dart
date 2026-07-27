@@ -116,7 +116,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
               } else if (slot.status == 'wrong_secret') {
                 statusFarbe = BrandColors.free;
                 statusIcon = Icons.lock_person_outlined;
-                statusText = 'Bügel frei';
+                statusText = 'Jacke bereits abgeholt';
               }
             }
 

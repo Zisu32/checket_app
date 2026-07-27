@@ -124,10 +124,13 @@ class SyncService {
     print('Sync: Starting Shift Reset...');
     statusNotifier.value = SyncStatus.syncing;
     try {
-      final occupied = await (db.select(db.wardrobeSlots)..where((t) => t.status.isNotValue('free'))).get();
+      // 1. Only archive 'active' or 'unpaid' jackets. Ignore 'temporary'.
+      final archiveQuery = db.select(db.wardrobeSlots)
+        ..where((t) => t.status.equals('active') | t.status.equals('unpaid'));
+      final toArchive = await archiveQuery.get();
       
-      if (occupied.isNotEmpty) {
-        final lostEntries = occupied.map((s) => {
+      if (toArchive.isNotEmpty) {
+        final lostEntries = toArchive.map((s) => {
           'original_slot_id': s.id,
           'secret': s.secret,
           'is_paid': s.isPaid,
@@ -137,6 +140,7 @@ class SyncService {
         await supabase.from('checket_lost_found').insert(lostEntries);
       }
 
+      // 2. Reset ALL slots in Cloud to free
       await supabase.from('checket_garderobe').update({
         'status': 'free',
         'is_paid': false,
