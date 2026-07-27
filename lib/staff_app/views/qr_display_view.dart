@@ -51,7 +51,7 @@ class QrDisplayView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET #$ticketId',
+                  isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET $ticketId',
                   style: const TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.w900,
@@ -61,7 +61,7 @@ class QrDisplayView extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  isRecovery ? 'BITTE BASIS-URL SCANNEN' : 'BITTE SCANNEN',
+                  isRecovery ? 'BITTE SCANNEN' : 'BITTE SCANNEN',
                   style: const TextStyle(
                     fontSize: 18,
                     color: Colors.white54,

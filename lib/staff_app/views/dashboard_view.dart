@@ -87,9 +87,10 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             style: TextStyle(color: Colors.white70)
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: BrandColors.aktive, foregroundColor: Colors.white),
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Okay', style: TextStyle(color: Colors.white))
+              child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -160,12 +161,11 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             backgroundColor: BrandColors.forgotten,
                             child: Text('${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
                           ),
-                          title: Text('Bügel ${item.originalSlotId}', style: const TextStyle(color: Colors.white)),
-                          subtitle: const Text('Archiviert', style: TextStyle(color: Colors.white38)),
+                          title: Text('Garderobenplatz', style: const TextStyle(color: Colors.white)),
                           trailing: ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.surface, foregroundColor: Colors.white),
+                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.aktive, foregroundColor: Colors.white),
                             onPressed: () => _syncService.handOverLostItem(item),
-                            child: const Text('Aushändigen'),
+                            child: const Text('Aushändigen', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ),
                       );
