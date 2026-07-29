@@ -50,7 +50,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   }
 
   String _generateSecret() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ012345678';
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
     final rnd = Random();
     return String.fromCharCodes(Iterable.generate(
         6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
