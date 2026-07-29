@@ -4,6 +4,8 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 
+enum SyncStatus { online, syncing, offline }
+
 class SyncService {
   static final SyncService _instance = SyncService._internal();
   factory SyncService() => _instance;
@@ -15,9 +17,12 @@ class SyncService {
   final ValueNotifier<List<WardrobeSlot>> slotsNotifier = ValueNotifier<List<WardrobeSlot>>([]);
   final ValueNotifier<String?> errorNotifier = ValueNotifier<String?>(null);
   final ValueNotifier<bool> isInitialized = ValueNotifier<bool>(false);
+  final ValueNotifier<SyncStatus> statusNotifier = ValueNotifier<SyncStatus>(SyncStatus.syncing);
 
   Future<void> init({String dbName = 'checket_db'}) async {
     print('Sync: Initializing Database ($dbName)...');
+    statusNotifier.value = SyncStatus.syncing;
+    
     try {
       db = AppDatabase(name: dbName);
       
@@ -28,9 +33,11 @@ class SyncService {
       ]).then((_) {
         print('Sync: Initial background pulls completed');
         isInitialized.value = true;
+        statusNotifier.value = SyncStatus.online;
       }).catchError((e) {
         print('Sync: Background pull failed: $e');
         errorNotifier.value = 'Datenabgleich fehlgeschlagen.';
+        statusNotifier.value = SyncStatus.offline;
       });
 
       _setupRealtime();
@@ -39,11 +46,14 @@ class SyncService {
     } catch (e) {
       print('Sync CRITICAL ERROR during init: $e');
       errorNotifier.value = 'Datenbank-Fehler: $e';
+      statusNotifier.value = SyncStatus.offline;
     }
   }
 
   Future<void> pullFromSupabase() async {
     print('Sync: Fetching Garderobe data...');
+    statusNotifier.value = SyncStatus.syncing;
+    
     try {
       final data = await supabase.from('checket_garderobe').select().order('id', ascending: true);
       final entries = (data as List).map((json) => db.companionFromJson(json)).toList();
@@ -55,8 +65,10 @@ class SyncService {
       final slots = await db.select(db.wardrobeSlots).get();
       slotsNotifier.value = slots;
       print('Sync: Garderobe cache updated');
+      statusNotifier.value = SyncStatus.online;
     } catch (e) {
       print('Sync Error (Pull Garderobe): $e');
+      statusNotifier.value = SyncStatus.offline;
       if (e.toString().contains('NoModificationAllowedError')) {
         errorNotifier.value = 'Datenbank-Sperre erkannt. Bitte andere Tabs schließen.';
       }
@@ -89,7 +101,11 @@ class SyncService {
         print('Sync: Realtime change in Garderobe');
         await pullFromSupabase();
       },
-    ).subscribe();
+    ).subscribe((status, [error]) {
+       if (status == RealtimeSubscribeStatus.channelError) {
+         statusNotifier.value = SyncStatus.offline;
+       }
+    });
   }
 
   void _setupLostFoundRealtime() {
@@ -106,11 +122,15 @@ class SyncService {
 
   Future<void> archiveAndResetShift() async {
     print('Sync: Starting Shift Reset...');
+    statusNotifier.value = SyncStatus.syncing;
     try {
-      final occupied = await (db.select(db.wardrobeSlots)..where((t) => t.status.isNotValue('free'))).get();
+      // 1. Only archive 'active' or 'unpaid' jackets. Ignore 'temporary'.
+      final archiveQuery = db.select(db.wardrobeSlots)
+        ..where((t) => t.status.equals('active') | t.status.equals('unpaid'));
+      final toArchive = await archiveQuery.get();
       
-      if (occupied.isNotEmpty) {
-        final lostEntries = occupied.map((s) => {
+      if (toArchive.isNotEmpty) {
+        final lostEntries = toArchive.map((s) => {
           'original_slot_id': s.id,
           'secret': s.secret,
           'is_paid': s.isPaid,
@@ -120,6 +140,7 @@ class SyncService {
         await supabase.from('checket_lost_found').insert(lostEntries);
       }
 
+      // 2. Reset ALL slots in Cloud to free
       await supabase.from('checket_garderobe').update({
         'status': 'free',
         'is_paid': false,
@@ -134,13 +155,16 @@ class SyncService {
       ]);
       
       print('Sync: Shift reset complete');
+      statusNotifier.value = SyncStatus.online;
     } catch (e) {
       print('Sync Error (Reset): $e');
+      statusNotifier.value = SyncStatus.offline;
       rethrow;
     }
   }
 
   Future<void> handOverLostItem(LostItem item) async {
+    statusNotifier.value = SyncStatus.syncing;
     try {
       await (db.update(db.lostItems)..where((t) => t.id.equals(item.id)))
           .write(const LostItemsCompanion(isHandedOver: Value(true)));
@@ -148,21 +172,26 @@ class SyncService {
       await supabase.from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
           
       print('Sync: Lost item handed over');
+      statusNotifier.value = SyncStatus.online;
     } catch (e) {
       print('Sync Error (Handover): $e');
+      statusNotifier.value = SyncStatus.offline;
       await pullLostItemsFromSupabase();
     }
   }
 
   Future<void> updateSlot(WardrobeSlot slot) async {
+    statusNotifier.value = SyncStatus.syncing;
     await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
     final slots = await db.select(db.wardrobeSlots).get();
     slotsNotifier.value = slots;
 
     try {
       await supabase.from('checket_garderobe').update(db.toJson(slot)).eq('id', slot.id);
+      statusNotifier.value = SyncStatus.online;
     } catch (e) {
       print('Sync Error (Push): $e');
+      statusNotifier.value = SyncStatus.offline;
       await pullFromSupabase();
     }
   }
@@ -178,67 +207,56 @@ class SyncService {
       .watch();
   }
 
-  /// Refined method for Customer App to track a specific ticket across both tables
-  /// Returns a WardrobeSlot if valid, OR a special slot with status 'wrong_secret' or 'free'.
+  /// High-precision lifecycle tracking for a specific customer ticket.
+  /// Identifies if a jacket is active, lost, picked up, or if the hook is just available.
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
     final controller = StreamController<WardrobeSlot?>();
 
     Future<void> update() async {
       if (controller.isClosed) return;
 
-      // 1. First check if the hook exists at all
-      final anyActiveSlot = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
-      
-      // If hook is active but secret is wrong
-      if (anyActiveSlot != null && anyActiveSlot.status != 'free' && anyActiveSlot.secret != secret) {
-         controller.add(anyActiveSlot.copyWith(status: 'wrong_secret'));
-         return;
-      }
+      // 1. Check Active Grid for the unique secret
+      final activeBySecret = await (db.select(db.wardrobeSlots)
+            ..where((t) => t.id.equals(id) & t.secret.equals(secret)))
+          .getSingleOrNull();
 
-      // If hook matches perfectly in active
-      if (anyActiveSlot != null && anyActiveSlot.secret == secret) {
-        controller.add(anyActiveSlot);
+      if (activeBySecret != null && activeBySecret.status != 'free') {
+        controller.add(activeBySecret);
         return;
       }
 
-      // 2. Check Lost & Found if not matched in active
-      final lostItem = await (db.select(db.lostItems)
-            ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret) & t.isHandedOver.equals(false)))
+      // 2. Check Lost & Found for the unique secret (including handed over ones)
+      final lostBySecret = await (db.select(db.lostItems)
+            ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret)))
           .getSingleOrNull();
 
-      if (lostItem != null) {
+      if (lostBySecret != null) {
+        // Found our specific jacket in the archives
         controller.add(WardrobeSlot(
-          id: lostItem.originalSlotId,
-          status: 'forgotten',
-          isPaid: lostItem.isPaid,
+          id: lostBySecret.originalSlotId,
+          status: lostBySecret.isHandedOver ? 'picked_up' : 'forgotten',
+          isPaid: lostBySecret.isPaid,
           paymentMethod: 'none',
-          secret: lostItem.secret,
-          updatedAt: lostItem.createdAt,
+          secret: lostBySecret.secret,
+          updatedAt: lostBySecret.createdAt,
         ));
         return;
       }
       
-      // If we found the hook in Lost & Found but with a WRONG secret
-      final anyLostItem = await (db.select(db.lostItems)
-            ..where((t) => t.originalSlotId.equals(id) & t.isHandedOver.equals(false)))
-          .getSingleOrNull();
-      if (anyLostItem != null && anyLostItem.secret != secret) {
-         controller.add(WardrobeSlot(
-          id: id,
-          status: 'wrong_secret',
-          isPaid: false,
-          paymentMethod: 'none',
-          secret: '',
-          updatedAt: DateTime.now(),
-        ));
-        return;
-      }
-
-      // 3. Fallback: The hook is really free
-      if (anyActiveSlot != null && anyActiveSlot.status == 'free') {
-        controller.add(anyActiveSlot);
+      // 3. Secret not found -> Determine if hook is free or occupied by someone else
+      final hookInGrid = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
+      
+      if (hookInGrid != null) {
+        if (hookInGrid.status == 'free') {
+          // No active guest on this hook -> "Bügel frei"
+          controller.add(hookInGrid);
+        } else {
+          // Hook is occupied by someone else -> "Already picked up" or "Invalid"
+          // Since the current guest's secret wasn't found in active OR lost,
+          // it likely means their transaction is complete and a new one started.
+          controller.add(hookInGrid.copyWith(status: 'picked_up'));
+        }
       } else {
-        // Not found at all or other error
         controller.add(null);
       }
     }

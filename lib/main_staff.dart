@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'staff_app/views/dashboard_view.dart';
+import 'staff_app/views/qr_display_view.dart';
 import 'shared/services/sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Activate Hash-Routing for GitHub Pages stability
-  usePathUrlStrategy();
+  // Default (Hash) Strategy is safer for GitHub Pages sub-routing
+  // No usePathUrlStrategy() here.
 
   // Initialize Supabase with environment variables (injected by GitHub Actions)
   await Supabase.initialize(
-    url: const String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://dtvozyjaljzptarkyzgo.supabase.co'),
-    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_pfzZGNSHyrnIZ-tfdrGvfw_50HpC1U2'),
+    url: const String.fromEnvironment('SUPABASE_URL'),
+    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
   );
 
   // Initialize Sync Service (Drift & Supabase) with unique name
@@ -28,10 +28,28 @@ class ChecketStaffApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Checket Staff',
-        theme: ThemeData.dark(),
-        home: const StaffDashboard(),
-        debugShowCheckedModeBanner: false
+      title: 'Checket Staff',
+      theme: ThemeData.dark(),
+      debugShowCheckedModeBanner: false,
+      onGenerateRoute: (settings) {
+        // We look for a path like /qr?id=5&secret=ABC or staff/#/qr?id=5...
+        final name = settings.name ?? '';
+        
+        if (name.contains('/qr')) {
+          final uri = Uri.parse(name.startsWith('/') ? name : '/$name');
+          final id = int.tryParse(uri.queryParameters['id'] ?? '');
+          final secret = uri.queryParameters['secret'] ?? '';
+
+          if (id != null) {
+            return MaterialPageRoute(
+              builder: (_) => QrDisplayView(ticketId: id, secret: secret),
+            );
+          }
+        }
+        
+        // Default to Dashboard
+        return MaterialPageRoute(builder: (_) => const StaffDashboard());
+      },
     );
   }
 }
