@@ -57,19 +57,20 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   }
 
   void _openQrDisplay(int id, String secret) {
-    // Correct URL for Hash routing: .../staff/#/qr?id=X&secret=Y
-    final currentUrl = web.window.location.href;
-    final baseUrl = currentUrl.split('#').first;
-    final qrUrl = '$baseUrl#/qr?id=$id&secret=$secret';
+    // Robust URL construction using origin and pathname to ensure named window reuse
+    final origin = web.window.location.origin;
+    final path = web.window.location.pathname;
+    final qrUrl = '$origin$path#/qr?id=$id&secret=$secret';
     
     // Reuses the same tab named 'checket_display'
     web.window.open(qrUrl, 'checket_display');
   }
 
   void _openRecoveryQrDisplay() {
-    final currentUrl = web.window.location.href;
-    final baseUrl = currentUrl.split('#').first;
-    final qrUrl = '$baseUrl#/qr?id=-1&secret=recovery';
+    final origin = web.window.location.origin;
+    final path = web.window.location.pathname;
+    final qrUrl = '$origin$path#/qr?id=-1&secret=recovery';
+    
     web.window.open(qrUrl, 'checket_display');
   }
 
@@ -164,7 +165,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   icon: const Icon(Icons.qr_code_2, size: 18),
-                  label: const Text('Ticket wiederherstellen'),
+                  label: const Text('Ticket verloren?', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
