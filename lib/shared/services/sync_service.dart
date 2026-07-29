@@ -203,7 +203,7 @@ class SyncService {
   Stream<List<LostItem>> watchLostItems() {
     return (db.select(db.lostItems)
       ..where((t) => t.isHandedOver.equals(false))
-      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
+      ..orderBy([(t) => OrderingTerm(expression: t.originalSlotId, mode: OrderingMode.asc)]))
       .watch();
   }
 

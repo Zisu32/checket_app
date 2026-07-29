@@ -62,14 +62,12 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   void _handlePersistence() {
     final storage = web.window.localStorage;
     
-    // 1. If parameters are provided in URL, use and SAVE them
     if (widget.ticketId != null && widget.secret != null && widget.secret!.isNotEmpty) {
       _activeId = widget.ticketId;
       _activeSecret = widget.secret;
       storage.setItem('last_ticket_id', _activeId.toString());
       storage.setItem('last_ticket_secret', _activeSecret!);
     } 
-    // 2. Otherwise, try to LOAD from storage
     else {
       final storedId = storage.getItem('last_ticket_id');
       final storedSecret = storage.getItem('last_ticket_secret');
@@ -171,6 +169,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                   title: Image.asset(
                     'assets/images/full-icon.png', 
                     height: 28, 
+                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
                   ),
                 ),
               ),
@@ -266,18 +265,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         if (slot != null && slot.status == 'active' && !_hatBerechtigungGefragt) 
                           _bauePushPrompt(isShortScreen),
                         
-                        if (slot != null && slot.status == 'unpaid') 
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: BrandColors.active, 
-                              foregroundColor: Colors.white, 
-                              minimumSize: const Size(double.infinity, 50),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-                            ), 
-                            onPressed: () {}, 
-                            child: const Text('JETZT BEZAHLEN', style: TextStyle(fontWeight: FontWeight.bold))
-                          )
-                        else if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret') 
+                        if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret' && slot.status != 'unpaid') 
                           const Padding(
                             padding: EdgeInsets.only(bottom: 24),
                             child: Text(
@@ -310,7 +298,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/full-icon.png', height: 60),
+              Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24))),
               const SizedBox(height: 40),
               const Icon(Icons.search_off, color: Colors.white24, size: 64),
               const SizedBox(height: 24),

@@ -85,11 +85,11 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             children: [
               const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
               const SizedBox(width: 12),
-              const Text('Schichtwechsel nicht möglich', style: TextStyle(color: Colors.white)),
+              const Text('Schichtende nicht möglich', style: TextStyle(color: Colors.white)),
             ],
           ),
           content: const Text(
-            'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht geschlossen werden kann.',
+            'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
             style: TextStyle(color: Colors.white70)
           ),
           actions: [
@@ -104,7 +104,6 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
       return;
     }
 
-    // Only archive 'active' jackets. 'temporary' or unpaid are ignored for Fundbüro.
     final archiveCount = allSlots.where((s) => s.status == 'active').length;
     
     showDialog(
@@ -115,7 +114,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           children: [
             const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
             const SizedBox(width: 12),
-            const Text('Schichtwechsel', style: TextStyle(color: Colors.white)),
+            const Text('Schichtende', style: TextStyle(color: Colors.white)),
           ],
         ),
         content: Text('Sollen die $archiveCount Jacken ins FUNDBÜRO verschoben und das gesamte Raster geleert werden?', style: const TextStyle(color: Colors.white70)),
@@ -148,10 +147,25 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
         child: Column(
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Icon(Icons.inventory_2_outlined, color: BrandColors.forgotten, size: 24),
-                const SizedBox(width: 12),
-                const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                Row(
+                  children: [
+                    const Icon(Icons.inventory_2_outlined, color: BrandColors.forgotten, size: 24),
+                    const SizedBox(width: 12),
+                    const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  onPressed: _openRecoveryQrDisplay,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: BrandColors.active,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.qr_code_2, size: 18),
+                  label: const Text('Ticket wiederherstellen'),
+                ),
               ],
             ),
             const Divider(height: 32, color: Colors.white24),
@@ -242,7 +256,8 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
 
         return Scaffold(
           backgroundColor: BrandColors.background,
-          appBar: PreferredSize(
+          appBar: PreferredSize(                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+
             preferredSize: const Size.fromHeight(50),
             child: AppBar(
               backgroundColor: BrandColors.header,
@@ -348,7 +363,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: const Icon(Icons.refresh, size: 16, color: BrandColors.unpaid),
-                    label: const Text('Schichtwechsel', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    label: const Text('Schichtende', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     onPressed: () => _schichtBeendenDialog(allSlots),
                   ),
                 ),
@@ -415,12 +430,15 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Bügel ${slot.id} verwalten', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       
-                      if (slot.status != 'free') ...[
+                      if (slot.status == 'active' || slot.status == 'temporary' || slot.status == 'forgotten') ...[
                         Center(
                           child: ElevatedButton.icon(
-                            onPressed: () => _openRecoveryQrDisplay(),
+                            onPressed: () {
+                              _openRecoveryQrDisplay();
+                              Navigator.pop(modalContext);
+                            },
                             icon: const Icon(Icons.qr_code_2, size: 20),
                             label: const Text('Ticket verloren?', style: TextStyle(fontWeight: FontWeight.bold)),
                             style: ElevatedButton.styleFrom(
@@ -449,15 +467,16 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                               paymentMethod: 'none',
                               updatedAt: DateTime.now()
                             );
-                            await _syncService.updateSlot(updated);
+                            
                             _openQrDisplay(slot.id, secret);
+                            await _syncService.updateSlot(updated);
                           }
                         ),
                         
                       if (slot.status == 'unpaid') ...[
                         ListTile(
                           leading: const Icon(Icons.contactless_outlined, color: BrandColors.active), 
-                          title: const Text('NFC Tap-to-Pay', style: TextStyle(color: Colors.white)), 
+                          title: const Text('Kontaktloses bezahlen', style: TextStyle(color: Colors.white)), 
                           onTap: () async { 
                             final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'nfc', updatedAt: DateTime.now());
                             await _syncService.updateSlot(updated);
@@ -466,11 +485,20 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                         ),
                         ListTile(
                           leading: const Icon(Icons.attach_money, color: Colors.amber), 
-                          title: const Text('Bar bezahlt', style: TextStyle(color: Colors.white)), 
+                          title: const Text('Bar bezahlen', style: TextStyle(color: Colors.white)), 
                           onTap: () async { 
                             final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'bar', updatedAt: DateTime.now());
                             await _syncService.updateSlot(updated);
                             if (mounted) Navigator.pop(modalContext); 
+                          }
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.credit_card, color: Colors.white),
+                          title: const Text('SumUp bezahlen', style: TextStyle(color: Colors.white)), 
+                          onTap: () async { 
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('SumUp Integration folgt.'))
+                            );
                           }
                         ),
                       ],
