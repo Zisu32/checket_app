@@ -40,6 +40,7 @@ class QrDisplayView extends StatelessWidget {
           title: Image.asset(
             'assets/images/full-icon.png', 
             height: 28, 
+            errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: Colors.white, fontSize: 14)),
           ),
         ),
       ),

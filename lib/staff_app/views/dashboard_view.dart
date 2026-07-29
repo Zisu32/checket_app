@@ -256,8 +256,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
 
         return Scaffold(
           backgroundColor: BrandColors.background,
-          appBar: PreferredSize(                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
-
+          appBar: PreferredSize(
             preferredSize: const Size.fromHeight(50),
             child: AppBar(
               backgroundColor: BrandColors.header,
@@ -269,6 +268,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   Image.asset(
                     'assets/images/full-icon.png', 
                     height: 28,
+                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: Colors.white, fontSize: 14)),
                   ),
                   const SizedBox(width: 12),
                   ValueListenableBuilder<SyncStatus>(
