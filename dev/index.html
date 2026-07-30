@@ -31,7 +31,16 @@
 
   <title>checket</title>
   <link rel="manifest" href="manifest.json">
-  <script src="coi-serviceworker.js"></script>
+  <script>
+    // Debugging Trick: Show errors as a red bar on iPhone
+    window.onerror = function(message, source, lineno) {
+      const div = document.createElement('div');
+      div.style = 'position:fixed;top:0;left:0;background:red;color:white;z-index:9999;padding:20px;width:100%;font-size:14px;';
+      div.innerText = 'Fehler: ' + message + '\nDatei: ' + source + '\nZeile: ' + lineno;
+      document.body.appendChild(div);
+      return false;
+    };
+  </script>
 </head>
 <body>
   <!--
