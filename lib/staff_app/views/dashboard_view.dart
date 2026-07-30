@@ -161,7 +161,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   icon: const Icon(Icons.qr_code_2, size: 18),
-                  label: const Text('Ticket verloren?', style: TextStyle(fontWeight: FontWeight.bold)),
+                  label: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -377,8 +377,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             ),
             itemCount: displaySlots.length,
             itemBuilder: (context, index) {
-                              isRecovery ? 'BITTE SCANNEN' : 'BITTE SCANNEN',
-  final slot = displaySlots[index];
+              final slot = displaySlots[index];
               Color kachelFarbe = BrandColors.surface;
               
               if (slot.status == 'unpaid') kachelFarbe = BrandColors.unpaid;

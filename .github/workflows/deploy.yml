@@ -29,8 +29,6 @@ jobs:
           # Download sqlite3.wasm and drift_worker.js required for Drift on Web
           curl -L https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-2.4.3/sqlite3.wasm -o web/sqlite3.wasm
           curl -L https://github.com/simolus3/drift/releases/download/drift-2.20.0/drift_worker.js -o web/drift_worker.js
-          # Download coi-serviceworker to enable COOP/COEP on GitHub Pages
-          curl -L https://raw.githubusercontent.com/gzuidhof/coi-serviceworker/master/coi-serviceworker.js -o web/coi-serviceworker.js
 
       - name: Set Environment Variables
         run: |
@@ -52,6 +50,7 @@ jobs:
           flutter build web --release \
             -t lib/main_customer.dart \
             --base-href "${{ env.BASE_HREF }}" \
+            --web-renderer html \
             --no-source-maps \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \
@@ -68,6 +67,7 @@ jobs:
           flutter build web --release \
             -t lib/main_staff.dart \
             --base-href "$STAFF_BASE_HREF" \
+            --web-renderer html \
             --no-source-maps \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \

@@ -57,7 +57,9 @@ class ChecketCustomerWebApp extends StatelessWidget {
       web.window.localStorage.setItem('last_ticket_secret', secret);
     }
 
-    if (ticketId.isEmpty) {
+    final ticketIdInt = int.tryParse(ticketId);
+
+    if (ticketIdInt == null) {
       return const MaterialApp(
         home: Scaffold(body: Center(child: Text('Kein aktives Ticket gefunden.'))),
         debugShowCheckedModeBanner: false,
@@ -68,7 +70,7 @@ class ChecketCustomerWebApp extends StatelessWidget {
       title: 'Checket Ticket',
       theme: ThemeData.dark(),
       home: CustomerWebTicketView(
-        ticketId: int.parse(ticketId), 
+        ticketId: ticketIdInt, 
         secret: secret
       ),
       debugShowCheckedModeBanner: false

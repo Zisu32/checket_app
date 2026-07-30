@@ -265,7 +265,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         if (slot != null && slot.status == 'active' && !_hatBerechtigungGefragt) 
                           _bauePushPrompt(isShortScreen),
                         
-                        if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret' && slot.status != 'unpaid') 
+                        if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret') 
                           const Padding(
                             padding: EdgeInsets.only(bottom: 24),
                             child: Text(
