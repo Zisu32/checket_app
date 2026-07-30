@@ -5,6 +5,7 @@ import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
 import '../../shared/theme/brand_colors.dart';
+import '../../shared/services/monitor_service.dart';
 
 class StaffDashboard extends StatefulWidget {
   const StaffDashboard({super.key});
@@ -26,6 +27,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
+    web.document.title = 'Checket Staff';
     _timeoutTimer = Timer(const Duration(seconds: 10), () {
       if (mounted) {
         setState(() => _showTimeoutMessage = true);
@@ -56,22 +58,13 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
         6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
-  void _openQrDisplay(int id, String secret) {
-    // Robust URL construction using origin and pathname to ensure named window reuse
-    final origin = web.window.location.origin;
-    final path = web.window.location.pathname;
-    final qrUrl = '$origin$path#/qr?id=$id&secret=$secret';
-    
-    // Reuses the same tab named 'checket_display'
-    web.window.open(qrUrl, 'checket_display');
-  }
+  void _syncMonitor(int id, String secret) {
+    //Send instant message to existing tab via BroadcastChannel
+    MonitorService().updateMonitor(id, secret);
 
-  void _openRecoveryQrDisplay() {
-    final origin = web.window.location.origin;
-    final path = web.window.location.pathname;
-    final qrUrl = '$origin$path#/qr?id=-1&secret=recovery';
-    
-    web.window.open(qrUrl, 'checket_display');
+    final base = web.window.location.href.split('#').first;
+    final qrUrl = '${base}#/qr?id=$id&secret=$secret';
+    web.window.open(qrUrl, 'checket_monitor');
   }
 
   void _schichtBeendenDialog(List<WardrobeSlot> allSlots) {
@@ -95,9 +88,12 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           ),
           actions: [
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: Colors.white),
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: BrandColors.active,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold))
             ),
           ],
         ),
@@ -158,7 +154,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   ],
                 ),
                 ElevatedButton.icon(
-                  onPressed: _openRecoveryQrDisplay,
+                  onPressed: () => _syncMonitor(-1, 'recovery'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: BrandColors.active,
                     foregroundColor: Colors.white,
@@ -381,7 +377,8 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             ),
             itemCount: displaySlots.length,
             itemBuilder: (context, index) {
-              final slot = displaySlots[index];
+                              isRecovery ? 'BITTE SCANNEN' : 'BITTE SCANNEN',
+  final slot = displaySlots[index];
               Color kachelFarbe = BrandColors.surface;
               
               if (slot.status == 'unpaid') kachelFarbe = BrandColors.unpaid;
@@ -431,13 +428,13 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Bügel ${slot.id} verwalten', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
                       
                       if (slot.status == 'active' || slot.status == 'temporary' || slot.status == 'forgotten') ...[
                         Center(
                           child: ElevatedButton.icon(
                             onPressed: () {
-                              _openRecoveryQrDisplay();
+                              _syncMonitor(-1, 'recovery');
                               Navigator.pop(modalContext);
                             },
                             icon: const Icon(Icons.qr_code_2, size: 20),
@@ -469,7 +466,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                               updatedAt: DateTime.now()
                             );
                             
-                            _openQrDisplay(slot.id, secret);
+                            _syncMonitor(slot.id, secret);
                             await _syncService.updateSlot(updated);
                           }
                         ),

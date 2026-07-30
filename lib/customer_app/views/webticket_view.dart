@@ -169,7 +169,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                   title: Image.asset(
                     'assets/images/full-icon.png', 
                     height: 28, 
-                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
+                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: Colors.white, fontSize: 14)),
                   ),
                 ),
               ),
@@ -298,7 +298,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24))),
+              Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white))),
               const SizedBox(height: 40),
               const Icon(Icons.search_off, color: Colors.white24, size: 64),
               const SizedBox(height: 24),
@@ -326,7 +326,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Jacke am Ende nicht vergessen! 🧥', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+          const Text('Jacke am Ende nicht vergessen!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
           SizedBox(height: isShort ? 4 : 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end, 

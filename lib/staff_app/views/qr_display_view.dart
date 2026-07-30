@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/theme/brand_colors.dart';
+import '../../shared/services/monitor_service.dart';
 
-class QrDisplayView extends StatelessWidget {
+class QrDisplayView extends StatefulWidget {
   final int ticketId;
   final String secret;
 
@@ -14,18 +16,53 @@ class QrDisplayView extends StatelessWidget {
   });
 
   @override
+  State<QrDisplayView> createState() => _QrDisplayViewState();
+}
+
+class _QrDisplayViewState extends State<QrDisplayView> {
+  late int _currentId;
+  late String _currentSecret;
+  late StreamSubscription _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentId = widget.ticketId;
+    _currentSecret = widget.secret;
+    web.document.title = 'Checket Monitor';
+
+    // Initialize Monitor Listener
+    final monitor = MonitorService();
+    monitor.init();
+    _subscription = monitor.onUpdate.listen((data) {
+      if (mounted) {
+        setState(() {
+          _currentId = data['id'] as int;
+          _currentSecret = data['secret'] as String;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isRecovery = ticketId == -1 || secret == 'recovery';
+    final isRecovery = _currentId == -1 || _currentSecret == 'recovery';
     
-    // Determine the URL for the QR code
+    // Generate URL for QR
+    final origin = web.window.location.origin;
+    final path = web.window.location.pathname.replaceAll('/staff/', '/');
+    
     String qrData;
     if (isRecovery) {
-      // Points to base website only (no parameters)
-      qrData = web.window.location.origin + web.window.location.pathname.replaceAll('/staff/', '/');
+      qrData = '$origin$path'; // Base website
     } else {
-      // Points to specific ticket with secret
-      final baseUrl = web.window.location.origin + web.window.location.pathname.replaceAll('/staff/', '/');
-      qrData = '$baseUrl?id=$ticketId&secret=$secret';
+      qrData = '$origin$path?id=$_currentId&secret=$_currentSecret';
     }
 
     return Scaffold(
@@ -39,7 +76,7 @@ class QrDisplayView extends StatelessWidget {
           centerTitle: true,
           title: Image.asset(
             'assets/images/full-icon.png', 
-            height: 28, 
+            height: 28,
             errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: Colors.white, fontSize: 14)),
           ),
         ),
@@ -52,7 +89,7 @@ class QrDisplayView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET $ticketId',
+                  isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET $_currentId',
                   style: const TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.w900,
