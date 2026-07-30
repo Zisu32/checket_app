@@ -7,10 +7,9 @@ import 'shared/theme/brand_colors.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
-  // 1. Decouple initialization to prevent iOS gray screen hangs.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Visual Debugger: Replace gray screen with real error text
+  // Global Error Catcher for Grey Screen Debugging
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Scaffold(
       backgroundColor: BrandColors.background,
@@ -65,13 +64,7 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
       throw Exception('Konfiguration fehlt (URL/KEY). Bitte GitHub Secrets prüfen.');
     }
 
-    // Initialize Supabase
-    await Supabase.initialize(
-      url: url,
-      anonKey: anonKey,
-    );
-
-    // Initialize Sync Service (Drift & Supabase)
+    await Supabase.initialize(url: url, anonKey: anonKey);
     await SyncService().init(dbName: 'checket_staff_db');
   }
 
@@ -81,20 +74,40 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
       title: 'Checket Staff',
       theme: ThemeData.dark(),
       debugShowCheckedModeBanner: false,
-      home: FutureBuilder(
-        future: _initFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return _buildSplash();
-          }
+      // The builder wraps every route, showing a Splash screen while initializing
+      builder: (context, child) {
+        return FutureBuilder(
+          future: _initFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return _buildSplash();
+            }
+            if (snapshot.hasError) {
+              return _buildError(snapshot.error.toString());
+            }
+            // Once ready, show the actual navigation child (Dashboard or QR)
+            return child!;
+          },
+        );
+      },
+      onGenerateRoute: (settings) {
+        final name = settings.name ?? '';
+        
+        // Standard route parsing from the browser's URL hash
+        if (name.contains('/qr')) {
+          final uri = Uri.parse(name.startsWith('/') ? name : '/$name');
+          final id = int.tryParse(uri.queryParameters['id'] ?? '');
+          final secret = uri.queryParameters['secret'] ?? '';
 
-          if (snapshot.hasError) {
-            return _buildError(snapshot.error.toString());
+          if (id != null) {
+            return MaterialPageRoute(
+              builder: (_) => QrDisplayView(ticketId: id, secret: secret),
+            );
           }
-
-          return const _StaffRootHandler();
-        },
-      ),
+        }
+        
+        return MaterialPageRoute(builder: (_) => const StaffDashboard());
+      },
     );
   }
 
@@ -125,7 +138,7 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
             children: [
               const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 64),
               const SizedBox(height: 24),
-              const Text('Startfehler (Staff)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Initialisierungsfehler', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Text(error, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 13)),
               const SizedBox(height: 32),
@@ -137,34 +150,6 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _StaffRootHandler extends StatelessWidget {
-  const _StaffRootHandler();
-
-  @override
-  Widget build(BuildContext context) {
-    return Navigator(
-      onGenerateRoute: (settings) {
-        // Robust direct routing for Flutter Web
-        final fragment = web.window.location.hash;
-
-        if (fragment.contains('/qr')) {
-          final uri = Uri.parse(fragment.startsWith('#') ? fragment.substring(1) : fragment);
-          final id = int.tryParse(uri.queryParameters['id'] ?? '');
-          final secret = uri.queryParameters['secret'] ?? '';
-
-          if (id != null) {
-            return MaterialPageRoute(
-              builder: (_) => QrDisplayView(ticketId: id, secret: secret),
-            );
-          }
-        }
-        
-        return MaterialPageRoute(builder: (_) => const StaffDashboard());
-      },
     );
   }
 }

@@ -59,11 +59,15 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   }
 
   void _syncMonitor(int id, String secret) {
-    //Send instant message to existing tab via BroadcastChannel
+    // 1. Send instant message to existing tab via BroadcastChannel
     MonitorService().updateMonitor(id, secret);
 
-    final base = web.window.location.href.split('#').first;
-    final qrUrl = '${base}#/qr?id=$id&secret=$secret';
+    // 2. Standardize URL for monitor tab - robust Origin/Path/Hash combination
+    final origin = web.window.location.origin;
+    final path = web.window.location.pathname;
+    final qrUrl = '$origin$path#/qr?id=$id&secret=$secret';
+    
+    // Named tab 'checket_monitor' ensures reuse and updates existing display
     web.window.open(qrUrl, 'checket_monitor');
   }
 

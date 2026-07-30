@@ -6,10 +6,9 @@ import 'shared/theme/brand_colors.dart';
 import 'package:web/web.dart' as web;
 
 void main() {
-  // 1. Decouple initialization to prevent iOS gray screen hangs.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 2. Visual Debugger: Replace gray screen with real error text
+  // Global Error Catcher for Grey Screen Debugging
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Scaffold(
       backgroundColor: BrandColors.background,
@@ -64,13 +63,7 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
       throw Exception('Konfiguration fehlt (URL/KEY). Bitte GitHub Secrets prüfen.');
     }
 
-    // Initialize Supabase
-    await Supabase.initialize(
-      url: url,
-      anonKey: anonKey,
-    );
-
-    // Initialize Sync Service
+    await Supabase.initialize(url: url, anonKey: anonKey);
     await SyncService().init(dbName: 'checket_customer_db');
   }
 
@@ -80,20 +73,21 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
       title: 'Checket Ticket',
       theme: ThemeData.dark(),
       debugShowCheckedModeBanner: false,
-      home: FutureBuilder(
-        future: _initFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return _buildSplash();
-          }
-
-          if (snapshot.hasError) {
-            return _buildError(snapshot.error.toString());
-          }
-
-          return _buildAppContent();
-        },
-      ),
+      builder: (context, child) {
+        return FutureBuilder(
+          future: _initFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return _buildSplash();
+            }
+            if (snapshot.hasError) {
+              return _buildError(snapshot.error.toString());
+            }
+            return child!;
+          },
+        );
+      },
+      home: const _CustomerRouteHandler(),
     );
   }
 
@@ -124,7 +118,7 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
             children: [
               const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 64),
               const SizedBox(height: 24),
-              const Text('Startfehler', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Initialisierungsfehler', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Text(error, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 13)),
               const SizedBox(height: 32),
@@ -138,8 +132,13 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
       ),
     );
   }
+}
 
-  Widget _buildAppContent() {
+class _CustomerRouteHandler extends StatelessWidget {
+  const _CustomerRouteHandler();
+
+  @override
+  Widget build(BuildContext context) {
     final fullUrl = web.window.location.href;
     final uri = Uri.parse(fullUrl);
     
