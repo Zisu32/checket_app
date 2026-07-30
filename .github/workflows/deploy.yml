@@ -50,7 +50,6 @@ jobs:
           flutter build web --release \
             -t lib/main_customer.dart \
             --base-href "${{ env.BASE_HREF }}" \
-            --web-renderer html \
             --no-source-maps \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \
@@ -67,7 +66,6 @@ jobs:
           flutter build web --release \
             -t lib/main_staff.dart \
             --base-href "$STAFF_BASE_HREF" \
-            --web-renderer html \
             --no-source-maps \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
             --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \
