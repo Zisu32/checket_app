@@ -93,17 +93,10 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
       onGenerateRoute: (settings) {
         final name = settings.name ?? '';
         
-        // Standard route parsing from the browser's URL hash
         if (name.contains('/qr')) {
-          final uri = Uri.parse(name.startsWith('/') ? name : '/$name');
-          final id = int.tryParse(uri.queryParameters['id'] ?? '');
-          final secret = uri.queryParameters['secret'] ?? '';
-
-          if (id != null) {
-            return MaterialPageRoute(
-              builder: (_) => QrDisplayView(ticketId: id, secret: secret),
-            );
-          }
+          return MaterialPageRoute(
+            builder: (_) => const QrDisplayView(),
+          );
         }
         
         return MaterialPageRoute(builder: (_) => const StaffDashboard());
