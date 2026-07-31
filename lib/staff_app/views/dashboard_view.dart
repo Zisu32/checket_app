@@ -108,7 +108,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
     final archiveCount = allSlots.where((s) => s.status == 'active').length;
     
     showDialog(
-      context: context,
+      context: context,showLostAndFoundSheet
       builder: (dialogContext) => AlertDialog(
         backgroundColor: BrandColors.surface,
         title: Row(
@@ -143,7 +143,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
       isScrollControlled: true,
       backgroundColor: BrandColors.background,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: MediaQuery.of(context).size.height * 0.5,
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
