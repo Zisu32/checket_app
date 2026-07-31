@@ -20,8 +20,8 @@ class QrDisplayView extends StatefulWidget {
 }
 
 class _QrDisplayViewState extends State<QrDisplayView> {
-  late int _currentId;
-  late String _currentSecret;
+  int? _currentId;
+  String? _currentSecret;
   late StreamSubscription _subscription;
 
   @override
