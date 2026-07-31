@@ -95,7 +95,7 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
         
         if (name.contains('/qr')) {
           return MaterialPageRoute(
-            builder: (_) => QrDisplayView(ticketId: id, secret: secret),
+            builder: (_) => QrDisplayView(),
           );
         }
         

@@ -6,8 +6,8 @@ import '../../shared/theme/brand_colors.dart';
 import '../../shared/services/monitor_service.dart';
 
 class QrDisplayView extends StatefulWidget {
-  final int ticketId;
-  final String secret;
+  final int? ticketId;
+  final String? secret;
 
   const QrDisplayView({
     super.key,
