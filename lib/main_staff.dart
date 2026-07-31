@@ -9,7 +9,7 @@ import 'package:web/web.dart' as web;
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Global Error Catcher for Grey Screen Debugging
+  // Global Error Catcher for Debugging
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Scaffold(
       backgroundColor: BrandColors.background,
@@ -23,8 +23,64 @@ void main() {
                 const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 48),
                 const SizedBox(height: 20),
                 const Text('Startfehler oder Absturz (Staff):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
-                const SizedBox(height: 12),
-                Text(
+                const SizedBox(height: 12),<!DOCTYPE html>
+          <html>
+          <head>
+          <!--
+          If you are serving your web app in a path other than the root, change the
+          href value below to reflect the base path you are serving from.
+
+          The path provided below has to start and end with a slash "/" in order for
+          it to work correctly.
+
+          For more details:
+          * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+          This is a placeholder for base href that will be replaced by the value of
+          the `--base-href` argument provided to `flutter build`.
+          -->
+          <base href="$FLUTTER_BASE_HREF">
+
+          <meta charset="UTF-8">
+          <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+          <meta name="description" content="A new Flutter project.">
+
+          <!-- iOS meta tags & icons -->
+          <meta name="mobile-web-app-capable" content="yes">
+          <meta name="apple-mobile-web-app-status-bar-style" content="black">
+          <meta name="apple-mobile-web-app-title" content="checket">
+          <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+          <!-- Favicon -->
+          <link rel="icon" type="image/png" href="favicon.png"/>
+
+          <title>checket</title>
+          <link rel="manifest" href="manifest.json">
+          <script>
+          // Debugging Trick: Show errors as a red bar on iPhone
+          window.onerror = function(message, source, lineno) {
+        const div = document.createElement('div');
+        div.style = 'position:fixed;top:0;left:0;background:red;color:white;z-index:9999;padding:20px;width:100%;font-size:14px;';
+        div.innerText = 'Fehler: ' + message + '\nDatei: ' + source + '\nZeile: ' + lineno;
+        document.body.appendChild(div);
+        return false;
+        };
+        </script>
+        </head>
+        <body>
+        <!--
+        You can customize the "flutter_bootstrap.js" script.
+        This is useful to provide a custom configuration to the Flutter loader
+        or to give the user feedback during the initialization process.
+
+        For more details:
+        * https://docs.flutter.dev/platform-integration/web/initialization
+        -->
+        <script src="flutter_bootstrap.js" async></script>
+        </body>
+        </html>
+
+        Text(
                   '${details.exception}\n\n${details.stack}',
                   style: const TextStyle(color: Colors.redAccent, fontSize: 12),
                   textAlign: TextAlign.center,
@@ -85,8 +141,8 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
             if (snapshot.hasError) {
               return _buildError(snapshot.error.toString());
             }
-            // Once ready, show the actual navigation child (Dashboard or QR)
-            return child!;
+            // Once ready, show the actual navigation child (Dashboard)
+            return child ?? const SizedBox.shrink();
           },
         );
       },

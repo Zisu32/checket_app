@@ -8,7 +8,7 @@ import 'package:web/web.dart' as web;
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Global Error Catcher for Grey Screen Debugging
+  // Global Error Catcher for Debugging
   ErrorWidget.builder = (FlutterErrorDetails details) {
     return Scaffold(
       backgroundColor: BrandColors.background,
@@ -21,7 +21,7 @@ void main() {
               children: [
                 const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 48),
                 const SizedBox(height: 20),
-                const Text('Startfehler oder Absturz:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
+                const Text('Startfehler oder Absturz (Costumer):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
                 const SizedBox(height: 12),
                 Text(
                   '${details.exception}\n\n${details.stack}',
@@ -83,7 +83,8 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
             if (snapshot.hasError) {
               return _buildError(snapshot.error.toString());
             }
-            return child!;
+            // Once ready, show the actual navigation child (Monitor)
+            return child ?? const SizedBox.shrink();
           },
         );
       },
