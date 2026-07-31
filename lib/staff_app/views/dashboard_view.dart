@@ -65,7 +65,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
     // 2. Standardize URL for monitor tab - robust Origin/Path/Hash combination
     final origin = web.window.location.origin;
     final path = web.window.location.pathname;
-    final qrUrl = '$origin$path#/qr?id=$id&secret=$secret';
+    final qrUrl = '$origin$path#/qr';
     
     // Named tab 'checket_monitor' ensures reuse and updates existing display
     web.window.open(qrUrl, 'checket_monitor');

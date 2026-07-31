@@ -92,7 +92,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET #$_currentId',
+                  isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET $_currentId',
                   style: const TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.w900,
