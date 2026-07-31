@@ -118,7 +118,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             const Text('Schichtende', style: TextStyle(color: Colors.white)),
           ],
         ),
-        content: Text('Sollen die $archiveCount Jacken ins FUNDBÜRO verschoben und das gesamte Raster geleert werden?', style: const TextStyle(color: Colors.white70)),
+        content: Text('Sollen $archiveCount Jacken ins FUNDBÜRO verschoben und die Garderrobe geschlossen werden?', style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext), 
@@ -430,7 +430,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Bügel ${slot.id} verwalten', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text('Bügel ${slot.id}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                       const SizedBox(height: 16),
                       
                       if (slot.status == 'active' || slot.status == 'temporary' || slot.status == 'forgotten') ...[
@@ -441,7 +441,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                               Navigator.pop(modalContext);
                             },
                             icon: const Icon(Icons.qr_code_2, size: 20),
-                            label: const Text('Ticket verloren?', style: TextStyle(fontWeight: FontWeight.bold)),
+                            label: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: BrandColors.active,
                               foregroundColor: Colors.white,
