@@ -43,23 +43,8 @@ class _QrDisplayViewState extends State<QrDisplayView> {
           _currentId = newId;
           _currentSecret = newSecret;
         });
-
-        // SYNC BROWSER URL BAR without reloading
-        _updateUrlBar(newId, newSecret);
       }
     });
-  }
-
-  void _updateUrlBar(int id, String secret) {
-    try {
-      final base = web.window.location.href.split('#').first;
-      final newPath = '$base#/qr?id=$id&secret=$secret';
-      
-      // replaceState updates the address bar without adding to history or reloading
-      web.window.history.replaceState(null, 'Checket Monitor', newPath);
-    } catch (e) {
-      print('URL Bar sync failed: $e');
-    }
   }
 
   @override

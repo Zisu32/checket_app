@@ -143,7 +143,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
       isScrollControlled: true,
       backgroundColor: BrandColors.background,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.5,
+        height: MediaQuery.of(context).size.height * 0.7,
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
