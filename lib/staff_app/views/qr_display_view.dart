@@ -11,8 +11,8 @@ class QrDisplayView extends StatefulWidget {
 
   const QrDisplayView({
     super.key,
-    this.ticketId = -1,
-    this.secret = 'recovery',
+    required this.ticketId,
+    required this.secret,
   });
 
   @override
