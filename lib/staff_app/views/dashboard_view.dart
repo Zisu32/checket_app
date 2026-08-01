@@ -83,19 +83,19 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             children: [
               const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
               const SizedBox(width: 12),
-              const Text('Schichtende nicht möglich', style: TextStyle(color: Colors.white)),
+              const Text('Schichtende nicht möglich', style: TextStyle(color: BrandColors.white)),
             ],
           ),
           content: const Text(
             'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
-            style: TextStyle(color: Colors.white70)
+            style: TextStyle(color: BrandColors.white)
           ),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(dialogContext),
               style: ElevatedButton.styleFrom(
                 backgroundColor: BrandColors.active,
-                foregroundColor: Colors.white,
+                foregroundColor: BrandColors.white,
               ),
               child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold))
             ),
@@ -115,17 +115,17 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           children: [
             const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
             const SizedBox(width: 12),
-            const Text('Schichtende', style: TextStyle(color: Colors.white)),
+            const Text('Schichtende', style: TextStyle(BrandColors.white)),
           ],
         ),
-        content: Text('Sollen $archiveCount Jacken ins FUNDBÜRO verschoben und die Garderrobe geschlossen werden?', style: const TextStyle(color: Colors.white70)),
+        content: Text('Sollen $archiveCount Jacken ins FUNDBÜRO verschoben und die Garderrobe geschlossen werden?', style: const TextStyle(color: BrandColors.white)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext), 
-            child: const Text('Abbrechen', style: TextStyle(color: Colors.white70))
+            child: const Text('Abbrechen', style: TextStyle(color: BrandColors.free))
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.unpaid, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.unpaid, foregroundColor: BrandColors.white),
             onPressed: () async {
               await _syncService.archiveAndResetShift();
               if (mounted) Navigator.pop(dialogContext);
@@ -154,14 +154,14 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   children: [
                     const Icon(Icons.inventory_2_outlined, color: BrandColors.forgotten, size: 24),
                     const SizedBox(width: 12),
-                    const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: BrandColors.white)),
                   ],
                 ),
                 ElevatedButton.icon(
                   onPressed: () => _syncMonitor(-1, 'recovery'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: BrandColors.active,
-                    foregroundColor: Colors.white,
+                    foregroundColor: BrandColors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   icon: const Icon(Icons.qr_code_2, size: 18),
@@ -169,13 +169,13 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                 ),
               ],
             ),
-            const Divider(height: 32, color: Colors.white24),
+            const Divider(height: 32, color: BrandColors.free),
             Expanded(
               child: StreamBuilder<List<LostItem>>(
                 stream: _syncService.watchLostItems(),
                 builder: (context, snapshot) {
                   final items = snapshot.data ?? [];
-                  if (items.isEmpty) return const Center(child: Text('Keine Gegenstände im Fundbüro.', style: TextStyle(color: Colors.grey)));
+                  if (items.isEmpty) return const Center(child: Text('Keine Gegenstände im Fundbüro.', style: TextStyle(color: BrandColors.free)));
                   
                   return ListView.builder(
                     itemCount: items.length,
@@ -195,17 +195,17 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             child: Center(
                               child: Text(
                                 '${item.originalSlotId}',
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                                style: const TextStyle(color: BrandColors.white, fontWeight: FontWeight.bold, fontSize: 18),
                               ),
                             ),
                           ),
-                          title: const Text('Garderobenplatz', style: TextStyle(color: Colors.white)),
+                          title: const Text('Garderobenplatz', style: TextStyle(color: BrandColors.white)),
                           subtitle: Text(
                             '${item.createdAt.day}.${item.createdAt.month}.${item.createdAt.year}',
-                            style: const TextStyle(color: Colors.white38, fontSize: 14),
+                            style: const TextStyle(color: BrandColors.free, fontSize: 14),
                           ),
                           trailing: ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: Colors.white),
+                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: BrandColors.white),
                             onPressed: () => _syncService.handOverLostItem(item),
                             child: const Text('Aushändigen', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
@@ -239,7 +239,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   const CircularProgressIndicator(color: BrandColors.active),
                   if (_showTimeoutMessage) ...[
                     const SizedBox(height: 24),
-                    const Text('Synchronisierung läuft...', textAlign: TextAlign.center, style: TextStyle(color: Colors.white)),
+                    const Text('Synchronisierung läuft...', textAlign: TextAlign.center, style: TextStyle(color: BrandColors.white)),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () => _syncService.pullFromSupabase(),
@@ -269,7 +269,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   Image.asset(
                     'assets/images/full-icon.png', 
                     height: 28,
-                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: Colors.white, fontSize: 14)),
+                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14)),
                   ),
                   const SizedBox(width: 12),
                   ValueListenableBuilder<SyncStatus>(
@@ -317,7 +317,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.surface,
-                      foregroundColor: Colors.white,
+                      foregroundColor: BrandColors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -338,16 +338,16 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                     children: [
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.chevron_left, color: Colors.white, size: 18),
+                        icon: const Icon(Icons.chevron_left, color: BrandColors.white, size: 18),
                         onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
                       ),
                       Text(
                         '${_currentPage + 1} / $totalPages',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: BrandColors.white),
                       ),
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.chevron_right, color: Colors.white, size: 18),
+                        icon: const Icon(Icons.chevron_right, color: BrandColors.white, size: 18),
                         onPressed: _currentPage < totalPages - 1 ? () => setState(() => _currentPage++) : null,
                       ),
                     ],
@@ -358,7 +358,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: BrandColors.surface,
-                      foregroundColor: Colors.white,
+                      foregroundColor: BrandColors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -396,7 +396,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   child: Center(
                     child: Text(
                       '${slot.id}', 
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: BrandColors.white)
                     )
                   ),
                 ),
@@ -430,7 +430,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Bügel ${slot.id}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text('Bügel ${slot.id}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: BrandColors.white)),
                       const SizedBox(height: 16),
                       
                       if (slot.status == 'active' || slot.status == 'temporary' || slot.status == 'forgotten') ...[
@@ -444,21 +444,21 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             label: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: BrandColors.active,
-                              foregroundColor: Colors.white,
+                              foregroundColor: BrandColors.white,
                               minimumSize: const Size(280, 44),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                             ),
                           ),
                         ),
                         const SizedBox(height: 16),
-                        const Divider(height: 24, color: Colors.white12),
+                        const Divider(height: 24, color: BrandColors.free),
                       ],
                       const SizedBox(height: 8),
                       
                       if (slot.status == 'free') 
                         ListTile(
                           leading: const Icon(Icons.add_box, color: BrandColors.active), 
-                          title: const Text('Jacke einchecken', style: TextStyle(color: Colors.white)), 
+                          title: const Text('Jacke einchecken', style: TextStyle(color: BrandColors.white)),
                           onTap: () async { 
                             final secret = _generateSecret();
                             final updated = slot.copyWith(
@@ -477,7 +477,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                       if (slot.status == 'unpaid') ...[
                         ListTile(
                           leading: const Icon(Icons.contactless_outlined, color: BrandColors.active), 
-                          title: const Text('Kontaktloses bezahlen', style: TextStyle(color: Colors.white)), 
+                          title: const Text('Kontaktloses bezahlen', style: TextStyle(color: BrandColors.white)),
                           onTap: () async { 
                             final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'nfc', updatedAt: DateTime.now());
                             await _syncService.updateSlot(updated);
@@ -485,8 +485,8 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                           }
                         ),
                         ListTile(
-                          leading: const Icon(Icons.euro, color: Colors.amber),
-                          title: const Text('Bar bezahlen', style: TextStyle(color: Colors.white)), 
+                          leading: const Icon(Icons.euro, color: BrandColors.secret),
+                          title: const Text('Bar bezahlen', style: TextStyle(color: BrandColors.white)),
                           onTap: () async { 
                             final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'bar', updatedAt: DateTime.now());
                             await _syncService.updateSlot(updated);
@@ -499,7 +499,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                         if (slot.status == 'active')
                           ListTile(
                             leading: const Icon(Icons.pause, color: BrandColors.temporary),
-                            title: const Text('Temporärer Ausgang', style: TextStyle(color: Colors.white)), 
+                            title: const Text('Temporärer Ausgang', style: TextStyle(color: BrandColors.white)),
                             onTap: () async { 
                               final updated = slot.copyWith(status: 'temporary', updatedAt: DateTime.now());
                               await _syncService.updateSlot(updated);
@@ -509,7 +509,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                         else
                           ListTile(
                             leading: const Icon(Icons.play_arrow, color: BrandColors.active), 
-                            title: const Text('Wieder zurück', style: TextStyle(color: Colors.white)), 
+                            title: const Text('Wieder zurück', style: TextStyle(color: BrandColors.white)),
                             onTap: () async { 
                               final updated = slot.copyWith(status: 'active', updatedAt: DateTime.now());
                               await _syncService.updateSlot(updated);
@@ -517,8 +517,8 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             }
                           ),
                         ListTile(
-                          leading: const Icon(Icons.logout, color: Colors.red), 
-                          title: const Text('Endgültig auschecken', style: TextStyle(color: Colors.white)), 
+                          leading: const Icon(Icons.logout, color: BrandColors.unpaid),
+                          title: const Text('Endgültig auschecken', style: TextStyle(color: BrandColors.white)),
                           onTap: () async { 
                             final updated = slot.copyWith(
                               status: 'free', 

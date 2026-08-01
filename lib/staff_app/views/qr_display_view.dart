@@ -88,7 +88,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
           title: Image.asset(
             'assets/images/full-icon.png', 
             height: 28,
-            errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: Colors.white, fontSize: 14)),
+            errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14)),
           ),
         ),
       ),
@@ -104,7 +104,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
                   style: const TextStyle(
                     fontSize: 42,
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                    color: BrandColors.white,
                     letterSpacing: 2,
                   ),
                 ),
@@ -113,7 +113,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
                   isRecovery ? 'BITTE SCANNEN' : 'BITTE SCANNEN',
                   style: const TextStyle(
                     fontSize: 18,
-                    color: Colors.white54,
+                    color: BrandColors.free,
                     letterSpacing: 4,
                   ),
                 ),
@@ -121,7 +121,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: BrandColors.white,
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: QrImageView(
@@ -137,7 +137,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
                     ? 'Dein Handy lädt dein Ticket automatisch aus dem Speicher.' 
                     : 'Dein digitales Ticket für die Garderobe.',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white38, fontSize: 16),
+                  style: const TextStyle(color: BrandColors.free, fontSize: 16),
                 ),
               ],
             ),

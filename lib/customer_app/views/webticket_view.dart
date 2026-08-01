@@ -124,46 +124,46 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
           builder: (context, snapshot) {
             final slot = snapshot.data;
             
-            Color statusFarbe = BrandColors.active;
+            Color statusColor = BrandColors.active;
             IconData statusIcon = Icons.verified_user_outlined; 
             String statusText = 'Garderoben-Platz aktiv';
             bool isSearching = !snapshot.hasData;
 
             if (isSearching) {
-              statusFarbe = BrandColors.white;
+              statusColor = BrandColors.white;
               statusIcon = Icons.sync;
               statusText = _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...';
             } else if (slot == null) {
-              statusFarbe = BrandColors.unpaid;
+              statusColor = BrandColors.unpaid;
               statusIcon = Icons.error_outline;
               statusText = 'Ticket ungültig';
             } else {
               if (slot.status == 'unpaid') { 
-                statusFarbe = BrandColors.unpaid; 
+                statusColor = BrandColors.unpaid;
                 statusIcon = Icons.credit_card_off_outlined; 
                 statusText = 'Zahlung ausstehend'; 
               } else if (slot.status == 'temporary') { 
-                statusFarbe = BrandColors.temporary; 
+                statusColor = BrandColors.temporary;
                 statusIcon = Icons.timer_outlined; 
                 statusText = 'Jacke temporär draußen'; 
               } else if (slot.status == 'forgotten') { 
-                statusFarbe = BrandColors.forgotten; 
+                statusColor = BrandColors.forgotten;
                 statusIcon = Icons.inventory_2_outlined; 
                 statusText = 'Jacke im Fundbüro'; 
               } else if (slot.status == 'free') {
-                statusFarbe = BrandColors.free;
+                statusColor = BrandColors.free;
                 statusIcon = Icons.check_circle_outline;
                 statusText = 'Bügel frei';
                 _clearPersistence();
               } else if (slot.status == 'picked_up') {
-                statusFarbe = BrandColors.free; 
+                statusColor = BrandColors.free;
                 statusIcon = Icons.task_alt;
                 statusText = 'Jacke bereits abgeholt';
                 _clearPersistence();
               } else if (slot.status == 'wrong_secret') {
-                statusFarbe = BrandColors.free;
+                statusColor = BrandColors.secret;
                 statusIcon = Icons.lock_person_outlined;
-                statusText = 'Jacke bereits abgeholt';
+                statusText = 'Secret stimmt nicht';
                 _clearPersistence();
               }
             }
@@ -180,7 +180,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                   title: Image.asset(
                     'assets/images/full-icon.png', 
                     height: 28, 
-                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: Colors.white, fontSize: 14)),
+                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14)),
                   ),
                 ),
               ),
@@ -206,11 +206,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                               width: double.infinity, 
                               padding: EdgeInsets.all(isShortScreen ? 20 : 32),
                               decoration: BoxDecoration(
-                                color: statusFarbe,
+                                color: BrandColors.header,
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: statusFarbe.withValues(alpha: _pulseAnimation.value * 0.4),
+                                    color: BrandColors.header.withValues(alpha: _pulseAnimation.value * 0.4),
                                     blurRadius: 25 * _pulseAnimation.value,
                                     spreadRadius: 4 * _pulseAnimation.value,
                                   )
@@ -250,7 +250,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         if (error != null)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16),
-                            child: Text(error, style: const TextStyle(color: Colors.red, fontSize: 12), textAlign: TextAlign.center),
+                            child: Text(error, style: const TextStyle(color: BrandColors.unpaid, fontSize: 12), textAlign: TextAlign.center),
                           )
                         else if (slot != null && slot.status == 'wrong_secret')
                           const Padding(
@@ -300,25 +300,26 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   Widget _buildNoTicketFoundUI() {
     return Scaffold(
       backgroundColor: BrandColors.background,
+
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white))),
+              Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: BrandColors.white))),
               const SizedBox(height: 40),
-              const Icon(Icons.search_off, color: Colors.white24, size: 64),
+              const Icon(Icons.search_off, color: BrandColors.free, size: 64),
               const SizedBox(height: 24),
               const Text(
                 'Kein aktives Ticket gefunden',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.white),
               ),
               const SizedBox(height: 12),
               const Text(
                 'Bitte scanne den QR-Code an deinem Bügel oder wende dich an das Personal.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white54, fontSize: 14),
+                style: TextStyle(color: BrandColors.free, fontSize: 14),
               ),
             ],
           ),
@@ -330,11 +331,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   Widget _bauePushPrompt(bool isShort) {
     return Container(
       padding: const EdgeInsets.all(12), 
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: BrandColors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Jacke am Ende nicht vergessen!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+          const Text('Jacke am Ende nicht vergessen!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BrandColors.white)),
           SizedBox(height: isShort ? 4 : 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end, 
@@ -343,7 +344,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active),
                 onPressed: _frageNachPush, 
-                child: const Text('Ja, gerne', style: TextStyle(color: Colors.white))
+                child: const Text('Ja, gerne', style: TextStyle(color: BrandColors.white))
               )
             ]
           )
@@ -364,12 +365,12 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
       ),
       child: Row(
         children: [
-          const Icon(Icons.ios_share, size: 18, color: Colors.white54),
+          const Icon(Icons.ios_share, size: 18, color: BrandColors.free),
           const SizedBox(width: 8),
           const Expanded(
             child: Text(
               'Möchtest du erinnert werden wenn du deine Jacke vergessen hast? Dann App zum Home-Bildschirm hinzufügen',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: BrandColors.free, fontSize: 14),
             ),
           ),
           InkWell(
@@ -379,7 +380,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
             },
             child: const Padding(
               padding: EdgeInsets.all(4),
-              child: Icon(Icons.close, size: 18, color: Colors.white54),
+              child: Icon(Icons.close, size: 18, color: BrandColors.free),
             ),
           ),
         ],

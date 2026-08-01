@@ -21,11 +21,11 @@ void main() {
               children: [
                 const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 48),
                 const SizedBox(height: 20),
-                const Text('Startfehler oder Absturz (Costumer):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
+                const Text('Startfehler oder Absturz (Costumer):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: BrandColors.white)),
                 const SizedBox(height: 12),
                 Text(
                   '${details.exception}\n\n${details.stack}',
-                  style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                  style: const TextStyle(color: BrandColors.unpaid, fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -99,7 +99,8 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (_, __, ___) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.white))),
+            Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (_, __, ___) =>
+            const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: BrandColors.white))),
             const SizedBox(height: 40),
             const CircularProgressIndicator(color: BrandColors.active),
           ],
@@ -121,7 +122,7 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
               const SizedBox(height: 24),
               const Text('Initialisierungsfehler', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              Text(error, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+              Text(error, textAlign: TextAlign.center, style: const TextStyle(color: BrandColors.free, fontSize: 13)),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () => setState(() { _initFuture = _initialize(); }),
