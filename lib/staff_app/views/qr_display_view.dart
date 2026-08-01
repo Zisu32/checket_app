@@ -27,23 +27,31 @@ class _QrDisplayViewState extends State<QrDisplayView> {
   @override
   void initState() {
     super.initState();
-    _currentId = widget.ticketId;
-    _currentSecret = widget.secret;
     web.document.title = 'Checket Monitor';
 
-    // Initialize Monitor Listener
     final monitor = MonitorService();
     monitor.init();
+
+    if (widget.ticketId != null && widget.secret != null) {
+      _currentId = widget.ticketId;
+      _currentSecret = widget.secret;
+    } else {
+      final last = monitor.readLastKnown();
+      _currentId = last.id;
+      _currentSecret = last.secret;
+    }
+
     _subscription = monitor.onUpdate.listen((data) {
-      if (mounted) {
-        final newId = data['id'] as int;
-        final newSecret = data['secret'] as String;
-        
-        setState(() {
-          _currentId = newId;
-          _currentSecret = newSecret;
-        });
-      }
+      if (!mounted) return;
+
+      final rawId = data['id'];
+      final newId = rawId is int ? rawId : (rawId as num?)?.toInt();
+      final newSecret = data['secret'] as String?;
+
+      setState(() {
+        _currentId = newId;
+        _currentSecret = newSecret;
+      });
     });
   }
 
