@@ -221,7 +221,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                                   if (isSearching)
                                     const CircularProgressIndicator(color: BrandColors.white)
                                   else ...[
-                                    Icon(statusIcon, color: statusFarbe, size: isShortScreen ? 48 : 64),
+                                    Icon(statusIcon, color: BrandColors.white, size: isShortScreen ? 48 : 64),
                                     SizedBox(height: isShortScreen ? 8 : 16),
                                     Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: BrandColors.white)),
                                     const SizedBox(height: 12),
@@ -232,7 +232,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                                         style: TextStyle(
                                           fontSize: isShortScreen ? 80 : 110, 
                                           fontWeight: FontWeight.w900, 
-                                          color: statusFarbe, 
+                                          color: BrandColors.white,
                                           height: 1
                                         )
                                       ),
