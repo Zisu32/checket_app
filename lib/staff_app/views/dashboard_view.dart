@@ -110,7 +110,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: BrandColors.surface,
+        backgroundColor: BrandColors.background,
         title: Row(
           children: [
             const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),

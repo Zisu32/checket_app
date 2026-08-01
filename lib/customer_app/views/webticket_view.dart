@@ -210,7 +210,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: BrandColors.header.withValues(alpha: _pulseAnimation.value * 0.9),
+                                    color: BrandColors.header.withValues(alpha: _pulseAnimation.value * 1),
                                     blurRadius: 25 * _pulseAnimation.value,
                                     spreadRadius: 4 * _pulseAnimation.value,
                                   )
