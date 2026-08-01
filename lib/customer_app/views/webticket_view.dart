@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
+import '../../shared/services/platform_hints.dart';
 import '../../shared/theme/brand_colors.dart';
 
 class CustomerWebTicketView extends StatefulWidget {
@@ -23,6 +24,7 @@ class CustomerWebTicketView extends StatefulWidget {
 
 class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with SingleTickerProviderStateMixin {
   bool _hatBerechtigungGefragt = false;
+  bool _notificationsUnterstuetzt = true;
   final _syncService = SyncService();
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
@@ -38,11 +40,18 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
     super.initState();
     _handlePersistence();
 
-    final permission = web.Notification.permission;
-    if (permission == 'granted' || permission == 'denied') {
+    try {
+      final permission = web.Notification.permission;
+      if (permission == 'granted' || permission == 'denied') {
+        _hatBerechtigungGefragt = true;
+      }
+    } catch (e) {
+      // Notification-API nicht verfügbar (jeder Browser auf iOS
+      // außerhalb einer zum Homescreen hinzugefügten PWA)
+      _notificationsUnterstuetzt = false;
       _hatBerechtigungGefragt = true;
     }
-    
+
     _timeoutTimer = Timer(const Duration(seconds: 8), () {
       if (mounted) {
         setState(() => _showTimeoutMessage = true);
@@ -53,7 +62,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
-    
+
     _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
@@ -92,8 +101,12 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   }
 
   Future<void> _frageNachPush() async {
-    await web.Notification.requestPermission().toDart;
-    setState(() { _hatBerechtigungGefragt = true; });
+    try {
+      await web.Notification.requestPermission().toDart;
+    }
+    catch (e) {
+    }
+    if (mounted) setState(() { _hatBerechtigungGefragt = true; });
   }
 
   @override
@@ -264,7 +277,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         // Actions
                         if (slot != null && slot.status == 'active' && !_hatBerechtigungGefragt) 
                           _bauePushPrompt(isShortScreen),
-                        
+                          _bauInstallHinweis(),
+
                         if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret') 
                           const Padding(
                             padding: EdgeInsets.only(bottom: 24),
@@ -339,6 +353,42 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
               )
             ]
           )
+        ],
+      ),
+    );
+  }
+
+  Widget _bauInstallHinweis() {
+    if (!PlatformHints.shouldShowInstallHint()) return const SizedBox.shrink();
+
+    final text = PlatformHints.isSafari
+        ? 'Für Erinnerungen: Teilen-Symbol → "Zum Home-Bildschirm"'
+        : 'Für Erinnerungen: diese Seite in Safari öffnen und zum Home-Bildschirm hinzufügen';
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.ios_share, size: 16, color: Colors.white38),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          ),
+          InkWell(
+            onTap: () {
+              PlatformHints.dismissInstallHint();
+              setState(() {});
+            },
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(Icons.close, size: 16, color: Colors.white38),
+            ),
+          ),
         ],
       ),
     );
