@@ -206,11 +206,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                               width: double.infinity, 
                               padding: EdgeInsets.all(isShortScreen ? 20 : 32),
                               decoration: BoxDecoration(
-                                color: BrandColors.header,
+                                color: BrandColors.surface,
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: BrandColors.header.withValues(alpha: _pulseAnimation.value * 0.4),
+                                    color: BrandColors.header.withValues(alpha: _pulseAnimation.value * 0.9),
                                     blurRadius: 25 * _pulseAnimation.value,
                                     spreadRadius: 4 * _pulseAnimation.value,
                                   )
@@ -317,7 +317,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
               ),
               const SizedBox(height: 12),
               const Text(
-                'Bitte scanne den QR-Code an deinem Bügel oder wende dich an das Personal.',
+                'Bitte scanne den QR-Code oder wende dich an das Personal.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: BrandColors.free, fontSize: 14),
               ),
