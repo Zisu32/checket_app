@@ -124,7 +124,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
           builder: (context, snapshot) {
             final slot = snapshot.data;
             
-            Color statusFarbe = BrandColors.active; 
+            Color statusFarbe = BrandColors.active;
             IconData statusIcon = Icons.verified_user_outlined; 
             String statusText = 'Garderoben-Platz aktiv';
             bool isSearching = !snapshot.hasData;
@@ -372,7 +372,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
           const SizedBox(width: 8),
           const Expanded(
             child: Text(
-              'Möchtest du Erinnert werden wenn du deine Jacke vergessen hast? Dann zum Home-Bildschirm hinzufügen',
+              'Möchtest du erinnert werden wenn du deine Jacke vergessen hast? Dann App zum Home-Bildschirm hinzufügen',
               style: TextStyle(color: Colors.white70, fontSize: 14),
             ),
           ),

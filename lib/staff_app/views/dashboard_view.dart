@@ -485,7 +485,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                           }
                         ),
                         ListTile(
-                          leading: const Icon(Icons.euro, colo(Icons.attach_moneyr: Colors.amber),
+                          leading: const Icon(Icons.euro, color: Colors.amber),
                           title: const Text('Bar bezahlen', style: TextStyle(color: Colors.white)), 
                           onTap: () async { 
                             final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'bar', updatedAt: DateTime.now());
