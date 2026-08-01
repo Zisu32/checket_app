@@ -130,7 +130,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
             bool isSearching = !snapshot.hasData;
 
             if (isSearching) {
-              statusFarbe = Colors.white24;
+              statusFarbe = BrandColors.white;
               statusIcon = Icons.sync;
               statusText = _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...';
             } else if (slot == null) {
@@ -206,12 +206,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                               width: double.infinity, 
                               padding: EdgeInsets.all(isShortScreen ? 20 : 32),
                               decoration: BoxDecoration(
-                                color: BrandColors.surface, 
-                                borderRadius: BorderRadius.circular(24), 
-                                border: Border.all(
-                                  color: statusFarbe.withValues(alpha: _pulseAnimation.value), 
-                                  width: 5.0
-                                ),
+                                color: statusFarbe,
+                                borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
                                     color: statusFarbe.withValues(alpha: _pulseAnimation.value * 0.4),
@@ -223,11 +219,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                               child: Column(
                                 children: [
                                   if (isSearching)
-                                    const CircularProgressIndicator(color: Colors.white24)
+                                    const CircularProgressIndicator(color: BrandColors.white)
                                   else ...[
                                     Icon(statusIcon, color: statusFarbe, size: isShortScreen ? 48 : 64),
                                     SizedBox(height: isShortScreen ? 8 : 16),
-                                    Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
+                                    Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: BrandColors.white)),
                                     const SizedBox(height: 12),
                                     FittedBox(
                                       fit: BoxFit.scaleDown,
@@ -260,14 +256,14 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                           const Padding(
                             padding: EdgeInsets.only(bottom: 16),
                             child: Text('Jacke wurde abgeholt. Dieser Link ist nicht mehr gültig.', 
-                                 style: TextStyle(color: Colors.grey, fontSize: 12), textAlign: TextAlign.center),
+                                 style: TextStyle(color: BrandColors.free, fontSize: 12), textAlign: TextAlign.center),
                           )
                         else if (_showTimeoutMessage && isSearching)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Column(
                               children: [
-                                const Text('Wird synchronisiert...', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                const Text('Wird synchronisiert...', style: TextStyle(color: BrandColors.free, fontSize: 12)),
                                 TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Reload', style: TextStyle(color: BrandColors.active)))
                               ],
                             ),
@@ -282,7 +278,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                             padding: EdgeInsets.only(bottom: 24),
                             child: Text(
                               'Bitte zeige dieses Ticket beim Abholen vor.',
-                              style: TextStyle(color: Colors.white38, fontSize: 13),
+                              style: TextStyle(color: BrandColors.white, fontSize: 13),
                               textAlign: TextAlign.center,
                             ),
                           )
