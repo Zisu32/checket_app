@@ -115,7 +115,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           children: [
             const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
             const SizedBox(width: 12),
-            const Text('Schichtende', style: TextStyle(BrandColors.white)),
+            const Text('Schichtende', style: TextStyle(color: BrandColors.white)),
           ],
         ),
         content: Text('Sollen $archiveCount Jacken ins FUNDBÜRO verschoben und die Garderrobe geschlossen werden?', style: const TextStyle(color: BrandColors.white)),
