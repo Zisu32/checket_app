@@ -7,11 +7,7 @@ class PlatformHints {
       RegExp(r'iPad|iPhone|iPod').hasMatch(_ua) ||
           (_ua.contains('Macintosh') && web.window.navigator.maxTouchPoints > 1);
 
-  static bool get isSafari =>
-      _ua.contains('Safari') &&
-          !_ua.contains('CriOS') &&   // Chrome auf iOS
-          !_ua.contains('FxiOS') &&   // Firefox auf iOS
-          !_ua.contains('EdgiOS');    // Edge auf iOS
+  static bool get isAndroid => _ua.contains('Android');
 
   static bool get isStandalone {
     try {
@@ -21,9 +17,10 @@ class PlatformHints {
     }
   }
 
-  /// Banner nur zeigen, wenn: noch nicht als Standalone-App installiert
+  /// Banner zeigen, wenn mobiles Gerät (iOS oder Android) und noch nicht
+  /// als Standalone-App installiert, und nicht dauerhaft weggewischt.
   static bool shouldShowInstallHint() {
-    if (!isIOS || isStandalone) return false;
+    if (!(isIOS || isAndroid) || isStandalone) return false;
     final dismissed = web.window.localStorage.getItem('install_hint_dismissed');
     return dismissed != 'true';
   }

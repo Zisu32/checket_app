@@ -46,8 +46,6 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
         _hatBerechtigungGefragt = true;
       }
     } catch (e) {
-      // Notification-API nicht verfügbar (jeder Browser auf iOS
-      // außerhalb einer zum Homescreen hinzugefügten PWA)
       _notificationsUnterstuetzt = false;
       _hatBerechtigungGefragt = true;
     }
@@ -197,6 +195,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        _bauInstallHinweis(),
                         SizedBox(height: isShortScreen ? 12 : 20),
 
                         // Main Ticket Card
@@ -277,7 +276,6 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         // Actions
                         if (slot != null && slot.status == 'active' && !_hatBerechtigungGefragt) 
                           _bauePushPrompt(isShortScreen),
-                          _bauInstallHinweis(),
 
                         if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret') 
                           const Padding(
@@ -361,12 +359,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   Widget _bauInstallHinweis() {
     if (!PlatformHints.shouldShowInstallHint()) return const SizedBox.shrink();
 
-    final text = PlatformHints.isSafari
-        ? 'Für Erinnerungen: Teilen-Symbol → "Zum Home-Bildschirm"'
-        : 'Für Erinnerungen: diese Seite in Safari öffnen und zum Home-Bildschirm hinzufügen';
-
     return Container(
-      margin: const EdgeInsets.only(top: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
@@ -374,10 +368,13 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
       ),
       child: Row(
         children: [
-          const Icon(Icons.ios_share, size: 16, color: Colors.white38),
+          const Icon(Icons.ios_share, size: 18, color: Colors.white54),
           const SizedBox(width: 8),
-          Expanded(
-            child: Text(text, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          const Expanded(
+            child: Text(
+              'Möchtest du Erinnert werden wenn du deine Jacke vergessen hast? Dann zum Home-Bildschirm hinzufügen',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
           ),
           InkWell(
             onTap: () {
@@ -386,7 +383,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
             },
             child: const Padding(
               padding: EdgeInsets.all(4),
-              child: Icon(Icons.close, size: 16, color: Colors.white38),
+              child: Icon(Icons.close, size: 18, color: Colors.white54),
             ),
           ),
         ],

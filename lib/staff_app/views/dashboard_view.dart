@@ -485,7 +485,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                           }
                         ),
                         ListTile(
-                          leading: const Icon(Icons.attach_money, color: Colors.amber), 
+                          leading: const Icon(Icons.euro, colo(Icons.attach_moneyr: Colors.amber),
                           title: const Text('Bar bezahlen', style: TextStyle(color: Colors.white)), 
                           onTap: () async { 
                             final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'bar', updatedAt: DateTime.now());
@@ -493,21 +493,12 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             if (mounted) Navigator.pop(modalContext); 
                           }
                         ),
-                        ListTile(
-                          leading: const Icon(Icons.credit_card, color: Colors.white),
-                          title: const Text('SumUp bezahlen', style: TextStyle(color: Colors.white)), 
-                          onTap: () async { 
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('SumUp Integration folgt.'))
-                            );
-                          }
-                        ),
                       ],
                       
                       if (slot.status == 'active' || slot.status == 'temporary') ...[
                         if (slot.status == 'active')
                           ListTile(
-                            leading: const Icon(Icons.pause, color: Colors.orange), 
+                            leading: const Icon(Icons.pause, color: BrandColors.temporary),
                             title: const Text('Temporärer Ausgang', style: TextStyle(color: Colors.white)), 
                             onTap: () async { 
                               final updated = slot.copyWith(status: 'temporary', updatedAt: DateTime.now());
