@@ -206,7 +206,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                               width: double.infinity, 
                               padding: EdgeInsets.all(isShortScreen ? 20 : 32),
                               decoration: BoxDecoration(
-                                color: BrandColors.surface,
+                                color: statusColor,
                                 borderRadius: BorderRadius.circular(24),
                                 boxShadow: [
                                   BoxShadow(
