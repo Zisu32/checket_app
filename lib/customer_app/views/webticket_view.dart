@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:js_interop';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
@@ -22,7 +23,7 @@ class CustomerWebTicketView extends StatefulWidget {
   State<CustomerWebTicketView> createState() => _CustomerWebTicketViewState();
 }
 
-class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with SingleTickerProviderStateMixin {
+class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with TickerProviderStateMixin {
   bool _hatBerechtigungGefragt = false;
   bool _notificationsUnterstuetzt = true;
   final _syncService = SyncService();
@@ -31,6 +32,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
+  late AnimationController _borderRotationController;
 
   int? _activeId;
   String? _activeSecret;
@@ -60,6 +62,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
+
+    _borderRotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
 
     _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
@@ -95,6 +102,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
   void dispose() {
     _timeoutTimer?.cancel();
     _animationController.dispose();
+    _borderRotationController.dispose();
     super.dispose();
   }
 
@@ -201,49 +209,79 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         // Main Ticket Card
                         AspectRatio(
                           aspectRatio: 1.0,
-                          child: AnimatedBuilder(
-                            animation: _pulseAnimation,
-                            builder: (context, child) {
-                              return Container(
-                                padding: EdgeInsets.all(isShortScreen ? 20 : 32),
-                                decoration: BoxDecoration(
-                                    color: statusColor,
-                                    borderRadius: BorderRadius.circular(24),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: BrandColors.shadow.withValues(alpha: _pulseAnimation.value * 1),
-                                        blurRadius: 20 * _pulseAnimation.value,
-                                        spreadRadius: 2 * _pulseAnimation.value,
-                                      )
-                                    ]
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    if (isSearching)
-                                      const CircularProgressIndicator(color: BrandColors.white)
-                                    else ...[
-                                      Icon(statusIcon, color: BrandColors.white, size: isShortScreen ? 48 : 64),
-                                      SizedBox(height: isShortScreen ? 8 : 16),
-                                      Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: BrandColors.white)),
-                                      const SizedBox(height: 12),
-                                      FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                            '$_activeId',
-                                            style: TextStyle(
-                                                fontSize: isShortScreen ? 80 : 110,
-                                                fontWeight: FontWeight.w900,
-                                                color: BrandColors.white,
-                                                height: 1
-                                            )
+                          child: Stack(
+                            children: [
+                              AnimatedBuilder(
+                                animation: _pulseAnimation,
+                                builder: (context, child) {
+                                  return Container(
+                                    padding: EdgeInsets.all(isShortScreen ? 20 : 32),
+                                    decoration: BoxDecoration(
+                                      color: statusColor,
+                                      borderRadius: BorderRadius.circular(24),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: BrandColors.shadow.withValues(
+                                            alpha: (0.35 + _pulseAnimation.value * 0.65).clamp(0.0, 1.0),
+                                          ),
+                                          blurRadius: 45 * _pulseAnimation.value,
+                                          spreadRadius: 10 * _pulseAnimation.value,
                                         ),
-                                      ),
-                                    ]
-                                  ],
+                                        BoxShadow(
+                                          color: BrandColors.shadow.withValues(
+                                            alpha: (0.5 + _pulseAnimation.value * 0.5).clamp(0.0, 1.0),
+                                          ),
+                                          blurRadius: 15 * _pulseAnimation.value,
+                                          spreadRadius: 2 * _pulseAnimation.value,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        if (isSearching)
+                                          const CircularProgressIndicator(color: BrandColors.white)
+                                        else ...[
+                                          Icon(statusIcon, color: BrandColors.white, size: isShortScreen ? 48 : 64),
+                                          SizedBox(height: isShortScreen ? 8 : 16),
+                                          Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: BrandColors.white)),
+                                          const SizedBox(height: 12),
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                                '$_activeId',
+                                                style: TextStyle(
+                                                    fontSize: isShortScreen ? 80 : 110,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: BrandColors.white,
+                                                    height: 1
+                                                )
+                                            ),
+                                          ),
+                                        ]
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+
+                              // Weiße Linie, die um die Kachel "schlängelt"
+                              Positioned.fill(
+                                child: IgnorePointer(
+                                  child: AnimatedBuilder(
+                                    animation: _borderRotationController,
+                                    builder: (context, _) {
+                                      return CustomPaint(
+                                        painter: _SnakingBorderPainter(
+                                          rotation: _borderRotationController.value * 2 * math.pi,
+                                          borderRadius: 24,
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
-                              );
-                            },
+                              ),
+                            ],
                           ),
                         ),
                         
@@ -390,4 +428,48 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
       ),
     );
   }
+}
+
+class _SnakingBorderPainter extends CustomPainter {
+  final double rotation;
+  final double borderRadius;
+  final double strokeWidth;
+
+  _SnakingBorderPainter({
+    required this.rotation,
+    this.borderRadius = 24,
+    this.strokeWidth = 4,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(
+      strokeWidth / 2,
+      strokeWidth / 2,
+      size.width - strokeWidth,
+      size.height - strokeWidth,
+    );
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..shader = SweepGradient(
+        colors: const [
+          Colors.transparent,
+          BrandColors.white;,
+          BrandColors.white;,
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.12, 0.28, 0.42],
+        transform: GradientRotation(rotation),
+      ).createShader(rect);
+
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SnakingBorderPainter oldDelegate) =>
+      oldDelegate.rotation != rotation;
 }
