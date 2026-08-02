@@ -210,6 +210,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                         AspectRatio(
                           aspectRatio: 1.0,
                           child: Stack(
+                            fit: StackFit.expand,
                             children: [
                               AnimatedBuilder(
                                 animation: _pulseAnimation,
