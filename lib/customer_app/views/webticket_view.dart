@@ -291,7 +291,16 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                         if (slot != null && slot.status == 'active')
                           _bauWalletHinweis(isShortScreen),
 
-                        if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret')
+                        if (slot != null && (slot.status == 'free' || slot.status == 'picked_up'))
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 20),
+                            child: Text(
+                              'Seite kann geschlossen werden',
+                              style: TextStyle(color: BrandColors.free, fontSize: 14),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        else if (slot != null && slot.status != 'loading')
                           const Padding(
                             padding: EdgeInsets.only(bottom: 20),
                             child: Text(
@@ -350,21 +359,22 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
     final walletName = PlatformHints.isIOS ? 'Apple Wallet' : 'Google Wallet';
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.all(12), 
       decoration: BoxDecoration(color: BrandColors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Füge es deiner $walletName hinzu, um benachrichtigt zu werden, falls du deine Jacke vergisst.',
+            'Zur $walletName hinzufügen, um benachrichtigt zu werden, falls die Jacke vergessen wurde.',
             textAlign: TextAlign.center,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: BrandColors.white),
           ),
           SizedBox(height: isShort ? 8 : 12),
           ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active),
+            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.header),
             onPressed: _addToWallet,
-            icon: const Icon(Icons.account_balance_wallet_outlined, size: 18),
+            icon: const Icon(Icons.wallet, size: 18),
             label: Text('Zu $walletName hinzufügen', style: const TextStyle(color: BrandColors.white)),
           ),
         ],
