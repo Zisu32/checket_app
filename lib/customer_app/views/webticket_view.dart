@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:js_interop';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
@@ -249,7 +251,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                                     builder: (context, _) {
                                       return CustomPaint(
                                         painter: _SnakingBorderPainter(
-                                          progress: _borderRotationController.value,
+                                          rotation: _borderRotationController.value * 2 * math.pi,
                                           borderRadius: 24,
                                         ),
                                       );
@@ -382,16 +384,14 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
 }
 
 class _SnakingBorderPainter extends CustomPainter {
-  final double progress;
+  final double rotation;
   final double borderRadius;
   final double strokeWidth;
-  final double segmentFraction;
 
   _SnakingBorderPainter({
-    required this.progress,
+    required this.rotation,
     this.borderRadius = 24,
     this.strokeWidth = 4,
-    this.segmentFraction = 0.18,
   });
 
   @override
@@ -403,29 +403,26 @@ class _SnakingBorderPainter extends CustomPainter {
       size.height - strokeWidth,
     );
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
-    final path = Path()..addRRect(rrect);
-
-    final metric = path.computeMetrics().first;
-    final total = metric.length;
-    final segmentLength = total * segmentFraction;
-    final startDist = progress * total;
-    final endDist = startDist + segmentLength;
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
-      ..color = Colors.white;
+      ..shader = SweepGradient(
+        colors: const [
+          Colors.transparent,
+          BrandColors.white,
+          BrandColors.white,
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.12, 0.28, 0.42],
+        transform: GradientRotation(rotation),
+      ).createShader(rect);
 
-    if (endDist <= total) {
-      canvas.drawPath(metric.extractPath(startDist, endDist), paint);
-    } else {
-      canvas.drawPath(metric.extractPath(startDist, total), paint);
-      canvas.drawPath(metric.extractPath(0, endDist - total), paint);
-    }
+    canvas.drawRRect(rrect, paint);
   }
 
   @override
   bool shouldRepaint(covariant _SnakingBorderPainter oldDelegate) =>
-      oldDelegate.progress != progress;
+      oldDelegate.rotation != rotation;
 }
