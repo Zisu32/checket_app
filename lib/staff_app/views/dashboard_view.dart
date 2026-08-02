@@ -450,9 +450,9 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        const Divider(height: 24, color: BrandColors.free),
                       ],
+                      const SizedBox(height: 16),
+                      const Divider(height: 24, color: BrandColors.free),
                       const SizedBox(height: 8),
                       
                       if (slot.status == 'free') 
