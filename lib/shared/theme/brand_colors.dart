@@ -16,4 +16,5 @@ class BrandColors {
 
   // Others
   static const Color white = Color(0xffdfdfdf);
+  static const Color shadow = Color(0xff000000);
 }

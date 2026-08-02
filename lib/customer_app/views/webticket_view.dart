@@ -199,49 +199,52 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
                         SizedBox(height: isShortScreen ? 12 : 20),
 
                         // Main Ticket Card
-                        AnimatedBuilder(
-                          animation: _pulseAnimation,
-                          builder: (context, child) {
-                            return Container(
-                              width: double.infinity, 
-                              padding: EdgeInsets.all(isShortScreen ? 20 : 32),
-                              decoration: BoxDecoration(
-                                color: statusColor,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: BrandColors.header.withValues(alpha: _pulseAnimation.value * 1),
-                                    blurRadius: 25 * _pulseAnimation.value,
-                                    spreadRadius: 4 * _pulseAnimation.value,
-                                  )
-                                ]
-                              ),
-                              child: Column(
-                                children: [
-                                  if (isSearching)
-                                    const CircularProgressIndicator(color: BrandColors.white)
-                                  else ...[
-                                    Icon(statusIcon, color: BrandColors.white, size: isShortScreen ? 48 : 64),
-                                    SizedBox(height: isShortScreen ? 8 : 16),
-                                    Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: BrandColors.white)),
-                                    const SizedBox(height: 12),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        '$_activeId', 
-                                        style: TextStyle(
-                                          fontSize: isShortScreen ? 80 : 110, 
-                                          fontWeight: FontWeight.w900, 
-                                          color: BrandColors.white,
-                                          height: 1
-                                        )
+                        AspectRatio(
+                          aspectRatio: 1.0,
+                          child: AnimatedBuilder(
+                            animation: _pulseAnimation,
+                            builder: (context, child) {
+                              return Container(
+                                padding: EdgeInsets.all(isShortScreen ? 20 : 32),
+                                decoration: BoxDecoration(
+                                    color: statusColor,
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: BrandColors.shadow.withValues(alpha: _pulseAnimation.value * 1),
+                                        blurRadius: 20 * _pulseAnimation.value,
+                                        spreadRadius: 2 * _pulseAnimation.value,
+                                      )
+                                    ]
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    if (isSearching)
+                                      const CircularProgressIndicator(color: BrandColors.white)
+                                    else ...[
+                                      Icon(statusIcon, color: BrandColors.white, size: isShortScreen ? 48 : 64),
+                                      SizedBox(height: isShortScreen ? 8 : 16),
+                                      Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: BrandColors.white)),
+                                      const SizedBox(height: 12),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                            '$_activeId',
+                                            style: TextStyle(
+                                                fontSize: isShortScreen ? 80 : 110,
+                                                fontWeight: FontWeight.w900,
+                                                color: BrandColors.white,
+                                                height: 1
+                                            )
+                                        ),
                                       ),
-                                    ),
-                                  ]
-                                ],
-                              ),
-                            );
-                          },
+                                    ]
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                         ),
                         
                         const Spacer(),
@@ -275,10 +278,10 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
 
                         if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret') 
                           const Padding(
-                            padding: EdgeInsets.only(bottom: 24),
+                            padding: EdgeInsets.only(bottom: 20),
                             child: Text(
                               'Bitte zeige dieses Ticket beim Abholen vor.',
-                              style: TextStyle(color: BrandColors.white, fontSize: 13),
+                              style: TextStyle(color: BrandColors.free, fontSize: 14),
                               textAlign: TextAlign.center,
                             ),
                           )
@@ -343,7 +346,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
               TextButton(onPressed: () => setState(() => _hatBerechtigungGefragt = true), child: const Text('Nein')), 
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active),
-                onPressed: _frageNachPush, 
+                onPressed: _frageNachPush,
                 child: const Text('Ja, gerne', style: TextStyle(color: BrandColors.white))
               )
             ]
@@ -369,7 +372,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Sing
           const SizedBox(width: 8),
           const Expanded(
             child: Text(
-              'Möchtest du erinnert werden wenn du deine Jacke vergessen hast? Dann App zum Home-Bildschirm hinzufügen',
+              'Möchtest du erinnert werden wenn Du deine Jacke vergessen hast? Dann App zum Home-Bildschirm hinzufügen',
               style: TextStyle(color: BrandColors.free, fontSize: 14),
             ),
           ),
