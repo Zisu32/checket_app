@@ -20,23 +20,25 @@ class PlatformHints {
     }
   }
 
+  static bool get isStandalone {
+    try {
+      return web.window.matchMedia('(display-mode: standalone)').matches;
+    } catch (_) {
+      return false;
+    }
+  }
+
   static bool shouldShowInstallHint() {
     if (isStandalone) return false;
     final dismissed = web.window.localStorage.getItem('install_hint_dismissed');
     if (dismissed == 'true') return false;
 
     if (isIOS) {
-      // Nur Safari erzeugt auf iOS einen echten Standalone-Modus.
-      // In Chrome/Firefox/Edge auf iOS würde der Hinweis ins Leere laufen.
       return isSafari;
     }
-
     if (isAndroid) {
-      // Push funktioniert auf Android ohnehin schon im normalen Tab,
-      // der Banner läuft in keinem Android-Browser ins Leere.
       return true;
     }
-
     return false;
   }
 
