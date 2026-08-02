@@ -458,8 +458,8 @@ class _SnakingBorderPainter extends CustomPainter {
       ..shader = SweepGradient(
         colors: const [
           Colors.transparent,
-          BrandColors.white;,
-          BrandColors.white;,
+          BrandColors.white,
+          BrandColors.white,
           Colors.transparent,
         ],
         stops: const [0.0, 0.12, 0.28, 0.42],
