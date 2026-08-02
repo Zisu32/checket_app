@@ -4,7 +4,6 @@ import 'staff_app/views/dashboard_view.dart';
 import 'staff_app/views/qr_display_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/theme/brand_colors.dart';
-import 'package:web/web.dart' as web;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:js_interop';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
