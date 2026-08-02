@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:js_interop';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
@@ -11,10 +9,10 @@ import '../../shared/theme/brand_colors.dart';
 class CustomerWebTicketView extends StatefulWidget {
   final int? ticketId;
   final String? secret;
-  
+
   const CustomerWebTicketView({
-    super.key, 
-    this.ticketId, 
+    super.key,
+    this.ticketId,
     this.secret,
     @Deprecated('Status is now fetched via SyncService') String? status,
   });
@@ -24,12 +22,10 @@ class CustomerWebTicketView extends StatefulWidget {
 }
 
 class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with TickerProviderStateMixin {
-  bool _hatBerechtigungGefragt = false;
-  bool _notificationsUnterstuetzt = true;
   final _syncService = SyncService();
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
-  
+
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
   late AnimationController _borderRotationController;
@@ -42,16 +38,6 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
     super.initState();
     _handlePersistence();
 
-    try {
-      final permission = web.Notification.permission;
-      if (permission == 'granted' || permission == 'denied') {
-        _hatBerechtigungGefragt = true;
-      }
-    } catch (e) {
-      _notificationsUnterstuetzt = false;
-      _hatBerechtigungGefragt = true;
-    }
-
     _timeoutTimer = Timer(const Duration(seconds: 8), () {
       if (mounted) {
         setState(() => _showTimeoutMessage = true);
@@ -63,26 +49,25 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
 
+    _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
     _borderRotationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat();
-
-    _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
   }
 
   void _handlePersistence() {
     final storage = web.window.localStorage;
-    
+
     if (widget.ticketId != null && widget.secret != null && widget.secret!.isNotEmpty) {
       _activeId = widget.ticketId;
       _activeSecret = widget.secret;
       storage.setItem('last_ticket_id', _activeId.toString());
       storage.setItem('last_ticket_secret', _activeSecret!);
-    } 
-    else {
+    } else {
       final storedId = storage.getItem('last_ticket_id');
       final storedSecret = storage.getItem('last_ticket_secret');
       if (storedId != null && storedSecret != null) {
@@ -106,15 +91,6 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
     super.dispose();
   }
 
-  Future<void> _frageNachPush() async {
-    try {
-      await web.Notification.requestPermission().toDart;
-    }
-    catch (e) {
-    }
-    if (mounted) setState(() { _hatBerechtigungGefragt = true; });
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -131,9 +107,9 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
           stream: _syncService.watchTicket(_activeId!, _activeSecret!),
           builder: (context, snapshot) {
             final slot = snapshot.data;
-            
+
             Color statusColor = BrandColors.active;
-            IconData statusIcon = Icons.verified_user_outlined; 
+            IconData statusIcon = Icons.verified_user_outlined;
             String statusText = 'Jacke auf Platz aktiv';
             bool isSearching = !snapshot.hasData;
 
@@ -146,18 +122,18 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
               statusIcon = Icons.error_outline;
               statusText = 'Ticket ungültig';
             } else {
-              if (slot.status == 'unpaid') { 
+              if (slot.status == 'unpaid') {
                 statusColor = BrandColors.unpaid;
-                statusIcon = Icons.credit_card_off_outlined; 
-                statusText = 'Zahlung ausstehend'; 
-              } else if (slot.status == 'temporary') { 
+                statusIcon = Icons.credit_card_off_outlined;
+                statusText = 'Zahlung ausstehend';
+              } else if (slot.status == 'temporary') {
                 statusColor = BrandColors.temporary;
                 statusIcon = Icons.pause;
-                statusText = 'Jacke temporär draußen'; 
-              } else if (slot.status == 'forgotten') { 
+                statusText = 'Jacke temporär draußen';
+              } else if (slot.status == 'forgotten') {
                 statusColor = BrandColors.forgotten;
-                statusIcon = Icons.inventory_2_outlined; 
-                statusText = 'Jacke im Fundbüro'; 
+                statusIcon = Icons.inventory_2_outlined;
+                statusText = 'Jacke im Fundbüro';
               } else if (slot.status == 'free') {
                 statusColor = BrandColors.free;
                 statusIcon = Icons.task_alt;
@@ -186,8 +162,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                   automaticallyImplyLeading: false,
                   centerTitle: true,
                   title: Image.asset(
-                    'assets/images/full-icon.png', 
-                    height: 28, 
+                    'assets/images/full-icon.png',
+                    height: 28,
                     errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14)),
                   ),
                 ),
@@ -195,15 +171,14 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
               body: SafeArea(
                 child: Center(
                   child: Container(
-                    constraints: const BoxConstraints(maxWidth: 400), 
+                    constraints: const BoxConstraints(maxWidth: 400),
                     padding: EdgeInsets.symmetric(
-                      horizontal: 24, 
-                      vertical: isShortScreen ? 12 : 24
+                      horizontal: 24,
+                      vertical: isShortScreen ? 12 : 24,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _bauInstallHinweis(),
                         SizedBox(height: isShortScreen ? 12 : 20),
 
                         // Main Ticket Card
@@ -250,23 +225,23 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                                           FittedBox(
                                             fit: BoxFit.scaleDown,
                                             child: Text(
-                                                '$_activeId',
-                                                style: TextStyle(
-                                                    fontSize: isShortScreen ? 80 : 110,
-                                                    fontWeight: FontWeight.w900,
-                                                    color: BrandColors.white,
-                                                    height: 1
-                                                )
+                                              '$_activeId',
+                                              style: TextStyle(
+                                                fontSize: isShortScreen ? 80 : 110,
+                                                fontWeight: FontWeight.w900,
+                                                color: BrandColors.white,
+                                                height: 1,
+                                              ),
                                             ),
                                           ),
-                                        ]
+                                        ],
                                       ],
                                     ),
                                   );
                                 },
                               ),
 
-                              // Weiße Linie, die um die Kachel "schlängelt"
+                              // Weiße Linie, die um die Kachel wandert
                               Positioned.fill(
                                 child: IgnorePointer(
                                   child: AnimatedBuilder(
@@ -274,7 +249,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                                     builder: (context, _) {
                                       return CustomPaint(
                                         painter: _SnakingBorderPainter(
-                                          rotation: _borderRotationController.value * 2 * math.pi,
+                                          progress: _borderRotationController.value,
                                           borderRadius: 24,
                                         ),
                                       );
@@ -285,7 +260,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                             ],
                           ),
                         ),
-                        
+
                         const Spacer(),
 
                         // Messaging
@@ -297,25 +272,25 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                         else if (slot != null && slot.status == 'wrong_secret')
                           const Padding(
                             padding: EdgeInsets.only(bottom: 16),
-                            child: Text('Jacke wurde abgeholt. Dieser Link ist nicht mehr gültig.', 
-                                 style: TextStyle(color: BrandColors.free, fontSize: 12), textAlign: TextAlign.center),
+                            child: Text('Jacke wurde abgeholt. Dieser Link ist nicht mehr gültig.',
+                                style: TextStyle(color: BrandColors.free, fontSize: 12), textAlign: TextAlign.center),
                           )
                         else if (_showTimeoutMessage && isSearching)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Column(
-                              children: [
-                                const Text('Wird synchronisiert...', style: TextStyle(color: BrandColors.free, fontSize: 12)),
-                                TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Reload', style: TextStyle(color: BrandColors.active)))
-                              ],
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: Column(
+                                children: [
+                                  const Text('Wird synchronisiert...', style: TextStyle(color: BrandColors.free, fontSize: 12)),
+                                  TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Reload', style: TextStyle(color: BrandColors.active))),
+                                ],
+                              ),
                             ),
-                          ),
 
                         // Actions
-                        if (slot != null && slot.status == 'active' && !_hatBerechtigungGefragt) 
-                          _bauePushPrompt(isShortScreen),
+                        if (slot != null && slot.status == 'active')
+                          _bauWalletHinweis(isShortScreen),
 
-                        if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret') 
+                        if (slot != null && slot.status != 'free' && slot.status != 'picked_up' && slot.status != 'loading' && slot.status != 'wrong_secret')
                           const Padding(
                             padding: EdgeInsets.only(bottom: 20),
                             child: Text(
@@ -324,8 +299,9 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                               textAlign: TextAlign.center,
                             ),
                           )
-                        else const SizedBox(height: 100),
-                        
+                        else
+                          const SizedBox(height: 100),
+
                         SizedBox(height: isShortScreen ? 12 : 24),
                       ],
                     ),
@@ -335,14 +311,13 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
             );
           },
         );
-      }
+      },
     );
   }
 
   Widget _buildNoTicketFoundUI() {
     return Scaffold(
       backgroundColor: BrandColors.background,
-
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
@@ -370,76 +345,53 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
     );
   }
 
-  Widget _bauePushPrompt(bool isShort) {
+  Widget _bauWalletHinweis(bool isShort) {
+    final walletName = PlatformHints.isIOS ? 'Apple Wallet' : 'Google Wallet';
+
     return Container(
       padding: const EdgeInsets.all(12), 
       decoration: BoxDecoration(color: BrandColors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Jacke am Ende nicht vergessen!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: BrandColors.white)),
-          SizedBox(height: isShort ? 4 : 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end, 
-            children: [
-              TextButton(onPressed: () => setState(() => _hatBerechtigungGefragt = true), child: const Text('Nein')), 
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active),
-                onPressed: _frageNachPush,
-                child: const Text('Ja, gerne', style: TextStyle(color: BrandColors.white))
-              )
-            ]
-          )
+          Text(
+            'Füge es deiner $walletName hinzu, um benachrichtigt zu werden, falls du deine Jacke vergisst.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: BrandColors.white),
+          ),
+          SizedBox(height: isShort ? 8 : 12),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active),
+            onPressed: _addToWallet,
+            icon: const Icon(Icons.account_balance_wallet_outlined, size: 18),
+            label: Text('Zu $walletName hinzufügen', style: const TextStyle(color: BrandColors.white)),
+          ),
         ],
       ),
     );
   }
 
-  Widget _bauInstallHinweis() {
-    if (!PlatformHints.shouldShowInstallHint()) return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.ios_share, size: 18, color: BrandColors.free),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Text(
-              'Möchtest du erinnert werden wenn Du deine Jacke vergessen hast? Dann App zum Home-Bildschirm hinzufügen',
-              style: TextStyle(color: BrandColors.free, fontSize: 14),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              PlatformHints.dismissInstallHint();
-              setState(() {});
-            },
-            child: const Padding(
-              padding: EdgeInsets.all(4),
-              child: Icon(Icons.close, size: 18, color: BrandColors.free),
-            ),
-          ),
-        ],
-      ),
+  Future<void> _addToWallet() async {
+    // Noch nicht angebunden. Erfordert ein eigenes Backend:
+    // – Apple: PassKit-Web-Service + signiertes .pkpass (Pass-Type-Zertifikat nötig)
+    // – Android: Google Wallet API + signiertes "Save to Google Wallet"-JWT
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Wallet-Integration wird noch vorbereitet.')),
     );
   }
 }
 
 class _SnakingBorderPainter extends CustomPainter {
-  final double rotation;
+  final double progress;
   final double borderRadius;
   final double strokeWidth;
+  final double segmentFraction;
 
   _SnakingBorderPainter({
-    required this.rotation,
+    required this.progress,
     this.borderRadius = 24,
     this.strokeWidth = 4,
+    this.segmentFraction = 0.18,
   });
 
   @override
@@ -451,26 +403,29 @@ class _SnakingBorderPainter extends CustomPainter {
       size.height - strokeWidth,
     );
     final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
+    final path = Path()..addRRect(rrect);
+
+    final metric = path.computeMetrics().first;
+    final total = metric.length;
+    final segmentLength = total * segmentFraction;
+    final startDist = progress * total;
+    final endDist = startDist + segmentLength;
 
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round
-      ..shader = SweepGradient(
-        colors: const [
-          Colors.transparent,
-          BrandColors.white,
-          BrandColors.white,
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.12, 0.28, 0.42],
-        transform: GradientRotation(rotation),
-      ).createShader(rect);
+      ..color = Colors.white;
 
-    canvas.drawRRect(rrect, paint);
+    if (endDist <= total) {
+      canvas.drawPath(metric.extractPath(startDist, endDist), paint);
+    } else {
+      canvas.drawPath(metric.extractPath(startDist, total), paint);
+      canvas.drawPath(metric.extractPath(0, endDist - total), paint);
+    }
   }
 
   @override
   bool shouldRepaint(covariant _SnakingBorderPainter oldDelegate) =>
-      oldDelegate.rotation != rotation;
+      oldDelegate.progress != progress;
 }
