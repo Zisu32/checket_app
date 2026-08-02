@@ -1,4 +1,6 @@
 import 'package:web/web.dart' as web;
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 class PlatformHints {
   static String get _ua => web.window.navigator.userAgent;
@@ -9,20 +11,33 @@ class PlatformHints {
 
   static bool get isAndroid => _ua.contains('Android');
 
-  static bool get isStandalone {
+  static bool get isSafari {
     try {
-      return web.window.matchMedia('(display-mode: standalone)').matches;
+      final nav = web.window.navigator as JSObject;
+      return nav['standalone'] != null;
     } catch (_) {
       return false;
     }
   }
 
-  /// Banner zeigen, wenn mobiles Gerät (iOS oder Android) und noch nicht
-  /// als Standalone-App installiert, und nicht dauerhaft weggewischt.
   static bool shouldShowInstallHint() {
-    if (!(isIOS || isAndroid) || isStandalone) return false;
+    if (isStandalone) return false;
     final dismissed = web.window.localStorage.getItem('install_hint_dismissed');
-    return dismissed != 'true';
+    if (dismissed == 'true') return false;
+
+    if (isIOS) {
+      // Nur Safari erzeugt auf iOS einen echten Standalone-Modus.
+      // In Chrome/Firefox/Edge auf iOS würde der Hinweis ins Leere laufen.
+      return isSafari;
+    }
+
+    if (isAndroid) {
+      // Push funktioniert auf Android ohnehin schon im normalen Tab,
+      // der Banner läuft in keinem Android-Browser ins Leere.
+      return true;
+    }
+
+    return false;
   }
 
   static void dismissInstallHint() {

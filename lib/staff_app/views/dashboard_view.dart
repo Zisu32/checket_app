@@ -517,7 +517,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                             }
                           ),
                         ListTile(
-                          leading: const Icon(Icons.logout, color: BrandColors.unpaid),
+                          leading: const Icon(Icons.logout, color: BrandColors.free),
                           title: const Text('Endgültig auschecken', style: TextStyle(color: BrandColors.white)),
                           onTap: () async { 
                             final updated = slot.copyWith(

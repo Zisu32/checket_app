@@ -134,7 +134,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
             
             Color statusColor = BrandColors.active;
             IconData statusIcon = Icons.verified_user_outlined; 
-            String statusText = 'Garderoben-Platz aktiv';
+            String statusText = 'Jacke auf Platz aktiv';
             bool isSearching = !snapshot.hasData;
 
             if (isSearching) {
@@ -152,7 +152,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                 statusText = 'Zahlung ausstehend'; 
               } else if (slot.status == 'temporary') { 
                 statusColor = BrandColors.temporary;
-                statusIcon = Icons.timer_outlined; 
+                statusIcon = Icons.pause;
                 statusText = 'Jacke temporär draußen'; 
               } else if (slot.status == 'forgotten') { 
                 statusColor = BrandColors.forgotten;
@@ -160,8 +160,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                 statusText = 'Jacke im Fundbüro'; 
               } else if (slot.status == 'free') {
                 statusColor = BrandColors.free;
-                statusIcon = Icons.check_circle_outline;
-                statusText = 'Bügel frei';
+                statusIcon = Icons.task_alt;
+                statusText = 'Jacke bereits abgeholt';
                 _clearPersistence();
               } else if (slot.status == 'picked_up') {
                 statusColor = BrandColors.free;

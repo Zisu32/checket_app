@@ -8,7 +8,7 @@ class BrandColors {
   
   // Status colors
   static const Color unpaid = Color(0xFFB71C1C);
-  static const Color temporary = Color(0xFFE68A00);
+  static const Color temporary = Color(0xFFE67B00);
   static const Color secret = Color(0xffffd500);
   static const Color active = Color(0xFF00B58B);
   static const Color forgotten = Color(0xFF0081C3);
