@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
@@ -288,28 +289,47 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                             ),
 
                         // Actions
-                        if (slot != null && slot.status == 'active')
+                        if (slot != null && slot.status == 'unpaid')
+                           Padding(
+                             padding: const EdgeInsets.only(bottom: 20),
+                             child: Column(
+                               mainAxisSize: MainAxisSize.min,
+                               children: [
+                                 AnimatedBuilder(
+                                   animation: _pulseAnimation,
+                                   builder: (context, _) => Icon(
+                                     Icons.contactless, 
+                                     color: BrandColors.unpaid.withValues(alpha: _pulseAnimation.value), 
+                                     size: 44
+                                   ),
+                                 ),
+                                 const SizedBox(height: 12),
+                                 const Text(
+                                   'An das Lesegerät halten',
+                                   style: TextStyle(
+                                     color: BrandColors.white, 
+                                     fontSize: 20, 
+                                     fontWeight: FontWeight.w900,
+                                     letterSpacing: 0.5
+                                   ),
+                                   textAlign: TextAlign.center,
+                                 ),
+                               ],
+                             ),
+                           )
+                        else if (slot != null && slot.status == 'active')
                           _bauWalletHinweis(isShortScreen),
 
-                        if (slot != null && (slot.status == 'free' || slot.status == 'picked_up'))
+                        if (slot != null && (slot.status == 'free' || slot.status == 'picked_up' || slot.status == 'wrong_secret'))
                           const Padding(
                             padding: EdgeInsets.only(bottom: 20),
                             child: Text(
-                              'Seite kann geschlossen werden',
+                              'Sie können die Seite schließen',
                               style: TextStyle(color: BrandColors.free, fontSize: 14),
                               textAlign: TextAlign.center,
                             ),
                           )
-                        else if (slot != null && slot.status != 'loading')
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 20),
-                            child: Text(
-                              'Bitte zeige dieses Ticket beim Abholen vor.',
-                              style: TextStyle(color: BrandColors.free, fontSize: 14),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        else
+                        else if (slot != null && slot.status != 'unpaid')
                           const SizedBox(height: 100),
 
                         SizedBox(height: isShortScreen ? 12 : 24),
@@ -356,39 +376,122 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
   }
 
   Widget _bauWalletHinweis(bool isShort) {
-    final walletName = PlatformHints.isIOS ? 'Apple Wallet' : 'Google Wallet';
+    final isIOS = PlatformHints.isIOS;
+    final walletName = isIOS ? 'Apple Wallet' : 'Google Wallet';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      padding: const EdgeInsets.all(12), 
-      decoration: BoxDecoration(color: BrandColors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: BrandColors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             'Zur $walletName hinzufügen, um benachrichtigt zu werden, falls die Jacke vergessen wurde.',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: BrandColors.white),
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.white70),
           ),
-          SizedBox(height: isShort ? 8 : 12),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.header),
-            onPressed: _addToWallet,
-            icon: const Icon(Icons.wallet, size: 18),
-            label: Text('Zu $walletName hinzufügen', style: const TextStyle(color: BrandColors.white)),
-          ),
+          const SizedBox(height: 16),
+          _buildBrandedWalletButton(isIOS),
         ],
       ),
     );
   }
 
+  Widget _buildBrandedWalletButton(bool isIOS) {
+    if (isIOS) {
+      // Apple Wallet Style Badge
+      return InkWell(
+        onTap: _addToWallet,
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white24, width: 0.5),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.wallet, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              const Text(
+                'Add to Apple Wallet',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      // Google Wallet Style Button
+      return InkWell(
+        onTap: _addToWallet,
+        child: Container(
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFF5F6368)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.wallet, color: Colors.white, size: 22),
+              const SizedBox(width: 12),
+              const Text(
+                'Add to Google Wallet',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'Roboto',
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _addToWallet() async {
-    // Noch nicht angebunden. Erfordert ein eigenes Backend:
-    // – Apple: PassKit-Web-Service + signiertes .pkpass (Pass-Type-Zertifikat nötig)
-    // – Android: Google Wallet API + signiertes "Save to Google Wallet"-JWT
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Wallet-Integration wird noch vorbereitet.')),
-    );
+    // Calling Supabase Edge Function to generate the pass
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase.functions.invoke(
+        'generate-wallet-pass',
+        body: {
+          'ticketId': _activeId,
+          'secret': _activeSecret,
+          'platform': PlatformHints.isIOS ? 'apple' : 'google',
+        },
+      );
+
+      final url = response.data['url'] as String?;
+      if (url != null && url.isNotEmpty) {
+        web.window.open(url, '_blank');
+      } else {
+        throw 'Ungültige Antwort vom Server.';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fehler beim Erstellen des Passes: $e'),
+          backgroundColor: BrandColors.unpaid,
+        ),
+      );
+    }
   }
 }
 
