@@ -304,6 +304,39 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
     );
   }
 
+  Widget _buildNoTicketFoundUI() {
+    return Scaffold(
+      backgroundColor: BrandColors.background,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/images/full-icon.png',
+                  height: 60,
+                  errorBuilder: (context, error, stackTrace) => const Text('CHECKET',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: BrandColors.white))),
+              const SizedBox(height: 40),
+              const Icon(Icons.search_off, color: BrandColors.free, size: 64),
+              const SizedBox(height: 24),
+              const Text(
+                'Kein aktives Ticket gefunden',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.white),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Bitte scanne den QR-Code oder wende dich an das Personal.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: BrandColors.free, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildInfoArea(WardrobeSlot? slot, bool isShort) {
     if (slot == null) return const SizedBox(height: 100);
 
@@ -449,6 +482,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
         throw 'Ungültige Antwort vom Server.';
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Fehler beim Erstellen des Passes: $e'),
@@ -462,16 +496,15 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
 class _SnakingBorderPainter extends CustomPainter {
   final double rotation;
   final double borderRadius;
-  final double strokeWidth;
 
   _SnakingBorderPainter({
     required this.rotation,
     this.borderRadius = 24,
-    this.strokeWidth = 4,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    const double strokeWidth = 4;
     final rect = Rect.fromLTWH(
       strokeWidth / 2,
       strokeWidth / 2,
