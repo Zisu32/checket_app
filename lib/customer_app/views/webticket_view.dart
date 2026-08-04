@@ -288,49 +288,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                               ),
                             ),
 
-                        // Actions
-                        if (slot != null && slot.status == 'unpaid')
-                           Padding(
-                             padding: const EdgeInsets.only(bottom: 20),
-                             child: Column(
-                               mainAxisSize: MainAxisSize.min,
-                               children: [
-                                 AnimatedBuilder(
-                                   animation: _pulseAnimation,
-                                   builder: (context, _) => Icon(
-                                     Icons.contactless, 
-                                     color: BrandColors.unpaid.withValues(alpha: _pulseAnimation.value), 
-                                     size: 44
-                                   ),
-                                 ),
-                                 const SizedBox(height: 12),
-                                 const Text(
-                                   'An das Lesegerät halten',
-                                   style: TextStyle(
-                                     color: BrandColors.white, 
-                                     fontSize: 20, 
-                                     fontWeight: FontWeight.w900,
-                                     letterSpacing: 0.5
-                                   ),
-                                   textAlign: TextAlign.center,
-                                 ),
-                               ],
-                             ),
-                           )
-                        else if (slot != null && slot.status == 'active')
-                          _bauWalletHinweis(isShortScreen),
-
-                        if (slot != null && (slot.status == 'free' || slot.status == 'picked_up' || slot.status == 'wrong_secret'))
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 20),
-                            child: Text(
-                              'Sie können die Seite schließen',
-                              style: TextStyle(color: BrandColors.free, fontSize: 14),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        else if (slot != null && slot.status != 'unpaid')
-                          const SizedBox(height: 100),
+                        // Informations- und Aktionsbereich unter der Kachel
+                        _buildInfoArea(slot, isShortScreen),
 
                         SizedBox(height: isShortScreen ? 12 : 24),
                       ],
@@ -345,57 +304,62 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
     );
   }
 
-  Widget _buildNoTicketFoundUI() {
-    return Scaffold(
-      backgroundColor: BrandColors.background,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: BrandColors.white))),
-              const SizedBox(height: 40),
-              const Icon(Icons.search_off, color: BrandColors.free, size: 64),
-              const SizedBox(height: 24),
-              const Text(
-                'Kein aktives Ticket gefunden',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.white),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Bitte scanne den QR-Code oder wende dich an das Personal.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: BrandColors.free, fontSize: 14),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildInfoArea(WardrobeSlot? slot, bool isShort) {
+    if (slot == null) return const SizedBox(height: 100);
 
-  Widget _bauWalletHinweis(bool isShort) {
+    String text = '';
+    Widget? extra;
+    bool iconAbove = false;
+
     final isIOS = PlatformHints.isIOS;
     final walletName = isIOS ? 'Apple Wallet' : 'Google Wallet';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: BrandColors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(20),
-      ),
+    switch (slot.status) {
+      case 'unpaid':
+        text = 'Bitte an das Lesegerät halten';
+        extra = const Icon(Icons.contactless_outlined, color: BrandColors.active, size: 44);
+        iconAbove = true;
+        break;
+      case 'active':
+        text = 'Zur $walletName hinzufügen für Abholerinnerung.';
+        extra = _buildBrandedWalletButton(isIOS);
+        break;
+      case 'temporary':
+        text = 'Jacke wieder einchecken';
+        break;
+      case 'forgotten':
+        text = 'Jacke kann im Fundbüro abgeholt werden';
+        break;
+      case 'free':
+      case 'picked_up':
+      case 'wrong_secret':
+        text = 'Sie können die Seite schließen';
+        break;
+      default:
+        return const SizedBox(height: 100);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (extra != null && iconAbove) ...[
+            extra,
+            const SizedBox(height: 12),
+          ],
           Text(
-            'Zur $walletName hinzufügen, um benachrichtigt zu werden, falls die Jacke vergessen wurde.',
+            text,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Colors.white70),
+            style: const TextStyle(
+              color: BrandColors.white,
+              fontSize: 14,
+            ),
           ),
-          const SizedBox(height: 16),
-          _buildBrandedWalletButton(isIOS),
+          if (extra != null && !iconAbove) ...[
+            const SizedBox(height: 16),
+            extra,
+          ],
         ],
       ),
     );
