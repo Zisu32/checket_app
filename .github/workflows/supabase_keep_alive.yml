@@ -16,11 +16,11 @@ jobs:
       - name: Ping Supabase Dev
         run: |
           curl -X GET "${{ secrets.SUPABASE_URL_DEV }}/rest/v1/checket_garderobe?select=id&limit=1" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY_DEV }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY_DEV }}"
+          -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}"
 
       - name: Ping Supabase Prod
         run: |
           curl -X GET "${{ secrets.SUPABASE_URL_PROD }}/rest/v1/checket_garderobe?select=id&limit=1" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY_PROD }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY_PROD }}"
+          -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}"

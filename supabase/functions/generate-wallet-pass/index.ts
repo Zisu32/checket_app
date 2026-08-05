@@ -17,7 +17,7 @@ serve(async (req) => {
     // 1. Initialize Supabase Admin (for verification)
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
     )
 
     // 2. Validate Ticket (Check if ID and Secret match in the database)

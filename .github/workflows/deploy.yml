@@ -35,12 +35,12 @@ jobs:
           echo "DB_VERSION=$(date +%s)" >> $GITHUB_ENV
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "URL=${{ secrets.SUPABASE_URL_PROD }}" >> $GITHUB_ENV
-            echo "KEY=${{ secrets.SUPABASE_ANON_KEY_PROD }}" >> $GITHUB_ENV
+            echo "KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}" >> $GITHUB_ENV
             echo "BASE_HREF=/${{ github.event.repository.name }}/" >> $GITHUB_ENV
             echo "TARGET_FOLDER=." >> $GITHUB_ENV
           else
             echo "URL=${{ secrets.SUPABASE_URL_DEV }}" >> $GITHUB_ENV
-            echo "KEY=${{ secrets.SUPABASE_ANON_KEY_DEV }}" >> $GITHUB_ENV
+            echo "KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}" >> $GITHUB_ENV
             echo "BASE_HREF=/${{ github.event.repository.name }}/dev/" >> $GITHUB_ENV
             echo "TARGET_FOLDER=dev" >> $GITHUB_ENV
           fi
@@ -52,7 +52,7 @@ jobs:
             --base-href "${{ env.BASE_HREF }}" \
             --no-source-maps \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
-            --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="${{ env.KEY }}" \
             --dart-define=DB_VERSION="${{ env.DB_VERSION }}"
           
           mkdir -p deploy_out/${{ env.TARGET_FOLDER }}
@@ -68,7 +68,7 @@ jobs:
             --base-href "$STAFF_BASE_HREF" \
             --no-source-maps \
             --dart-define=SUPABASE_URL="${{ env.URL }}" \
-            --dart-define=SUPABASE_ANON_KEY="${{ env.KEY }}" \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY="${{ env.KEY }}" \
             --dart-define=DB_VERSION="${{ env.DB_VERSION }}"
           
           mkdir -p deploy_out/${{ env.TARGET_FOLDER }}/staff

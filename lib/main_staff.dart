@@ -57,13 +57,13 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
 
   Future<void> _initialize() async {
     const url = String.fromEnvironment('SUPABASE_URL');
-    const anonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+    const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
 
-    if (url.isEmpty || anonKey.isEmpty) {
+    if (url.isEmpty || publishableKey.isEmpty) {
       throw Exception('Konfiguration fehlt (URL/KEY). Bitte GitHub Secrets prüfen.');
     }
 
-    await Supabase.initialize(url: url, anonKey: anonKey);
+    await Supabase.initialize(url: url, publishableKey: publishableKey);
     await SyncService().init(dbName: 'checket_staff_db');
   }
 
