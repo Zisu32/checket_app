@@ -73,42 +73,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
     web.window.open(qrUrl, 'checket_monitor');
   }
 
-  void _schichtBeendenDialog(List<WardrobeSlot> allSlots) {
-    final unpaidCount = allSlots.where((s) => s.status == 'unpaid').length;
-    
-    if (unpaidCount > 0) {
-      showDialog(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          backgroundColor: BrandColors.background,
-          title: Row(
-            children: [
-              const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
-              const SizedBox(width: 12),
-              const Text('Schichtende nicht möglich', style: TextStyle(color: BrandColors.white)),
-            ],
-          ),
-          content: const Text(
-            'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
-            style: TextStyle(color: BrandColors.white)
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: BrandColors.active,
-                foregroundColor: BrandColors.white,
-              ),
-              child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold))
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    final archiveCount = allSlots.where((s) => s.status == 'active').length;
-    
+  void _zeigeSperrDialog() {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -117,22 +82,21 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           children: [
             const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
             const SizedBox(width: 12),
-            const Text('Schichtende', style: TextStyle(color: BrandColors.white)),
+            const Text('Schichtende nicht möglich', style: TextStyle(color: BrandColors.white)),
           ],
         ),
-        content: Text('Sollen $archiveCount Jacken ins FUNDBÜRO verschoben und die Garderrobe geschlossen werden?', style: const TextStyle(color: BrandColors.white)),
+        content: const Text(
+          'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
+          style: TextStyle(color: BrandColors.white)
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext), 
-            child: const Text('Abbrechen', style: TextStyle(color: BrandColors.free))
-          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.unpaid, foregroundColor: BrandColors.white),
-            onPressed: () async {
-              await _syncService.archiveAndResetShift();
-              if (mounted) Navigator.pop(dialogContext);
-            },
-            child: const Text('Ja, Schicht beenden', style: TextStyle(fontWeight: FontWeight.bold)),
+            onPressed: () => Navigator.pop(dialogContext),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: BrandColors.active,
+              foregroundColor: BrandColors.white,
+            ),
+            child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold))
           ),
         ],
       ),
@@ -156,9 +120,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           body: Column(
             children: [
               Expanded(
-                child: _selectedNavIndex == 0 
-                  ? _buildFundbueroView() 
-                  : _buildDashboardView(allSlots),
+                child: _buildBody(allSlots),
               ),
               if (_selectedNavIndex == 1) _buildPageIndicator(allSlots),
             ],
@@ -167,6 +129,19 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
         );
       }
     );
+  }
+
+  Widget _buildBody(List<WardrobeSlot> allSlots) {
+    switch (_selectedNavIndex) {
+      case 0:
+        return _buildFundbueroView();
+      case 1:
+        return _buildDashboardView(allSlots);
+      case 2:
+        return _buildSchichtendeView(allSlots);
+      default:
+        return const Center(child: Text('Seite nicht gefunden', style: TextStyle(color: BrandColors.white)));
+    }
   }
 
   PreferredSizeWidget _buildAppBar() {
@@ -251,22 +226,16 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.inventory_2_outlined, color: BrandColors.forgotten, size: 24),
-                  const SizedBox(width: 12),
-                  const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: BrandColors.white)),
-                ],
-              ),
-              ElevatedButton.icon(
+              const Icon(Icons.inventory_2_outlined, color: BrandColors.white, size: 28),
+              ElevatedButton(
                 onPressed: () => _syncMonitor(-1, 'recovery'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: BrandColors.active,
                   foregroundColor: BrandColors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                icon: const Icon(Icons.qr_code_2, size: 18),
-                label: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -277,7 +246,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             stream: _syncService.watchLostItems(),
             builder: (context, snapshot) {
               final items = snapshot.data ?? [];
-              if (items.isEmpty) return const Center(child: Text('Keine Gegenstände im Fundbüro.', style: TextStyle(color: BrandColors.free)));
+              if (items.isEmpty) return const Center(child: Text('Keine Gegenstände im Fundbüro.', style: TextStyle(color: BrandColors.white)));
               
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -356,6 +325,60 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
     );
   }
 
+  Widget _buildSchichtendeView(List<WardrobeSlot> allSlots) {
+    final archiveCount = allSlots.where((s) => s.status == 'active' || s.status == 'temporary').length;
+    
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Icon(Icons.loop, color: BrandColors.white, size: 28),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: BrandColors.unpaid,
+                  foregroundColor: BrandColors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () async {
+                  await _syncService.archiveAndResetShift();
+                  setState(() => _selectedNavIndex = 1);
+                },
+                child: const Text('Ja, Schicht beenden', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1, color: BrandColors.surface),
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Schicht beenden?',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: BrandColors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Sollen $archiveCount Jacken ins FUNDBÜRO verschoben und die Garderobe geschlossen werden?',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: BrandColors.white, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPageIndicator(List<WardrobeSlot> allSlots) {
     final totalPages = (allSlots.length / _itemsPerPage).ceil();
     if (totalPages <= 1) return const SizedBox.shrink();
@@ -388,25 +411,28 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildNavbarItem(0, Icons.inventory_2_outlined, 'Fundbüro'),
-          _buildNavbarItem(1, Icons.grid_view_rounded, 'Dashboard'),
-          _buildNavbarItem(2, Icons.loop, 'Schichtende', isAction: true, allSlots: allSlots),
+          _buildNavbarItem(0, Icons.inventory_2_outlined, 'Fundbüro', allSlots: allSlots),
+          _buildNavbarItem(1, Icons.grid_view_rounded, 'Dashboard', allSlots: allSlots),
+          _buildNavbarItem(2, Icons.loop, 'Schichtende', allSlots: allSlots),
         ],
       ),
     );
   }
 
-  Widget _buildNavbarItem(int index, IconData icon, String label, {bool isAction = false, List<WardrobeSlot>? allSlots}) {
+  Widget _buildNavbarItem(int index, IconData icon, String label, {required List<WardrobeSlot> allSlots}) {
     final isActive = _selectedNavIndex == index;
     final color = isActive ? BrandColors.white : BrandColors.surface;
 
     return InkWell(
       onTap: () {
-        if (isAction) {
-          _schichtBeendenDialog(allSlots ?? []);
-        } else {
-          setState(() => _selectedNavIndex = index);
+        if (index == 2) {
+          final unpaidCount = allSlots.where((s) => s.status == 'unpaid').length;
+          if (unpaidCount > 0) {
+            _zeigeSperrDialog();
+            return;
+          }
         }
+        setState(() => _selectedNavIndex = index);
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -414,15 +440,6 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
           Icon(icon, color: color, size: 26),
           const SizedBox(height: 4),
           Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-          if (isActive && !isAction)
-            Container(
-              margin: const EdgeInsets.only(top: 6),
-              width: 24, height: 3,
-              decoration: BoxDecoration(
-                color: BrandColors.white,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            )
         ],
       ),
     );
@@ -473,7 +490,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
                         const SizedBox(height: 8),
                       ],
                       const SizedBox(height: 6),
-                      const Divider(height: 24, color: BrandColors.free),
+                      const Divider(height: 24, indent: 20, endIndent: 20, color: BrandColors.surface),
                       const SizedBox(height: 8),
                       
                       if (slot.status == 'free') 
