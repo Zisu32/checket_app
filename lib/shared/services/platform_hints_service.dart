@@ -1,6 +1,6 @@
 import 'package:web/web.dart' as web;
 
-class PlatformHints {
+class PlatformHintsService {
   static String get _ua => web.window.navigator.userAgent;
 
   static bool get isIOS =>

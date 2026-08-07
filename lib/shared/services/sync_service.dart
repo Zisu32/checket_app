@@ -207,7 +207,6 @@ class SyncService {
       .watch();
   }
 
-  /// High-precision lifecycle tracking for a specific customer ticket.
   /// Identifies if a jacket is active, lost, picked up, or if the hook is just available.
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
     final controller = StreamController<WardrobeSlot?>();

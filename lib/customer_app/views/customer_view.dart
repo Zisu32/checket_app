@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
@@ -8,7 +7,8 @@ import '../../shared/services/sync_service.dart';
 import '../../shared/services/platform_hints_service.dart';
 import '../../shared/theme/brand_colors.dart';
 import '../widgets/ticket_card.dart';
-import '../widgets/branded_wallet_button.dart';
+import '../widgets/ticket_info_area.dart';
+import '../widgets/no_ticket_view.dart';
 
 class CustomerView extends StatefulWidget {
   final int? ticketId;
@@ -101,7 +101,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
     final isShortScreen = screenHeight < 700;
 
     if (_activeId == null || _activeSecret == null) {
-      return _buildNoTicketFoundUI();
+      return const NoTicketView();
     }
 
     return ValueListenableBuilder<String?>(
@@ -189,7 +189,11 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
                         ),
 
                         const Spacer(),
-                        _buildInfoArea(slot, isShortScreen),
+                        TicketInfoArea(
+                          slot: slot,
+                          isShort: isShortScreen,
+                          onAddToWallet: _addToWallet,
+                        ),
                       ],
                     ),
                   ),
@@ -202,111 +206,6 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
     );
   }
 
-  Widget _buildNoTicketFoundUI() {
-    return Scaffold(
-      backgroundColor: BrandColors.background,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/images/full-icon.png',
-                  height: 60,
-                  errorBuilder: (context, error, stackTrace) => const Text('CHECKET',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: BrandColors.white))),
-              const SizedBox(height: 40),
-              const Icon(Icons.search_off, color: BrandColors.free, size: 64),
-              const SizedBox(height: 24),
-              const Text(
-                'Kein aktives Ticket gefunden',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.white),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Bitte scanne den QR-Code oder wende dich an das Personal.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: BrandColors.free, fontSize: 14),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoArea(WardrobeSlot? slot, bool isShort) {
-    if (slot == null) return const SizedBox(height: 100);
-
-    String text = '';
-    Widget? extra;
-    bool iconAbove = false;
-
-    final isIOS = PlatformHints.isIOS;
-
-    switch (slot.status) {
-      case 'unpaid':
-        text = 'Bitte an das Lesegerät halten';
-        extra = _buildPayWithPhoneIcon();
-        iconAbove = true;
-        break;
-      case 'active':
-        text = 'für Abholerinnerung der Jacke';
-        extra = Container(
-          margin: const EdgeInsets.only(bottom: 4),
-          child: BrandedWalletButton(isIOS: isIOS, onTap: _addToWallet),
-        );
-        iconAbove = true;
-        break;
-      case 'temporary':
-        text = 'Jacke wieder einchecken';
-        break;
-      case 'forgotten':
-        text = 'Jacke kann im Fundbüro abgeholt werden';
-        break;
-      case 'free':
-      case 'picked_up':
-      case 'wrong_secret':
-        text = 'Sie können die Seite schließen';
-        break;
-      default:
-        return const SizedBox(height: 100);
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (extra != null && iconAbove) ...[
-            extra,
-            const SizedBox(height: 12),
-          ],
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: BrandColors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          if (extra != null && !iconAbove) ...[
-            const SizedBox(height: 16),
-            extra,
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPayWithPhoneIcon() {
-    return SvgPicture.asset(
-      'assets/images/pay_with_phone.svg',
-      height: 50,
-    );
-  }
-
   Future<void> _addToWallet() async {
     try {
       final supabase = Supabase.instance.client;
@@ -315,7 +214,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
         body: {
           'ticketId': _activeId,
           'secret': _activeSecret,
-          'platform': PlatformHints.isIOS ? 'apple' : 'google',
+          'platform': PlatformHintsService.isIOS ? 'apple' : 'google',
         },
       );
 

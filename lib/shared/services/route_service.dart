@@ -5,8 +5,6 @@ class RouteService {
   factory RouteService() => _instance;
   RouteService._internal();
 
-  /// Robustly parse customer parameters from the URL or localStorage.
-  /// Used in main_customer.dart to identify the guest's ticket.
   ({int? id, String? secret}) parseCustomerParams() {
     final fullUrl = web.window.location.href;
     final uri = Uri.parse(fullUrl);
@@ -41,8 +39,6 @@ class RouteService {
     );
   }
 
-  /// Parse monitor parameters from a Flutter route name.
-  /// Used in main_staff.dart to show the correct QR code on the monitor.
   ({int? id, String? secret}) parseStaffParams(String? routeName) {
     if (routeName == null || !routeName.contains('/qr')) {
       return (id: null, secret: null);

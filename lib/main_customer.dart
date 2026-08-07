@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'customer_app/views/customer_view.dart';
+import 'customer_app/widgets/no_ticket_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';
 import 'shared/theme/brand_colors.dart';
@@ -143,27 +144,7 @@ class _CustomerRouteHandler extends StatelessWidget {
     final params = RouteService().parseCustomerParams();
 
     if (params.id == null || params.secret == null) {
-      return Scaffold(
-        backgroundColor: BrandColors.background,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (_, __, ___) =>
-                  const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: BrandColors.white))),
-                const SizedBox(height: 40),
-                const Icon(Icons.search_off, color: BrandColors.free, size: 64),
-                const SizedBox(height: 24),
-                const Text('Kein aktives Ticket gefunden', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.white)),
-                const SizedBox(height: 12),
-                const Text('Bitte scanne den QR-Code oder wende dich an das Personal.', textAlign: TextAlign.center, style: TextStyle(color: BrandColors.free, fontSize: 14)),
-              ],
-            ),
-          ),
-        ),
-      );
+      return const NoTicketView();
     }
     
     return CustomerView(
