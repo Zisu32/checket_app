@@ -18,6 +18,9 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
   
+  // Navigation & Pagination
+  int _selectedNavIndex = 1; // Default: Dashboard
+  late PageController _pageController;
   int _currentPage = 0;
   final int _itemsPerPage = 100;
 
@@ -28,6 +31,9 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   void initState() {
     super.initState();
     web.document.title = 'Checket Staff';
+    
+    _pageController = PageController(initialPage: 0);
+    
     _timeoutTimer = Timer(const Duration(seconds: 10), () {
       if (mounted) {
         setState(() => _showTimeoutMessage = true);
@@ -47,6 +53,7 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   @override
   void dispose() {
     _timeoutTimer?.cancel();
+    _pageController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -59,15 +66,10 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   }
 
   void _syncMonitor(int id, String secret) {
-    // 1. Send instant message to existing tab via BroadcastChannel
     MonitorService().updateMonitor(id, secret);
-
-    // 2. Standardize URL for monitor tab - robust Origin/Path/Hash combination
     final origin = web.window.location.origin;
     final path = web.window.location.pathname;
     final qrUrl = '$origin$path#/qr';
-    
-    // Named tab 'checket_monitor' ensures reuse and updates existing display
     web.window.open(qrUrl, 'checket_monitor');
   }
 
@@ -137,91 +139,6 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
     );
   }
 
-  void _zeigeFundbuero() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: BrandColors.background,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.inventory_2_outlined, color: BrandColors.forgotten, size: 24),
-                    const SizedBox(width: 12),
-                    const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: BrandColors.white)),
-                  ],
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => _syncMonitor(-1, 'recovery'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: BrandColors.active,
-                    foregroundColor: BrandColors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  icon: const Icon(Icons.qr_code_2, size: 18),
-                  label: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-            const Divider(height: 32, color: BrandColors.free),
-            Expanded(
-              child: StreamBuilder<List<LostItem>>(
-                stream: _syncService.watchLostItems(),
-                builder: (context, snapshot) {
-                  final items = snapshot.data ?? [];
-                  if (items.isEmpty) return const Center(child: Text('Keine Gegenstände im Fundbüro.', style: TextStyle(color: BrandColors.free)));
-                  
-                  return ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return Card(
-                        color: BrandColors.surface,
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          leading: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: BrandColors.forgotten,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${item.originalSlotId}',
-                                style: const TextStyle(color: BrandColors.white, fontWeight: FontWeight.bold, fontSize: 18),
-                              ),
-                            ),
-                          ),
-                          title: const Text('Garderobenplatz', style: TextStyle(color: BrandColors.white)),
-                          subtitle: Text(
-                            '${item.createdAt.day}.${item.createdAt.month}.${item.createdAt.year}',
-                            style: const TextStyle(color: BrandColors.free, fontSize: 14),
-                          ),
-                          trailing: ElevatedButton(
-                            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: BrandColors.white),
-                            onPressed: () => _syncService.handOverLostItem(item),
-                            child: const Text('Aushändigen', style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<WardrobeSlot>>(
@@ -230,181 +147,284 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
         final allSlots = snapshot.data ?? [];
         
         if (allSlots.isEmpty) {
-          return Scaffold(
-            backgroundColor: BrandColors.background,
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(color: BrandColors.active),
-                  if (_showTimeoutMessage) ...[
-                    const SizedBox(height: 24),
-                    const Text('Synchronisierung läuft...', textAlign: TextAlign.center, style: TextStyle(color: BrandColors.white)),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => _syncService.pullFromSupabase(),
-                      child: const Text('Manueller Reload', style: TextStyle(color: BrandColors.active)),
-                    ),
-                  ]
-                ],
-              ),
-            ),
-          );
+          return _buildLoadingScreen();
         }
-
-        final totalPages = (allSlots.length / _itemsPerPage).ceil();
-        final displaySlots = allSlots.skip(_currentPage * _itemsPerPage).take(_itemsPerPage).toList();
 
         return Scaffold(
           backgroundColor: BrandColors.background,
-          appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(50),
-            child: AppBar(
-              backgroundColor: BrandColors.header,
-              elevation: 0,
-              centerTitle: true,
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    'assets/images/full-icon.png', 
-                    height: 28,
-                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14)),
-                  ),
-                  const SizedBox(width: 12),
-                  ValueListenableBuilder<SyncStatus>(
-                    valueListenable: _syncService.statusNotifier,
-                    builder: (context, status, _) {
-                      Color statusColor = BrandColors.active;
-                      if (status == SyncStatus.syncing) statusColor = BrandColors.temporary;
-                      if (status == SyncStatus.offline) statusColor = BrandColors.unpaid;
+          appBar: _buildAppBar(),
+          body: Column(
+            children: [
+              Expanded(
+                child: _selectedNavIndex == 0 
+                  ? _buildFundbueroView() 
+                  : _buildDashboardView(allSlots),
+              ),
+              if (_selectedNavIndex == 1) _buildPageIndicator(allSlots),
+            ],
+          ),
+          bottomNavigationBar: _buildBottomNavbar(allSlots),
+        );
+      }
+    );
+  }
 
-                      return AnimatedBuilder(
-                        animation: _pulseAnimation,
-                        builder: (context, child) {
-                          return Container(
-                            width: 8, height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: statusColor.withValues(alpha: _pulseAnimation.value),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: statusColor.withValues(alpha: _pulseAnimation.value * 0.5),
-                                  blurRadius: 4,
-                                  spreadRadius: 1,
-                                )
-                              ]
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+  PreferredSizeWidget _buildAppBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(50),
+      child: AppBar(
+        backgroundColor: BrandColors.header,
+        elevation: 0,
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/full-icon.png', 
+              height: 28,
+              errorBuilder: (_, __, ___) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14)),
+            ),
+            const SizedBox(width: 12),
+            ValueListenableBuilder<SyncStatus>(
+              valueListenable: _syncService.statusNotifier,
+              builder: (context, status, _) {
+                Color statusColor = BrandColors.active;
+                if (status == SyncStatus.syncing) statusColor = BrandColors.temporary;
+                if (status == SyncStatus.offline) statusColor = BrandColors.unpaid;
+
+                return AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, child) {
+                    return Container(
+                      width: 8, height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: statusColor.withValues(alpha: _pulseAnimation.value),
+                        boxShadow: [
+                          BoxShadow(
+                            color: statusColor.withValues(alpha: _pulseAnimation.value * 0.5),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          )
+                        ]
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+        automaticallyImplyLeading: false,
+      ),
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      backgroundColor: BrandColors.background,
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(color: BrandColors.active),
+            if (_showTimeoutMessage) ...[
+              const SizedBox(height: 24),
+              const Text('Synchronisierung läuft...', textAlign: TextAlign.center, style: TextStyle(color: BrandColors.white)),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => _syncService.pullFromSupabase(),
+                child: const Text('Manueller Reload', style: TextStyle(color: BrandColors.active)),
+              ),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFundbueroView() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.inventory_2_outlined, color: BrandColors.forgotten, size: 24),
+                  const SizedBox(width: 12),
+                  const Text('Fundbüro', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: BrandColors.white)),
                 ],
               ),
-              automaticallyImplyLeading: false,
-            ),
+              ElevatedButton.icon(
+                onPressed: () => _syncMonitor(-1, 'recovery'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: BrandColors.active,
+                  foregroundColor: BrandColors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.qr_code_2, size: 18),
+                label: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
-          bottomNavigationBar: BottomAppBar(
-            color: BrandColors.header,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            height: 60,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                SizedBox(
-                  height: 36,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: BrandColors.surface,
-                      foregroundColor: BrandColors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    icon: const Icon(Icons.inventory_2_outlined, size: 16, color: BrandColors.forgotten),
-                    label: const Text('Fundbüro', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                    onPressed: _zeigeFundbuero,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  decoration: BoxDecoration(
-                    color: BrandColors.surface,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.chevron_left, color: BrandColors.white, size: 18),
-                        onPressed: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
-                      ),
-                      Text(
-                        '${_currentPage + 1} / $totalPages',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: BrandColors.white),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.chevron_right, color: BrandColors.white, size: 18),
-                        onPressed: _currentPage < totalPages - 1 ? () => setState(() => _currentPage++) : null,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: 36,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: BrandColors.surface,
-                      foregroundColor: BrandColors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    icon: const Icon(Icons.refresh, size: 16, color: BrandColors.unpaid),
-                    label: const Text('Schichtende', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                    onPressed: () => _schichtBeendenDialog(allSlots),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          body: GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 40, 
-              mainAxisSpacing: 6, 
-              crossAxisSpacing: 6,
-              mainAxisExtent: 40,
-            ),
-            itemCount: displaySlots.length,
-            itemBuilder: (context, index) {
-              final slot = displaySlots[index];
-              Color kachelFarbe = BrandColors.surface;
+        ),
+        const Divider(height: 1, color: BrandColors.surface),
+        Expanded(
+          child: StreamBuilder<List<LostItem>>(
+            stream: _syncService.watchLostItems(),
+            builder: (context, snapshot) {
+              final items = snapshot.data ?? [];
+              if (items.isEmpty) return const Center(child: Text('Keine Gegenstände im Fundbüro.', style: TextStyle(color: BrandColors.free)));
               
-              if (slot.status == 'unpaid') kachelFarbe = BrandColors.unpaid;
-              if (slot.status == 'active') kachelFarbe = BrandColors.active;
-              if (slot.status == 'temporary') kachelFarbe = BrandColors.temporary;
-              if (slot.status == 'forgotten') kachelFarbe = BrandColors.forgotten;
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  final tag = item.createdAt.day.toString().padLeft(2, '0');
+                  final monat = item.createdAt.month.toString().padLeft(2, '0');
+                  final jahr = item.createdAt.year;
 
-              return InkWell(
-                onTap: () => _zeigeAktionen(context, slot),
-                child: Container(
-                  decoration: BoxDecoration(color: kachelFarbe, borderRadius: BorderRadius.circular(8)),
-                  child: Center(
-                    child: Text(
-                      '${slot.id}', 
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: BrandColors.white)
-                    )
-                  ),
-                ),
+                  return Card(
+                    color: BrandColors.surface,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: Container(
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(color: BrandColors.forgotten, borderRadius: BorderRadius.circular(8)),
+                        child: Center(child: Text('${item.originalSlotId}', style: const TextStyle(color: BrandColors.white, fontWeight: FontWeight.bold, fontSize: 18))),
+                      ),
+                      title: const Text('Garderobenplatz', style: TextStyle(color: BrandColors.white)),
+                      subtitle: Text('$tag.$monat.$jahr', style: const TextStyle(color: BrandColors.free, fontSize: 14)),
+                      trailing: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: BrandColors.white),
+                        onPressed: () => _syncService.handOverLostItem(item),
+                        child: const Text('Aushändigen', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDashboardView(List<WardrobeSlot> allSlots) {
+    final totalPages = (allSlots.length / _itemsPerPage).ceil();
+
+    return PageView.builder(
+      controller: _pageController,
+      onPageChanged: (index) => setState(() => _currentPage = index),
+      itemCount: totalPages,
+      itemBuilder: (context, pageIndex) {
+        final displaySlots = allSlots.skip(pageIndex * _itemsPerPage).take(_itemsPerPage).toList();
+        return GridView.builder(
+          padding: const EdgeInsets.all(12),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 40, 
+            mainAxisSpacing: 6, 
+            crossAxisSpacing: 6,
+            mainAxisExtent: 40,
+          ),
+          itemCount: displaySlots.length,
+          itemBuilder: (context, index) {
+            final slot = displaySlots[index];
+            Color kachelFarbe = BrandColors.surface;
+            if (slot.status == 'unpaid') kachelFarbe = BrandColors.unpaid;
+            if (slot.status == 'active') kachelFarbe = BrandColors.active;
+            if (slot.status == 'temporary') kachelFarbe = BrandColors.temporary;
+            if (slot.status == 'forgotten') kachelFarbe = BrandColors.forgotten;
+
+            return InkWell(
+              onTap: () => _zeigeAktionen(context, slot),
+              child: Container(
+                decoration: BoxDecoration(color: kachelFarbe, borderRadius: BorderRadius.circular(8)),
+                child: Center(
+                  child: Text('${slot.id}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: BrandColors.white))
+                ),
+              ),
+            );
+          },
         );
-      }
+      },
+    );
+  }
+
+  Widget _buildPageIndicator(List<WardrobeSlot> allSlots) {
+    final totalPages = (allSlots.length / _itemsPerPage).ceil();
+    if (totalPages <= 1) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(totalPages, (index) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: 8, height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _currentPage == index ? BrandColors.white : BrandColors.free,
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavbar(List<WardrobeSlot> allSlots) {
+    return Container(
+      height: 70,
+      decoration: const BoxDecoration(
+        color: BrandColors.header,
+        border: Border(top: BorderSide(color: Colors.white10, width: 0.5)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavbarItem(0, Icons.inventory_2_outlined, 'Fundbüro'),
+          _buildNavbarItem(1, Icons.grid_view_rounded, 'Dashboard'),
+          _buildNavbarItem(2, Icons.loop, 'Schichtende', isAction: true, allSlots: allSlots),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavbarItem(int index, IconData icon, String label, {bool isAction = false, List<WardrobeSlot>? allSlots}) {
+    final isActive = _selectedNavIndex == index;
+    final color = isActive ? BrandColors.white : BrandColors.surface;
+
+    return InkWell(
+      onTap: () {
+        if (isAction) {
+          _schichtBeendenDialog(allSlots ?? []);
+        } else {
+          setState(() => _selectedNavIndex = index);
+        }
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 26),
+          const SizedBox(height: 4),
+          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+          if (isActive && !isAction)
+            Container(
+              margin: const EdgeInsets.only(top: 6),
+              width: 24, height: 3,
+              decoration: BoxDecoration(
+                color: BrandColors.white,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            )
+        ],
+      ),
     );
   }
 

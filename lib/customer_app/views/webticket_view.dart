@@ -112,10 +112,10 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
             final slot = snapshot.data;
             final bool isSearching = !snapshot.hasData;
             final (statusColor, statusIcon, statusText) = switch (error) {
-              String e && e.isNotEmpty => (
-              BrandColors.secret,
-              Icons.cloud_off_outlined,
-              'Verbindungsfehler...'
+              String e when e.isNotEmpty => (
+                BrandColors.secret,
+                Icons.cloud_off_outlined,
+                'Verbindungsfehler...'
               ),
               _ => switch (slot) {
                 _ when isSearching => (
