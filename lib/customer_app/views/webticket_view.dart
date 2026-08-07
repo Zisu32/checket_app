@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
@@ -345,7 +346,6 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
     bool iconAbove = false;
 
     final isIOS = PlatformHints.isIOS;
-    final walletName = isIOS ? 'Apple Wallet' : 'Google Wallet';
 
     switch (slot.status) {
       case 'unpaid':
@@ -354,11 +354,9 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
         iconAbove = true;
         break;
       case 'active':
-        text = 'Zur $walletName hinzufügen für Abholerinnerung';
-        extra = Container(
-          margin: const EdgeInsets.only(bottom: 4),
-          child: _buildBrandedWalletButton(isIOS),
-        );
+        text = 'Für Abholerinnerung der Jacke';
+        extra = _buildBrandedWalletButton(isIOS);
+        iconAbove = true;
         break;
       case 'temporary':
         text = 'Jacke wieder einchecken';
@@ -403,67 +401,19 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
 
   Widget _buildBrandedWalletButton(bool isIOS) {
     if (isIOS) {
-      // Apple Wallet Button Style
       return InkWell(
         onTap: _addToWallet,
-        child: Container(
+        child: SvgPicture.asset(
+          'assets/images/DE_Add_to_Apple_Wallet_RGB_101421.svg',
           height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.white24, width: 0.5),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.apple, color: Colors.white, size: 22),
-              SizedBox(width: 8),
-              Text(
-                'Add to Apple Wallet',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ],
-          ),
         ),
       );
     } else {
-      // Google Wallet Button Style
       return InkWell(
         onTap: _addToWallet,
-        child: Container(
+        child: SvgPicture.asset(
+          'assets/images/de_add_to_google_wallet_add-wallet-badge.svg',
           height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFF5F6368)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.network(
-                'https://www.gstatic.com/images/branding/product/2x/wallet_48dp.png',
-                height: 24,
-                errorBuilder: (_, __, ___) => const Icon(Icons.wallet, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Add to Google Wallet',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: 'Roboto',
-                ),
-              ),
-            ],
-          ),
         ),
       );
     }
