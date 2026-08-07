@@ -27,7 +27,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
   @override
   void initState() {
     super.initState();
-    web.document.title = 'Checket Monitor';
+    web.document.title = 'Checket QR';
 
     final monitor = MonitorService();
     monitor.init();

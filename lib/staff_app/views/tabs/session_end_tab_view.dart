@@ -17,7 +17,7 @@ class SessionEndTabView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final archiveCount = allSlots.where((s) => s.status == 'active' || s.status == 'temporary').length;
+    final activeJacketsCount = allSlots.where((s) => s.status == 'active').length;
     
     return Column(
       children: [
@@ -44,7 +44,7 @@ class SessionEndTabView extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Sollen $archiveCount Jacken ins FUNDBÜRO verschoben und die Garderobe geschlossen werden?',
+                    'Sollen $activeJacketsCount aktive Jacken ins FUNDBÜRO verschoben und die Garderobe geschlossen werden?',
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: BrandColors.white, fontSize: 16),
                   ),

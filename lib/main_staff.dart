@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'staff_app/views/staff_view.dart';
 import 'staff_app/views/qr_display_view.dart';
 import 'shared/services/sync_service.dart';
+import 'shared/services/route_service.dart';
 import 'shared/theme/brand_colors.dart';
 
 void main() {
@@ -88,11 +89,14 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
         );
       },
       onGenerateRoute: (settings) {
-        final name = settings.name ?? '';
-        
-        if (name.contains('/qr')) {
+        final params = RouteService().parseStaffParams(settings.name);
+
+        if (params.id != null) {
           return MaterialPageRoute(
-            builder: (_) => const QrDisplayView(),
+            builder: (_) => QrDisplayView(
+              ticketId: params.id, 
+              secret: params.secret
+            ),
           );
         }
         

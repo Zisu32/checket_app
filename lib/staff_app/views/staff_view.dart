@@ -84,9 +84,9 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
         backgroundColor: BrandColors.background,
         title: Row(
           children: [
-            const Icon(Icons.refresh, color: BrandColors.unpaid, size: 24),
+            const Icon(Icons.loop, color: BrandColors.white, size: 24),
             const SizedBox(width: 12),
-            const Text('Schichtende nicht möglich', style: TextStyle(color: BrandColors.white)),
+            const Text('Schichtende\nnicht möglich', style: TextStyle(color: BrandColors.white)),
           ],
         ),
         content: const Text(

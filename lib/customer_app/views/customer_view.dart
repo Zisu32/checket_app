@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
-import '../../shared/services/platform_hints.dart';
+import '../../shared/services/platform_hints_service.dart';
 import '../../shared/theme/brand_colors.dart';
 import '../widgets/ticket_card.dart';
 import '../widgets/branded_wallet_button.dart';

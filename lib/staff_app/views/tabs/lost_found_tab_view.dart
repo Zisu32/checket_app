@@ -23,7 +23,7 @@ class LostFoundTabView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Icon(Icons.inventory_2_outlined, color: BrandColors.white, size: 28),
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: () => onSyncMonitor(-1, 'recovery'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: BrandColors.active,
@@ -31,7 +31,8 @@ class LostFoundTabView extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.qr_code_2, size: 18),
+                label: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -62,7 +63,7 @@ class LostFoundTabView extends StatelessWidget {
                         decoration: BoxDecoration(color: BrandColors.forgotten, borderRadius: BorderRadius.circular(8)),
                         child: Center(child: Text('${item.originalSlotId}', style: const TextStyle(color: BrandColors.white, fontWeight: FontWeight.bold, fontSize: 18))),
                       ),
-                      title: const Text('Garderobenplatz', style: TextStyle(color: BrandColors.white)),
+                      title: const Text('Platz', style: TextStyle(color: BrandColors.white)),
                       subtitle: Text('$tag.$monat.$jahr', style: const TextStyle(color: BrandColors.free, fontSize: 14)),
                       trailing: ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: BrandColors.white),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'customer_app/views/customer_view.dart';
 import 'shared/services/sync_service.dart';
+import 'shared/services/route_service.dart';
 import 'shared/theme/brand_colors.dart';
 
 void main() {
@@ -20,7 +21,7 @@ void main() {
               children: [
                 const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 48),
                 const SizedBox(height: 20),
-                const Text('Startfehler oder Absturz (Costumer):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: BrandColors.white)),
+                const Text('Startfehler oder Absturz:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: BrandColors.white)),
                 const SizedBox(height: 12),
                 Text(
                   '${details.exception}\n\n${details.stack}',
@@ -86,7 +87,7 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
           },
         );
       },
-      home: const CustomerView(),
+      home: const _CustomerRouteHandler(),
     );
   }
 
@@ -130,6 +131,44 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CustomerRouteHandler extends StatelessWidget {
+  const _CustomerRouteHandler();
+
+  @override
+  Widget build(BuildContext context) {
+    final params = RouteService().parseCustomerParams();
+
+    if (params.id == null || params.secret == null) {
+      return Scaffold(
+        backgroundColor: BrandColors.background,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (_, __, ___) =>
+                  const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: BrandColors.white))),
+                const SizedBox(height: 40),
+                const Icon(Icons.search_off, color: BrandColors.free, size: 64),
+                const SizedBox(height: 24),
+                const Text('Kein aktives Ticket gefunden', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: BrandColors.white)),
+                const SizedBox(height: 12),
+                const Text('Bitte scanne den QR-Code oder wende dich an das Personal.', textAlign: TextAlign.center, style: TextStyle(color: BrandColors.free, fontSize: 14)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    
+    return CustomerView(
+      ticketId: params.id, 
+      secret: params.secret
     );
   }
 }

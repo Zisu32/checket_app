@@ -32,7 +32,7 @@ class QrViewer extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET #$ticketId',
+          isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET $ticketId',
           style: const TextStyle(
             fontSize: 42,
             fontWeight: FontWeight.w900,
