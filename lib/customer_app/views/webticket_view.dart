@@ -110,49 +110,37 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
           stream: _syncService.watchTicket(_activeId!, _activeSecret!),
           builder: (context, snapshot) {
             final slot = snapshot.data;
+            final bool isSearching = !snapshot.hasData;
+            final (statusColor, statusIcon, statusText) = switch (error) {
+              String e && e.isNotEmpty => (
+              BrandColors.secret,
+              Icons.cloud_off_outlined,
+              'Verbindungsfehler...'
+              ),
+              _ => switch (slot) {
+                _ when isSearching => (
+                BrandColors.white,
+                Icons.sync,
+                _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...'
+                ),
+                null => (
+                BrandColors.unpaid,
+                Icons.error_outline,
+                'Ticket ungültig'
+                ),
+                _ => switch (slot.status) {
+                  'unpaid' => (BrandColors.unpaid, Icons.credit_card_off_outlined, 'Zahlung ausstehend'),
+                  'temporary' => (BrandColors.temporary, Icons.pause, 'Jacke temporär draußen'),
+                  'forgotten' => (BrandColors.forgotten, Icons.inventory_2_outlined, 'Jacke im Fundbüro'),
+                  'free' || 'picked_up' => (BrandColors.free, Icons.task_alt, 'Jacke bereits abgeholt'),
+                  'wrong_secret' => (BrandColors.secret, Icons.lock_person_outlined, 'Secret stimmt nicht'),
+                  _ => (BrandColors.active, Icons.verified_user_outlined, 'Jacke auf Platz aktiv'),
+                },
+              },
+            };
 
-            Color statusColor = BrandColors.active;
-            IconData statusIcon = Icons.verified_user_outlined;
-            String statusText = 'Jacke auf Platz aktiv';
-            bool isSearching = !snapshot.hasData;
-
-            if (isSearching) {
-              statusColor = BrandColors.white;
-              statusIcon = Icons.sync;
-              statusText = _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...';
-            } else if (slot == null) {
-              statusColor = BrandColors.unpaid;
-              statusIcon = Icons.error_outline;
-              statusText = 'Ticket ungültig';
-            } else {
-              if (slot.status == 'unpaid') {
-                statusColor = BrandColors.unpaid;
-                statusIcon = Icons.credit_card_off_outlined;
-                statusText = 'Zahlung ausstehend';
-              } else if (slot.status == 'temporary') {
-                statusColor = BrandColors.temporary;
-                statusIcon = Icons.pause;
-                statusText = 'Jacke temporär draußen';
-              } else if (slot.status == 'forgotten') {
-                statusColor = BrandColors.forgotten;
-                statusIcon = Icons.inventory_2_outlined;
-                statusText = 'Jacke im Fundbüro';
-              } else if (slot.status == 'free') {
-                statusColor = BrandColors.free;
-                statusIcon = Icons.task_alt;
-                statusText = 'Jacke bereits abgeholt';
-                _clearPersistence();
-              } else if (slot.status == 'picked_up') {
-                statusColor = BrandColors.free;
-                statusIcon = Icons.task_alt;
-                statusText = 'Jacke bereits abgeholt';
-                _clearPersistence();
-              } else if (slot.status == 'wrong_secret') {
-                statusColor = BrandColors.secret;
-                statusIcon = Icons.lock_person_outlined;
-                statusText = 'Secret stimmt nicht';
-                _clearPersistence();
-              }
+            if (slot != null && ['free', 'picked_up', 'wrong_secret'].contains(slot.status)) {
+              WidgetsBinding.instance.addPostFrameCallback((_) => _clearPersistence());
             }
 
             return Scaffold(
@@ -167,7 +155,10 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                   title: Image.asset(
                     'assets/images/full-icon.png',
                     height: 28,
-                    errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14)),
+                    errorBuilder: (context, error, stackTrace) => const Text(
+                      'CHECKET',
+                      style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14),
+                    ),
                   ),
                 ),
               ),
@@ -201,24 +192,17 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                                       boxShadow: [
                                         BoxShadow(
                                           color: BrandColors.shadow.withValues(
-                                            alpha: (0.35 + _pulseAnimation.value * 0.65).clamp(0.0, 1.0),
+                                            alpha: 0.3 + (_pulseAnimation.value * 0.3),
                                           ),
-                                          blurRadius: 45 * _pulseAnimation.value,
-                                          spreadRadius: 10 * _pulseAnimation.value,
-                                        ),
-                                        BoxShadow(
-                                          color: BrandColors.shadow.withValues(
-                                            alpha: (0.5 + _pulseAnimation.value * 0.5).clamp(0.0, 1.0),
-                                          ),
-                                          blurRadius: 15 * _pulseAnimation.value,
-                                          spreadRadius: 2 * _pulseAnimation.value,
+                                          blurRadius: 10 + (_pulseAnimation.value * 10),
+                                          spreadRadius: _pulseAnimation.value * 2,
                                         ),
                                       ],
                                     ),
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        if (isSearching)
+                                        if (isSearching && error == null)
                                           const CircularProgressIndicator(color: BrandColors.white)
                                         else ...[
                                           Icon(statusIcon, color: BrandColors.white, size: isShortScreen ? 48 : 64),
@@ -266,33 +250,8 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
 
                         const Spacer(),
 
-                        // Messaging
-                        if (error != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Text(error, style: const TextStyle(color: BrandColors.unpaid, fontSize: 12), textAlign: TextAlign.center),
-                          )
-                        else if (slot != null && slot.status == 'wrong_secret')
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 16),
-                            child: Text('Jacke wurde abgeholt. Dieser Link ist nicht mehr gültig.',
-                                style: TextStyle(color: BrandColors.free, fontSize: 12), textAlign: TextAlign.center),
-                          )
-                        else if (_showTimeoutMessage && isSearching)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: Column(
-                                children: [
-                                  const Text('Wird synchronisiert...', style: TextStyle(color: BrandColors.free, fontSize: 12)),
-                                  TextButton(onPressed: () => _syncService.pullFromSupabase(), child: const Text('Reload', style: TextStyle(color: BrandColors.active))),
-                                ],
-                              ),
-                            ),
-
-                        // Informations- und Aktionsbereich unter der Kachel
+                        // Messagingbereich unter der Kachel
                         _buildInfoArea(slot, isShortScreen),
-
-                        SizedBox(height: isShortScreen ? 12 : 24),
                       ],
                     ),
                   ),
@@ -354,7 +313,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
         iconAbove = true;
         break;
       case 'active':
-        text = 'Für Abholerinnerung der Jacke';
+        text = 'für Abholerinnerung der Jacke';
         extra = _buildBrandedWalletButton(isIOS);
         iconAbove = true;
         break;
@@ -402,29 +361,28 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
   Widget _buildPayWithPhoneIcon() {
     return SvgPicture.asset(
       'assets/images/pay_with_phone.svg',
-      height: 44,
+      height: 50,
     );
   }
 
   Widget _buildBrandedWalletButton(bool isIOS) {
-    if (isIOS) {
-      return InkWell(
+    final assetPath = isIOS
+        ? 'assets/images/DE_Add_to_Apple_Wallet_RGB_101421.svg'
+        : 'assets/images/de_add_to_google_wallet_add-wallet-badge.svg';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         onTap: _addToWallet,
+        borderRadius: BorderRadius.circular(4),
         child: SvgPicture.asset(
-          'assets/images/DE_Add_to_Apple_Wallet_RGB_101421.svg',
-          height: 44,
+          assetPath,
+          height: 50,
         ),
-      );
-    } else {
-      return InkWell(
-        onTap: _addToWallet,
-        child: SvgPicture.asset(
-          'assets/images/de_add_to_google_wallet_add-wallet-badge.svg',
-          height: 44,
-        ),
-      );
-    }
+      ),
+    );
   }
+
 
   Future<void> _addToWallet() async {
     // Calling Supabase Edge Function to generate the pass
