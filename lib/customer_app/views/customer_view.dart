@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,12 +7,14 @@ import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
 import '../../shared/services/platform_hints.dart';
 import '../../shared/theme/brand_colors.dart';
+import '../widgets/ticket_card.dart';
+import '../widgets/branded_wallet_button.dart';
 
-class CustomerWebTicketView extends StatefulWidget {
+class CustomerView extends StatefulWidget {
   final int? ticketId;
   final String? secret;
 
-  const CustomerWebTicketView({
+  const CustomerView({
     super.key,
     this.ticketId,
     this.secret,
@@ -21,10 +22,10 @@ class CustomerWebTicketView extends StatefulWidget {
   });
 
   @override
-  State<CustomerWebTicketView> createState() => _CustomerWebTicketViewState();
+  State<CustomerView> createState() => _CustomerViewState();
 }
 
-class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with TickerProviderStateMixin {
+class _CustomerViewState extends State<CustomerView> with TickerProviderStateMixin {
   final _syncService = SyncService();
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
@@ -111,6 +112,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
           builder: (context, snapshot) {
             final slot = snapshot.data;
             final bool isSearching = !snapshot.hasData;
+            
             final (statusColor, statusIcon, statusText) = switch (error) {
               String e when e.isNotEmpty => (
                 BrandColors.secret,
@@ -119,14 +121,14 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
               ),
               _ => switch (slot) {
                 _ when isSearching => (
-                BrandColors.white,
-                Icons.sync,
-                _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...'
+                  BrandColors.white,
+                  Icons.sync,
+                  _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...'
                 ),
                 null => (
-                BrandColors.unpaid,
-                Icons.error_outline,
-                'Ticket ungültig'
+                  BrandColors.unpaid,
+                  Icons.error_outline,
+                  'Ticket ungültig'
                 ),
                 _ => switch (slot.status) {
                   'unpaid' => (BrandColors.unpaid, Icons.credit_card_off_outlined, 'Zahlung ausstehend'),
@@ -175,82 +177,18 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
                       children: [
                         SizedBox(height: isShortScreen ? 12 : 20),
 
-                        // Main Ticket Card
-                        AspectRatio(
-                          aspectRatio: 1.0,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              AnimatedBuilder(
-                                animation: _pulseAnimation,
-                                builder: (context, child) {
-                                  return Container(
-                                    padding: EdgeInsets.all(isShortScreen ? 20 : 32),
-                                    decoration: BoxDecoration(
-                                      color: statusColor,
-                                      borderRadius: BorderRadius.circular(24),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: BrandColors.shadow.withValues(
-                                            alpha: 0.3 + (_pulseAnimation.value * 0.3),
-                                          ),
-                                          blurRadius: 10 + (_pulseAnimation.value * 10),
-                                          spreadRadius: _pulseAnimation.value * 2,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        if (isSearching && error == null)
-                                          const CircularProgressIndicator(color: BrandColors.white)
-                                        else ...[
-                                          Icon(statusIcon, color: BrandColors.white, size: isShortScreen ? 48 : 64),
-                                          SizedBox(height: isShortScreen ? 8 : 16),
-                                          Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: BrandColors.white)),
-                                          const SizedBox(height: 12),
-                                          FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(
-                                              '$_activeId',
-                                              style: TextStyle(
-                                                fontSize: isShortScreen ? 80 : 110,
-                                                fontWeight: FontWeight.w900,
-                                                color: BrandColors.white,
-                                                height: 1,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-
-                              // Weiße Linie, die um die Kachel wandert
-                              Positioned.fill(
-                                child: IgnorePointer(
-                                  child: AnimatedBuilder(
-                                    animation: _borderRotationController,
-                                    builder: (context, _) {
-                                      return CustomPaint(
-                                        painter: _SnakingBorderPainter(
-                                          rotation: _borderRotationController.value * 2 * math.pi,
-                                          borderRadius: 24,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        TicketCard(
+                          statusColor: statusColor,
+                          statusIcon: statusIcon,
+                          statusText: statusText,
+                          ticketId: _activeId!,
+                          isSearching: isSearching && error == null,
+                          isShortScreen: isShortScreen,
+                          pulseAnimation: _pulseAnimation,
+                          borderRotationController: _borderRotationController,
                         ),
 
                         const Spacer(),
-
-                        // Messagingbereich unter der Kachel
                         _buildInfoArea(slot, isShortScreen),
                       ],
                     ),
@@ -314,7 +252,10 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
         break;
       case 'active':
         text = 'für Abholerinnerung der Jacke';
-        extra = _buildBrandedWalletButton(isIOS);
+        extra = Container(
+          margin: const EdgeInsets.only(bottom: 4),
+          child: BrandedWalletButton(isIOS: isIOS, onTap: _addToWallet),
+        );
         iconAbove = true;
         break;
       case 'temporary':
@@ -347,6 +288,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
             style: const TextStyle(
               color: BrandColors.white,
               fontSize: 14,
+              fontWeight: FontWeight.bold,
             ),
           ),
           if (extra != null && !iconAbove) ...[
@@ -365,27 +307,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
     );
   }
 
-  Widget _buildBrandedWalletButton(bool isIOS) {
-    final assetPath = isIOS
-        ? 'assets/images/DE_Add_to_Apple_Wallet_RGB_101421.svg'
-        : 'assets/images/de_add_to_google_wallet_add-wallet-badge.svg';
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: _addToWallet,
-        borderRadius: BorderRadius.circular(4),
-        child: SvgPicture.asset(
-          assetPath,
-          height: 50,
-        ),
-      ),
-    );
-  }
-
-
   Future<void> _addToWallet() async {
-    // Calling Supabase Edge Function to generate the pass
     try {
       final supabase = Supabase.instance.client;
       final response = await supabase.functions.invoke(
@@ -413,47 +335,4 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
       );
     }
   }
-}
-
-class _SnakingBorderPainter extends CustomPainter {
-  final double rotation;
-  final double borderRadius;
-
-  _SnakingBorderPainter({
-    required this.rotation,
-    this.borderRadius = 24,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const double strokeWidth = 4;
-    final rect = Rect.fromLTWH(
-      strokeWidth / 2,
-      strokeWidth / 2,
-      size.width - strokeWidth,
-      size.height - strokeWidth,
-    );
-    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
-
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round
-      ..shader = SweepGradient(
-        colors: const [
-          Colors.transparent,
-          BrandColors.white,
-          BrandColors.white,
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.12, 0.28, 0.42],
-        transform: GradientRotation(rotation),
-      ).createShader(rect);
-
-    canvas.drawRRect(rrect, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _SnakingBorderPainter oldDelegate) =>
-      oldDelegate.rotation != rotation;
 }

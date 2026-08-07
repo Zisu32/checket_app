@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'staff_app/views/dashboard_view.dart';
+import 'staff_app/views/staff_view.dart';
 import 'staff_app/views/qr_display_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/theme/brand_colors.dart';
@@ -21,7 +21,7 @@ void main() {
               children: [
                 const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 48),
                 const SizedBox(height: 20),
-                const Text('Startfehler oder Absturz (Staff):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: BrandColors.white)),
+                const Text('Startfehler oder Absturz (Staff):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
                 const SizedBox(height: 12),
                 Text(
                   '${details.exception}\n\n${details.stack}',
@@ -73,7 +73,6 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
       title: 'Checket Staff',
       theme: ThemeData.dark(),
       debugShowCheckedModeBanner: false,
-      // The builder wraps every route, showing a Splash screen while initializing
       builder: (context, child) {
         return FutureBuilder(
           future: _initFuture,
@@ -84,7 +83,6 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
             if (snapshot.hasError) {
               return _buildError(snapshot.error.toString());
             }
-            // Once ready, show the actual navigation child (Dashboard)
             return child ?? const SizedBox.shrink();
           },
         );
@@ -94,11 +92,11 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
         
         if (name.contains('/qr')) {
           return MaterialPageRoute(
-            builder: (_) => QrDisplayView(),
+            builder: (_) => const QrDisplayView(),
           );
         }
         
-        return MaterialPageRoute(builder: (_) => const StaffDashboard());
+        return MaterialPageRoute(builder: (_) => const StaffView());
       },
     );
   }

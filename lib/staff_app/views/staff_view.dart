@@ -6,14 +6,18 @@ import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
 import '../../shared/theme/brand_colors.dart';
 import '../../shared/services/monitor_service.dart';
+import 'tabs/lost_found_tab_view.dart';
+import 'tabs/session_end_tab_view.dart';
+import 'tabs/dashboard_tab_view.dart';
+import '../widgets/staff_navbar.dart';
 
-class StaffDashboard extends StatefulWidget {
-  const StaffDashboard({super.key});
+class StaffView extends StatefulWidget {
+  const StaffView({super.key});
   @override
-  State<StaffDashboard> createState() => _StaffDashboardState();
+  State<StaffView> createState() => _StaffViewState();
 }
 
-class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProviderStateMixin {
+class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMixin {
   final _syncService = SyncService();
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
@@ -125,7 +129,12 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
               if (_selectedNavIndex == 1) _buildPageIndicator(allSlots),
             ],
           ),
-          bottomNavigationBar: _buildBottomNavbar(allSlots),
+          bottomNavigationBar: StaffNavbar(
+            selectedIndex: _selectedNavIndex,
+            allSlots: allSlots,
+            onTabSelected: (index) => setState(() => _selectedNavIndex = index),
+            onLockedTabClick: _zeigeSperrDialog,
+          ),
         );
       }
     );
@@ -134,11 +143,24 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
   Widget _buildBody(List<WardrobeSlot> allSlots) {
     switch (_selectedNavIndex) {
       case 0:
-        return _buildFundbueroView();
+        return LostFoundTabView(
+          syncService: _syncService,
+          onSyncMonitor: _syncMonitor,
+        );
       case 1:
-        return _buildDashboardView(allSlots);
+        return DashboardTabView(
+          slots: allSlots,
+          pageController: _pageController,
+          itemsPerPage: _itemsPerPage,
+          onTap: (slot) => _zeigeAktionen(context, slot),
+          onPageChanged: (index) => setState(() => _currentPage = index),
+        );
       case 2:
-        return _buildSchichtendeView(allSlots);
+        return SessionEndTabView(
+          allSlots: allSlots,
+          syncService: _syncService,
+          onComplete: () => setState(() => _selectedNavIndex = 1),
+        );
       default:
         return const Center(child: Text('Seite nicht gefunden', style: TextStyle(color: BrandColors.white)));
     }
@@ -218,167 +240,6 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
     );
   }
 
-  Widget _buildFundbueroView() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Icon(Icons.inventory_2_outlined, color: BrandColors.white, size: 28),
-              ElevatedButton(
-                onPressed: () => _syncMonitor(-1, 'recovery'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: BrandColors.active,
-                  foregroundColor: BrandColors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: const Text('Ticket wiederherstellen', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1, color: BrandColors.surface),
-        Expanded(
-          child: StreamBuilder<List<LostItem>>(
-            stream: _syncService.watchLostItems(),
-            builder: (context, snapshot) {
-              final items = snapshot.data ?? [];
-              if (items.isEmpty) return const Center(child: Text('Keine Gegenstände im Fundbüro.', style: TextStyle(color: BrandColors.white)));
-              
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  final tag = item.createdAt.day.toString().padLeft(2, '0');
-                  final monat = item.createdAt.month.toString().padLeft(2, '0');
-                  final jahr = item.createdAt.year;
-
-                  return Card(
-                    color: BrandColors.surface,
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      leading: Container(
-                        width: 40, height: 40,
-                        decoration: BoxDecoration(color: BrandColors.forgotten, borderRadius: BorderRadius.circular(8)),
-                        child: Center(child: Text('${item.originalSlotId}', style: const TextStyle(color: BrandColors.white, fontWeight: FontWeight.bold, fontSize: 18))),
-                      ),
-                      title: const Text('Garderobenplatz', style: TextStyle(color: BrandColors.white)),
-                      subtitle: Text('$tag.$monat.$jahr', style: const TextStyle(color: BrandColors.free, fontSize: 14)),
-                      trailing: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: BrandColors.active, foregroundColor: BrandColors.white),
-                        onPressed: () => _syncService.handOverLostItem(item),
-                        child: const Text('Aushändigen', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDashboardView(List<WardrobeSlot> allSlots) {
-    final totalPages = (allSlots.length / _itemsPerPage).ceil();
-
-    return PageView.builder(
-      controller: _pageController,
-      onPageChanged: (index) => setState(() => _currentPage = index),
-      itemCount: totalPages,
-      itemBuilder: (context, pageIndex) {
-        final displaySlots = allSlots.skip(pageIndex * _itemsPerPage).take(_itemsPerPage).toList();
-        return GridView.builder(
-          padding: const EdgeInsets.all(12),
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 40, 
-            mainAxisSpacing: 6, 
-            crossAxisSpacing: 6,
-            mainAxisExtent: 40,
-          ),
-          itemCount: displaySlots.length,
-          itemBuilder: (context, index) {
-            final slot = displaySlots[index];
-            Color kachelFarbe = BrandColors.surface;
-            if (slot.status == 'unpaid') kachelFarbe = BrandColors.unpaid;
-            if (slot.status == 'active') kachelFarbe = BrandColors.active;
-            if (slot.status == 'temporary') kachelFarbe = BrandColors.temporary;
-            if (slot.status == 'forgotten') kachelFarbe = BrandColors.forgotten;
-
-            return InkWell(
-              onTap: () => _zeigeAktionen(context, slot),
-              child: Container(
-                decoration: BoxDecoration(color: kachelFarbe, borderRadius: BorderRadius.circular(8)),
-                child: Center(
-                  child: Text('${slot.id}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: BrandColors.white))
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildSchichtendeView(List<WardrobeSlot> allSlots) {
-    final archiveCount = allSlots.where((s) => s.status == 'active' || s.status == 'temporary').length;
-    
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Icon(Icons.loop, color: BrandColors.white, size: 28),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: BrandColors.unpaid,
-                  foregroundColor: BrandColors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: () async {
-                  await _syncService.archiveAndResetShift();
-                  setState(() => _selectedNavIndex = 1);
-                },
-                child: const Text('Ja, Schicht beenden', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1, color: BrandColors.surface),
-        Expanded(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Schicht beenden?',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: BrandColors.white),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Sollen $archiveCount Jacken ins FUNDBÜRO verschoben und die Garderobe geschlossen werden?',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: BrandColors.white, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildPageIndicator(List<WardrobeSlot> allSlots) {
     final totalPages = (allSlots.length / _itemsPerPage).ceil();
     if (totalPages <= 1) return const SizedBox.shrink();
@@ -397,50 +258,6 @@ class _StaffDashboardState extends State<StaffDashboard> with SingleTickerProvid
             ),
           );
         }),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavbar(List<WardrobeSlot> allSlots) {
-    return Container(
-      height: 70,
-      decoration: const BoxDecoration(
-        color: BrandColors.header,
-        border: Border(top: BorderSide(color: Colors.white10, width: 0.5)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavbarItem(0, Icons.inventory_2_outlined, 'Fundbüro', allSlots: allSlots),
-          _buildNavbarItem(1, Icons.grid_view_rounded, 'Dashboard', allSlots: allSlots),
-          _buildNavbarItem(2, Icons.loop, 'Schichtende', allSlots: allSlots),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavbarItem(int index, IconData icon, String label, {required List<WardrobeSlot> allSlots}) {
-    final isActive = _selectedNavIndex == index;
-    final color = isActive ? BrandColors.white : BrandColors.surface;
-
-    return InkWell(
-      onTap: () {
-        if (index == 2) {
-          final unpaidCount = allSlots.where((s) => s.status == 'unpaid').length;
-          if (unpaidCount > 0) {
-            _zeigeSperrDialog();
-            return;
-          }
-        }
-        setState(() => _selectedNavIndex = index);
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 26),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-        ],
       ),
     );
   }

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'customer_app/views/webticket_view.dart';
+import 'customer_app/views/customer_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/theme/brand_colors.dart';
-import 'package:web/web.dart' as web;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -83,12 +82,11 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
             if (snapshot.hasError) {
               return _buildError(snapshot.error.toString());
             }
-            // Once ready, show the actual navigation child (Monitor)
             return child ?? const SizedBox.shrink();
           },
         );
       },
-      home: const _CustomerRouteHandler(),
+      home: const CustomerView(),
     );
   }
 
@@ -132,47 +130,6 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _CustomerRouteHandler extends StatelessWidget {
-  const _CustomerRouteHandler();
-
-  @override
-  Widget build(BuildContext context) {
-    final fullUrl = web.window.location.href;
-    final uri = Uri.parse(fullUrl);
-    
-    Map<String, String> params = Map.from(uri.queryParameters);
-    if (uri.hasFragment) {
-      final fragment = uri.fragment.contains('?') ? uri.fragment.split('?').last : '';
-      if (fragment.isNotEmpty) {
-        params.addAll(Uri.splitQueryString(fragment));
-      }
-    }
-
-    String ticketIdStr = params['id'] ?? '';
-    String secret = params['secret'] ?? '';
-
-    // Fallback to localStorage
-    if (ticketIdStr.isEmpty || secret.isEmpty) {
-      ticketIdStr = web.window.localStorage.getItem('last_ticket_id') ?? '';
-      secret = web.window.localStorage.getItem('last_ticket_secret') ?? '';
-    } else {
-      web.window.localStorage.setItem('last_ticket_id', ticketIdStr);
-      web.window.localStorage.setItem('last_ticket_secret', secret);
-    }
-
-    final ticketId = int.tryParse(ticketIdStr);
-
-    if (ticketId == null) {
-      return const Scaffold(body: Center(child: Text('Kein aktives Ticket gefunden.')));
-    }
-    
-    return CustomerWebTicketView(
-      ticketId: ticketId, 
-      secret: secret
     );
   }
 }
