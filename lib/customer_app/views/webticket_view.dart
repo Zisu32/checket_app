@@ -354,8 +354,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
         iconAbove = true;
         break;
       case 'active':
-        text = 'Zur $walletName hinzufügen für Abholerinnerung.';
-        extra = _buildBrandedWalletButton(isIOS);
+        text = 'Zur $walletName hinzufügen für Abholerinnerung';
+        extra = Container(
+          margin: const EdgeInsets.only(bottom: 4),
+          child: _buildBrandedWalletButton(isIOS),
+        );
         break;
       case 'temporary':
         text = 'Jacke wieder einchecken';
@@ -400,7 +403,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
 
   Widget _buildBrandedWalletButton(bool isIOS) {
     if (isIOS) {
-      // Apple Wallet Style Badge
+      // Apple Wallet Button Style
       return InkWell(
         onTap: _addToWallet,
         child: Container(
@@ -411,12 +414,12 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.white24, width: 0.5),
           ),
-          child: Row(
+          child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.wallet, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
-              const Text(
+              Icon(Icons.apple, color: Colors.white, size: 22),
+              SizedBox(width: 8),
+              Text(
                 'Add to Apple Wallet',
                 style: TextStyle(
                   color: Colors.white,
@@ -430,11 +433,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
         ),
       );
     } else {
-      // Google Wallet Style Button
+      // Google Wallet Button Style
       return InkWell(
         onTap: _addToWallet,
         child: Container(
-          height: 48,
+          height: 44,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
             color: Colors.black,
@@ -444,7 +447,11 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.wallet, color: Colors.white, size: 22),
+              Image.network(
+                'https://www.gstatic.com/images/branding/product/2x/wallet_48dp.png',
+                height: 24,
+                errorBuilder: (_, __, ___) => const Icon(Icons.wallet, color: Colors.white, size: 22),
+              ),
               const SizedBox(width: 12),
               const Text(
                 'Add to Google Wallet',
