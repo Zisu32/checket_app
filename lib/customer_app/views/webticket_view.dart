@@ -350,7 +350,7 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
     switch (slot.status) {
       case 'unpaid':
         text = 'Bitte an das Lesegerät halten';
-        extra = const Icon(Icons.contactless_outlined, color: BrandColors.active, size: 44);
+        extra = _buildPayWithPhoneIcon();
         iconAbove = true;
         break;
       case 'active':
@@ -396,6 +396,13 @@ class _CustomerWebTicketViewState extends State<CustomerWebTicketView> with Tick
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildPayWithPhoneIcon() {
+    return SvgPicture.asset(
+      'assets/images/pay_with_phone.svg',
+      height: 44,
     );
   }
 
