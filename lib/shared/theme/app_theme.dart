@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class BrandColors {
-  // Main backgrounds
+class AppTheme {
+  // Main colors
   static const Color header = Color(0xFF11171C);
   static const Color background = Color(0xFF232F39);
   static const Color surface = Color(0xFF3B5061);
@@ -17,4 +17,10 @@ class BrandColors {
   // Others
   static const Color white = Color(0xffdfdfdf);
   static const Color shadow = Color(0xff000000);
+
+  // Font Sizes
+  static const double xsmall = 11.0;
+  static const double small = 16.0;
+  static const double medium = 25.0;
+  static const double large = 32.0;
 }

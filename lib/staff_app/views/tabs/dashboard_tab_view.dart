@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../shared/database/database.dart';
-import '../../../shared/theme/brand_colors.dart';
+import '../../../shared/theme/app_theme.dart';
 
 class DashboardTabView extends StatelessWidget {
   final List<WardrobeSlot> slots;
@@ -39,18 +39,18 @@ class DashboardTabView extends StatelessWidget {
           itemCount: displaySlots.length,
           itemBuilder: (context, index) {
             final slot = displaySlots[index];
-            Color kachelFarbe = BrandColors.surface;
-            if (slot.status == 'unpaid') kachelFarbe = BrandColors.unpaid;
-            if (slot.status == 'active') kachelFarbe = BrandColors.active;
-            if (slot.status == 'temporary') kachelFarbe = BrandColors.temporary;
-            if (slot.status == 'forgotten') kachelFarbe = BrandColors.forgotten;
+            Color kachelFarbe = AppTheme.surface;
+            if (slot.status == 'unpaid') kachelFarbe = AppTheme.unpaid;
+            if (slot.status == 'active') kachelFarbe = AppTheme.active;
+            if (slot.status == 'temporary') kachelFarbe = AppTheme.temporary;
+            if (slot.status == 'forgotten') kachelFarbe = AppTheme.forgotten;
 
             return InkWell(
               onTap: () => onTap(slot),
               child: Container(
                 decoration: BoxDecoration(color: kachelFarbe, borderRadius: BorderRadius.circular(8)),
                 child: Center(
-                  child: Text('${slot.id}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: BrandColors.white))
+                  child: Text('${slot.id}', style: const TextStyle(fontSize: AppTheme.small, fontWeight: FontWeight.bold, color: AppTheme.white))
                 ),
               ),
             );

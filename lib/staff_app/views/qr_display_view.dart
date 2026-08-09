@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 import '../../shared/services/monitor_service.dart';
 import '../widgets/qr_display.dart';
 
@@ -64,18 +64,18 @@ class _QrDisplayViewState extends State<QrDisplayView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: AppTheme.background,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(50),
         child: AppBar(
-          backgroundColor: BrandColors.header,
+          backgroundColor: AppTheme.header,
           elevation: 0,
           automaticallyImplyLeading: false,
           centerTitle: true,
           title: Image.asset(
             'assets/images/full-icon.png', 
             height: 28,
-            errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14)),
+            errorBuilder: (context, error, stackTrace) => const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: AppTheme.white, fontSize: AppTheme.small)),
           ),
         ),
       ),

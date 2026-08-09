@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 import '../../shared/services/monitor_service.dart';
 import 'tabs/lost_found_tab_view.dart';
 import 'tabs/session_end_tab_view.dart';
@@ -85,10 +85,10 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: BrandColors.background,
+        backgroundColor: AppTheme.background,
         title: Row(
           children: [
-            const Icon(Icons.loop, color: BrandColors.white, size: 22),
+            const Icon(Icons.loop, color: AppTheme.white, size: AppTheme.medium),
             const SizedBox(width: 12),
             Expanded(
               child: FittedBox(
@@ -96,7 +96,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                 alignment: Alignment.centerLeft,
                 child: const Text(
                   'Schichtende nicht möglich',
-                  style: TextStyle(color: BrandColors.white),
+                  style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
                 ),
               ),
             ),
@@ -104,14 +104,14 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
         ),
         content: const Text(
           'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
-          style: TextStyle(fontSize: 16, color: BrandColors.white),
+          style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white),
         ),
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext),
             style: ElevatedButton.styleFrom(
-              backgroundColor: BrandColors.active,
-              foregroundColor: BrandColors.white,
+              backgroundColor: AppTheme.active,
+              foregroundColor: AppTheme.white,
             ),
             child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
@@ -135,7 +135,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
         }
 
         return Scaffold(
-          backgroundColor: BrandColors.background,
+          backgroundColor: AppTheme.background,
           appBar: TopBar(
             syncService: _syncService,
             pulseAnimation: _pulseAnimation,
@@ -186,14 +186,14 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
           onComplete: () => setState(() => _selectedNavIndex = 1),
         );
       default:
-        return const Center(child: Text('Seite nicht gefunden', style: TextStyle(fontSize: 16, color: BrandColors.white)));
+        return const Center(child: Text('Seite nicht gefunden', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)));
     }
   }
 
   void _zeigeAktionen(BuildContext context, WardrobeSlot initialSlot) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: BrandColors.background,
+      backgroundColor: AppTheme.background,
       isScrollControlled: true,
       builder: (modalContext) {
         return WardrobeActionSheet(

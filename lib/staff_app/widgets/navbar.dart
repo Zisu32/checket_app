@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/database/database.dart';
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 
 class Navbar extends StatelessWidget {
   final int selectedIndex;
@@ -21,7 +21,7 @@ class Navbar extends StatelessWidget {
     return Container(
       height: 70,
       decoration: const BoxDecoration(
-        color: BrandColors.header,
+        color: AppTheme.header,
         border: Border(top: BorderSide(color: Colors.white10, width: 0.5)),
       ),
       child: Row(
@@ -37,7 +37,7 @@ class Navbar extends StatelessWidget {
 
   Widget _buildItem(int index, IconData icon, String label) {
     final isActive = selectedIndex == index;
-    final color = isActive ? BrandColors.white : BrandColors.surface;
+    final color = isActive ? AppTheme.white : AppTheme.surface;
 
     return InkWell(
       onTap: () {
@@ -55,7 +55,7 @@ class Navbar extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 26),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+          Text(label, style: TextStyle(color: color, fontSize: AppTheme.xsmall, fontWeight: FontWeight.bold)),
         ],
       ),
     );

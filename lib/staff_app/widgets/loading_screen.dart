@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 
 class LoadingScreen extends StatelessWidget {
   final bool showTimeoutMessage;
@@ -14,25 +14,25 @@ class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: AppTheme.background,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(color: BrandColors.active),
+            const CircularProgressIndicator(color: AppTheme.active),
             if (showTimeoutMessage) ...[
               const SizedBox(height: 24),
               const Text(
                 'Synchronisierung läuft...',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: BrandColors.white),
+                style: TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
               ),
               const SizedBox(height: 8),
               TextButton(
                 onPressed: onManualReload,
                 child: const Text(
                   'Manueller Reload',
-                  style: TextStyle(color: BrandColors.active),
+                  style: TextStyle(color: AppTheme.active, fontSize: AppTheme.small),
                 ),
               ),
             ]

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 
 class PageIndicator extends StatelessWidget {
   final int totalSlots;
@@ -29,7 +29,7 @@ class PageIndicator extends StatelessWidget {
             height: 8,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: currentPage == index ? BrandColors.white : BrandColors.free,
+              color: currentPage == index ? AppTheme.white : AppTheme.free,
             ),
           );
         }),

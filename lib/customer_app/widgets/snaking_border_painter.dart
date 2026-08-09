@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 
 class SnakingBorderPainter extends CustomPainter {
   final double rotation;
@@ -28,8 +28,8 @@ class SnakingBorderPainter extends CustomPainter {
       ..shader = SweepGradient(
         colors: const [
           Colors.transparent,
-          BrandColors.white,
-          BrandColors.white,
+          AppTheme.white,
+          AppTheme.white,
           Colors.transparent,
         ],
         stops: const [0.0, 0.12, 0.28, 0.42],

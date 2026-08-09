@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../shared/theme/brand_colors.dart';
+import '../shared/theme/app_theme.dart';
 
 class Splash extends StatelessWidget {
   const Splash({super.key});
@@ -7,7 +7,7 @@ class Splash extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: AppTheme.background,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -19,13 +19,13 @@ class Splash extends StatelessWidget {
                 'CHECKET',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: BrandColors.white,
+                  fontSize: AppTheme.medium,
+                  color: AppTheme.white,
                 ),
               ),
             ),
             const SizedBox(height: 40),
-            const CircularProgressIndicator(color: BrandColors.active),
+            const CircularProgressIndicator(color: AppTheme.active),
           ],
         ),
       ),

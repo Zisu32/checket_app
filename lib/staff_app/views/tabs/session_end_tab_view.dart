@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../shared/database/database.dart';
 import '../../../shared/services/sync_service.dart';
-import '../../../shared/theme/brand_colors.dart';
+import '../../../shared/theme/app_theme.dart';
 
 class SessionEndTabView extends StatelessWidget {
   final List<WardrobeSlot> allSlots;
@@ -29,12 +29,12 @@ class SessionEndTabView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
               children: const [
-                Icon(Icons.loop, color: BrandColors.white, size: 28),
+                Icon(Icons.loop, color: AppTheme.white, size: 28),
               ],
             ),
           ),
         ),
-        const Divider(height: 1, indent: 20, endIndent: 20, color: BrandColors.surface),
+        const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
         Expanded(
           child: Center(
             child: Padding(
@@ -44,22 +44,22 @@ class SessionEndTabView extends StatelessWidget {
                 children: [
                   const Text(
                     'Schicht beenden?',
-                    style: TextStyle(fontSize: 22,
+                    style: TextStyle(fontSize: AppTheme.medium,
                         fontWeight: FontWeight.bold,
-                        color: BrandColors.white),
+                        color: AppTheme.white),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Sollen $activeJacketsCount aktive Jacken ins FUNDBÜRO verschoben und die Garderobe geschlossen werden?',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                        color: BrandColors.white, fontSize: 16),
+                        color: AppTheme.white, fontSize: AppTheme.small),
                   ),
                   const SizedBox(height: 40),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: BrandColors.unpaid,
-                      foregroundColor: BrandColors.white,
+                      backgroundColor: AppTheme.unpaid,
+                      foregroundColor: AppTheme.white,
                       minimumSize: const Size(240, 50),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
@@ -69,7 +69,7 @@ class SessionEndTabView extends StatelessWidget {
                       onComplete();
                     },
                     child: const Text('Ja, Schicht beenden', style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16)),
+                        fontWeight: FontWeight.bold, fontSize: AppTheme.small)),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
@@ -77,8 +77,8 @@ class SessionEndTabView extends StatelessWidget {
                     child: const Text(
                       'Abbrechen',
                       style: TextStyle(
-                        color: BrandColors.free,
-                        fontSize: 16,
+                        color: AppTheme.free,
+                        fontSize: AppTheme.small,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

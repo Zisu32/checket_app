@@ -5,7 +5,7 @@ import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
 import '../../shared/services/platform_hints_service.dart';
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 import '../widgets/ticket_card.dart';
 import '../widgets/ticket_info_area.dart';
 import '../widgets/no_ticket.dart';
@@ -115,28 +115,28 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
             
             final (statusColor, statusIcon, statusText) = switch (error) {
               String e when e.isNotEmpty => (
-                BrandColors.secret,
+                AppTheme.secret,
                 Icons.cloud_off_outlined,
                 'Verbindungsfehler...'
               ),
               _ => switch (slot) {
                 _ when isSearching => (
-                  BrandColors.white,
+                  AppTheme.white,
                   Icons.sync,
                   _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...'
                 ),
                 null => (
-                  BrandColors.unpaid,
+                  AppTheme.unpaid,
                   Icons.error_outline,
                   'Ticket ungültig'
                 ),
                 _ => switch (slot.status) {
-                  'unpaid' => (BrandColors.unpaid, Icons.credit_card_off_outlined, 'Zahlung ausstehend'),
-                  'temporary' => (BrandColors.temporary, Icons.pause, 'Jacke temporär draußen'),
-                  'forgotten' => (BrandColors.forgotten, Icons.inventory_2_outlined, 'Jacke im Fundbüro'),
-                  'free' || 'picked_up' => (BrandColors.free, Icons.task_alt, 'Jacke bereits abgeholt'),
-                  'wrong_secret' => (BrandColors.secret, Icons.lock_person_outlined, 'Secret stimmt nicht'),
-                  _ => (BrandColors.active, Icons.verified_user_outlined, 'Jacke auf Platz aktiv'),
+                  'unpaid' => (AppTheme.unpaid, Icons.credit_card_off_outlined, 'Zahlung ausstehend'),
+                  'temporary' => (AppTheme.temporary, Icons.pause, 'Jacke temporär draußen'),
+                  'forgotten' => (AppTheme.forgotten, Icons.inventory_2_outlined, 'Jacke im Fundbüro'),
+                  'free' || 'picked_up' => (AppTheme.free, Icons.task_alt, 'Jacke bereits abgeholt'),
+                  'wrong_secret' => (AppTheme.secret, Icons.lock_person_outlined, 'Secret stimmt nicht'),
+                  _ => (AppTheme.active, Icons.verified_user_outlined, 'Jacke auf Platz aktiv'),
                 },
               },
             };
@@ -146,11 +146,11 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
             }
 
             return Scaffold(
-              backgroundColor: BrandColors.background,
+              backgroundColor: AppTheme.background,
               appBar: PreferredSize(
                 preferredSize: const Size.fromHeight(50),
                 child: AppBar(
-                  backgroundColor: BrandColors.header,
+                  backgroundColor: AppTheme.header,
                   elevation: 0,
                   automaticallyImplyLeading: false,
                   centerTitle: true,
@@ -159,7 +159,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
                     height: 28,
                     errorBuilder: (context, error, stackTrace) => const Text(
                       'CHECKET',
-                      style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: BrandColors.white, fontSize: 14),
+                      style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: AppTheme.white, fontSize: AppTheme.small),
                     ),
                   ),
                 ),
@@ -229,7 +229,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Fehler beim Erstellen des Passes: $e'),
-          backgroundColor: BrandColors.unpaid,
+          backgroundColor: AppTheme.unpaid,
         ),
       );
     }

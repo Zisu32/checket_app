@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:web/web.dart' as web;
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 
 class QrDisplay extends StatelessWidget {
   final int? ticketId;
@@ -36,7 +36,7 @@ class QrDisplay extends StatelessWidget {
           style: const TextStyle(
             fontSize: 42,
             fontWeight: FontWeight.w900,
-            color: BrandColors.white,
+            color: AppTheme.white,
             letterSpacing: 2,
           ),
         ),
@@ -45,7 +45,7 @@ class QrDisplay extends StatelessWidget {
           isRecovery ? 'BITTE BASIS-URL SCANNEN' : 'BITTE SCANNEN',
           style: const TextStyle(
             fontSize: 18,
-            color: BrandColors.free,
+            color: AppTheme.free,
             letterSpacing: 4,
           ),
         ),
@@ -53,7 +53,7 @@ class QrDisplay extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: BrandColors.white,
+            color: AppTheme.white,
             borderRadius: BorderRadius.circular(24),
           ),
           child: QrImageView(
@@ -69,7 +69,7 @@ class QrDisplay extends StatelessWidget {
             ? 'Dein Handy lädt dein Ticket automatisch aus dem Speicher.' 
             : 'Dein digitales Ticket für die Garderobe.',
           textAlign: TextAlign.center,
-          style: const TextStyle(color: BrandColors.free, fontSize: 16),
+          style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
         ),
       ],
     );

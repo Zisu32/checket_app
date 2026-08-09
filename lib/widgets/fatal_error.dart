@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../shared/theme/brand_colors.dart';
+import '../shared/theme/app_theme.dart';
 
 class FatalError extends StatelessWidget {
   final FlutterErrorDetails details;
@@ -14,7 +14,7 @@ class FatalError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BrandColors.background,
+      backgroundColor: AppTheme.background,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -22,20 +22,20 @@ class FatalError extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 48),
+                const Icon(Icons.error_outline, color: AppTheme.unpaid, size: 48),
                 const SizedBox(height: 20),
                 Text(
                   'Startfehler oder Absturz${titleSuffix != null ? ' ($titleSuffix)' : ''}:',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: BrandColors.white,
+                    fontSize: AppTheme.medium,
+                    color: AppTheme.white,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   '${details.exception}\n\n${details.stack}',
-                  style: const TextStyle(color: BrandColors.unpaid, fontSize: 12),
+                  style: const TextStyle(color: AppTheme.unpaid, fontSize: AppTheme.small),
                   textAlign: TextAlign.center,
                 ),
               ],

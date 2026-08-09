@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/services/sync_service.dart';
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   final SyncService syncService;
@@ -18,7 +18,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: BrandColors.header,
+      backgroundColor: AppTheme.header,
       elevation: 0,
       centerTitle: true,
       title: Row(
@@ -32,8 +32,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
-                color: BrandColors.white,
-                fontSize: 14,
+                color: AppTheme.white,
+                fontSize: AppTheme.small,
               ),
             ),
           ),
@@ -41,9 +41,9 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
           ValueListenableBuilder<SyncStatus>(
             valueListenable: syncService.statusNotifier,
             builder: (context, status, _) {
-              Color statusColor = BrandColors.active;
-              if (status == SyncStatus.syncing) statusColor = BrandColors.temporary;
-              if (status == SyncStatus.offline) statusColor = BrandColors.unpaid;
+              Color statusColor = AppTheme.active;
+              if (status == SyncStatus.syncing) statusColor = AppTheme.temporary;
+              if (status == SyncStatus.offline) statusColor = AppTheme.unpaid;
 
               return AnimatedBuilder(
                 animation: pulseAnimation,

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 import 'snaking_border_painter.dart';
 
 class TicketCard extends StatelessWidget {
@@ -42,7 +42,7 @@ class TicketCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: BrandColors.shadow.withValues(
+                      color: AppTheme.shadow.withValues(
                         alpha: 0.3 + (pulseAnimation.value * 0.3),
                       ),
                       blurRadius: 10 + (pulseAnimation.value * 10),
@@ -54,11 +54,11 @@ class TicketCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (isSearching)
-                      const CircularProgressIndicator(color: BrandColors.white)
+                      const CircularProgressIndicator(color: AppTheme.white)
                     else ...[
-                      Icon(statusIcon, color: BrandColors.white, size: isShortScreen ? 48 : 64),
+                      Icon(statusIcon, color: AppTheme.white, size: isShortScreen ? 48 : 64),
                       const SizedBox(height: 8),
-                      Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: BrandColors.white)),
+                      Text(statusText, textAlign: TextAlign.center, style: const TextStyle(fontSize: AppTheme.small, fontWeight: FontWeight.w500, color: AppTheme.white)),
                       const SizedBox(height: 12),
                       FittedBox(
                         fit: BoxFit.scaleDown,
@@ -67,7 +67,7 @@ class TicketCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: isShortScreen ? 80 : 110,
                             fontWeight: FontWeight.w900,
-                            color: BrandColors.white,
+                            color: AppTheme.white,
                             height: 1,
                           ),
                         ),

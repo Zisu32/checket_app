@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../shared/database/database.dart';
 import '../../shared/services/platform_hints_service.dart';
-import '../../shared/theme/brand_colors.dart';
+import '../../shared/theme/app_theme.dart';
 import 'branded_wallet_button.dart';
 
 class TicketInfoArea extends StatelessWidget {
@@ -69,8 +69,8 @@ class TicketInfoArea extends StatelessWidget {
             text,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: BrandColors.white,
-              fontSize: 14,
+              color: AppTheme.white,
+              fontSize: AppTheme.small,
               fontWeight: FontWeight.bold,
             ),
           ),
