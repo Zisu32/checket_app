@@ -49,23 +49,21 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (slot.status == 'active' || slot.status == 'temporary' || slot.status == 'forgotten') ...[
                 Center(
-                  child: ElevatedButton.icon(
+                  child: ElevatedButton(
                     onPressed: () {
                       widget.onSyncMonitor(-1, 'recovery');
                       Navigator.pop(context);
                     },
-                    icon: const Icon(Icons.qr_code_2, size: 20),
-                    label: const Text(
-                      'Ticket wiederherstellen',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.small),
-                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.active,
                       foregroundColor: AppTheme.white,
-                      minimumSize: const Size(280, 44),
+                      minimumSize: const Size(240, 50),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text(
+                      'Ticket wiederherstellen',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.small),
                     ),
                   ),
                 ),

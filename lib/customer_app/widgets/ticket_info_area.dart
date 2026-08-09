@@ -71,7 +71,6 @@ class TicketInfoArea extends StatelessWidget {
             style: const TextStyle(
               color: AppTheme.white,
               fontSize: AppTheme.small,
-              fontWeight: FontWeight.bold,
             ),
           ),
           if (extra != null && !iconAbove) ...[

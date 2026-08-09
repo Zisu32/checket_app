@@ -43,7 +43,7 @@ class TicketCard extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: AppTheme.shadow.withValues(
-                        alpha: 0.3 + (pulseAnimation.value * 0.3),
+                        alpha: 0.5 + (pulseAnimation.value * 0.5),
                       ),
                       blurRadius: 10 + (pulseAnimation.value * 10),
                       spreadRadius: pulseAnimation.value * 2,

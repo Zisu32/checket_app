@@ -26,17 +26,16 @@ class LostFoundTabView extends StatelessWidget {
               children: [
                 const Icon(Icons.inventory_2_outlined, color: AppTheme.white,
                     size: 28),
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: () => onSyncMonitor(-1, 'recovery'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.active,
                     foregroundColor: AppTheme.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    minimumSize: const Size(240, 50),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  icon: const Icon(Icons.qr_code_2, size: 18),
-                  label: const Text('Ticket wiederherstellen',
+                  child: const Text('Ticket wiederherstellen',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.small)),
                 ),
               ],
@@ -83,8 +82,11 @@ class LostFoundTabView extends StatelessWidget {
                           color: AppTheme.free, fontSize: AppTheme.small)),
                       trailing: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.active,
-                            foregroundColor: AppTheme.white),
+                          backgroundColor: AppTheme.active,
+                          foregroundColor: AppTheme.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4)),
+                        ),
                         onPressed: () => syncService.handOverLostItem(item),
                         child: const Text('Aushändigen',
                             style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.small)),
