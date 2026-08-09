@@ -71,6 +71,18 @@ class SessionEndTabView extends StatelessWidget {
                     child: const Text('Ja, Schicht beenden', style: TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: onComplete,
+                    child: const Text(
+                      'Abbrechen',
+                      style: TextStyle(
+                        color: BrandColors.free,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
