@@ -77,7 +77,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
               if (slot.status == 'free')
                 ListTile(
                   leading: const Icon(Icons.add_box, color: BrandColors.active),
-                  title: const Text('Jacke einchecken', style: TextStyle(color: BrandColors.white)),
+                  title: const Text('Jacke einchecken', style: TextStyle(fontSize: 16, color: BrandColors.white)),
                   onTap: () async {
                     final secret = widget.onGenerateSecret();
                     final updated = slot.copyWith(
@@ -95,7 +95,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
               if (slot.status == 'unpaid') ...[
                 ListTile(
                   leading: const Icon(Icons.contactless_outlined, color: BrandColors.active),
-                  title: const Text('Kontaktloses bezahlen', style: TextStyle(color: BrandColors.white)),
+                  title: const Text('Kontaktloses bezahlen', style: TextStyle(fontSize: 16, color: BrandColors.white)),
                   onTap: () async {
                     final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'nfc', updatedAt: DateTime.now());
                     await widget.syncService.updateSlot(updated);
@@ -104,7 +104,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.euro, color: BrandColors.secret),
-                  title: const Text('Bar bezahlen', style: TextStyle(color: BrandColors.white)),
+                  title: const Text('Bar bezahlen', style: TextStyle(fontSize: 16, color: BrandColors.white)),
                   onTap: () async {
                     final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'bar', updatedAt: DateTime.now());
                     await widget.syncService.updateSlot(updated);
@@ -116,7 +116,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                 if (slot.status == 'active')
                   ListTile(
                     leading: const Icon(Icons.pause, color: BrandColors.temporary),
-                    title: const Text('Temporärer Ausgang', style: TextStyle(color: BrandColors.white)),
+                    title: const Text('Temporärer Ausgang', style: TextStyle(fontSize: 16, color: BrandColors.white)),
                     onTap: () async {
                       final updated = slot.copyWith(status: 'temporary', updatedAt: DateTime.now());
                       await widget.syncService.updateSlot(updated);
@@ -126,7 +126,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                 else
                   ListTile(
                     leading: const Icon(Icons.play_arrow, color: BrandColors.active),
-                    title: const Text('Wieder zurück', style: TextStyle(color: BrandColors.white)),
+                    title: const Text('Wieder zurück', style: TextStyle(fontSize: 16, color: BrandColors.white)),
                     onTap: () async {
                       final updated = slot.copyWith(status: 'active', updatedAt: DateTime.now());
                       await widget.syncService.updateSlot(updated);
@@ -135,7 +135,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                   ),
                 ListTile(
                   leading: const Icon(Icons.logout, color: BrandColors.free),
-                  title: const Text('Endgültig auschecken', style: TextStyle(color: BrandColors.white)),
+                  title: const Text('Endgültig auschecken', style: TextStyle(fontSize: 16, color: BrandColors.white)),
                   onTap: () async {
                     final updated = slot.copyWith(
                       status: 'free',

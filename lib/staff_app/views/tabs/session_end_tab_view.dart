@@ -44,7 +44,7 @@ class SessionEndTabView extends StatelessWidget {
                 children: [
                   const Text(
                     'Schicht beenden?',
-                    style: TextStyle(fontSize: 24,
+                    style: TextStyle(fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: BrandColors.white),
                   ),

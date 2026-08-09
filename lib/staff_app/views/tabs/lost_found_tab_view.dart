@@ -50,8 +50,8 @@ class LostFoundTabView extends StatelessWidget {
             builder: (context, snapshot) {
               final items = snapshot.data ?? [];
               if (items.isEmpty) return const Center(child: Text(
-                  'Keine Gegenstände im Fundbüro.',
-                  style: TextStyle(color: BrandColors.white)));
+                  'Keine Gegenstände im Fundbüro',
+                  style: TextStyle(fontSize: 16, color: BrandColors.white)));
 
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(

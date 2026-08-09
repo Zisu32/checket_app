@@ -88,7 +88,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
         backgroundColor: BrandColors.background,
         title: Row(
           children: [
-            const Icon(Icons.loop, color: BrandColors.white, size: 24),
+            const Icon(Icons.loop, color: BrandColors.white, size: 22),
             const SizedBox(width: 12),
             Expanded(
               child: FittedBox(
@@ -104,7 +104,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
         ),
         content: const Text(
           'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
-          style: TextStyle(color: BrandColors.white),
+          style: TextStyle(fontSize: 16, color: BrandColors.white),
         ),
         actions: [
           ElevatedButton(
@@ -186,7 +186,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
           onComplete: () => setState(() => _selectedNavIndex = 1),
         );
       default:
-        return const Center(child: Text('Seite nicht gefunden', style: TextStyle(color: BrandColors.white)));
+        return const Center(child: Text('Seite nicht gefunden', style: TextStyle(fontSize: 16, color: BrandColors.white)));
     }
   }
 
