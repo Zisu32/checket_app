@@ -23,4 +23,36 @@ class AppTheme {
   static const double small = 16.0;
   static const double medium = 25.0;
   static const double large = 32.0;
+
+  // Generic Button Builders
+  static Widget buildPrimaryButton({
+    required String text,
+    required Color color,
+    required VoidCallback onTap,
+    double? width = 230,
+    double height = 45,
+  }) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        onPressed: onTap,
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: small,
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -26,17 +26,10 @@ class LostFoundTabView extends StatelessWidget {
               children: [
                 const Icon(Icons.inventory_2_outlined, color: AppTheme.white,
                     size: 28),
-                ElevatedButton(
-                  onPressed: () => onSyncMonitor(-1, 'recovery'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.active,
-                    foregroundColor: AppTheme.white,
-                    minimumSize: const Size(240, 50),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('Ticket wiederherstellen',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.small)),
+                AppTheme.buildPrimaryButton(
+                  text: 'Ticket wiederherstellen',
+                  color: AppTheme.active,
+                  onTap: () => onSyncMonitor(-1, 'recovery'),
                 ),
               ],
             ),
@@ -82,16 +75,12 @@ class LostFoundTabView extends StatelessWidget {
                       subtitle: Text(
                           '$tag.$monat.$jahr', style: const TextStyle(
                           color: AppTheme.free, fontSize: AppTheme.small)),
-                      trailing: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.active,
-                          foregroundColor: AppTheme.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4)),
-                        ),
-                        onPressed: () => syncService.handOverLostItem(item),
-                        child: const Text('Aushändigen',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.small)),
+                      trailing: AppTheme.buildPrimaryButton(
+                        text: 'Aushändigen',
+                        color: AppTheme.active,
+                        onTap: () => syncService.handOverLostItem(item),
+                        width: null, 
+                        height: 40,
                       ),
                     ),
                   );

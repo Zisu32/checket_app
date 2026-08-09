@@ -51,21 +51,13 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
               const SizedBox(height: 16),
               if (slot.status == 'active' || slot.status == 'temporary' || slot.status == 'forgotten') ...[
                 Center(
-                  child: ElevatedButton(
-                    onPressed: () {
+                  child: AppTheme.buildPrimaryButton(
+                    text: 'Ticket wiederherstellen',
+                    color: AppTheme.active,
+                    onTap: () {
                       widget.onSyncMonitor(-1, 'recovery');
                       Navigator.pop(context);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.active,
-                      foregroundColor: AppTheme.white,
-                      minimumSize: const Size(240, 50),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text(
-                      'Ticket wiederherstellen',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.small),
-                    ),
                   ),
                 ),
                 const SizedBox(height: 8),

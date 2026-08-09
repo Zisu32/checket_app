@@ -107,14 +107,12 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
           'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
           style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white),
         ),
+        actionsAlignment: MainAxisAlignment.center,
         actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.active,
-              foregroundColor: AppTheme.white,
-            ),
-            child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold)),
+          AppTheme.buildPrimaryButton(
+            text: 'Okay',
+            color: AppTheme.active,
+            onTap: () => Navigator.pop(dialogContext),
           ),
         ],
       ),

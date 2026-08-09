@@ -56,20 +56,13 @@ class SessionEndTabView extends StatelessWidget {
                         color: AppTheme.white, fontSize: AppTheme.small),
                   ),
                   const SizedBox(height: 40),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.unpaid,
-                      foregroundColor: AppTheme.white,
-                      minimumSize: const Size(240, 50),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    onPressed: () async {
+                  AppTheme.buildPrimaryButton(
+                    text: 'Ja, Schicht beenden',
+                    color: AppTheme.unpaid,
+                    onTap: () async {
                       await syncService.archiveAndResetShift();
                       onComplete();
                     },
-                    child: const Text('Ja, Schicht beenden', style: TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: AppTheme.small)),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
@@ -79,7 +72,6 @@ class SessionEndTabView extends StatelessWidget {
                       style: TextStyle(
                         color: AppTheme.free,
                         fontSize: AppTheme.small,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
