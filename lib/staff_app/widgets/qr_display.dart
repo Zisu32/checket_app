@@ -3,11 +3,11 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/theme/brand_colors.dart';
 
-class QrViewer extends StatelessWidget {
+class QrDisplay extends StatelessWidget {
   final int? ticketId;
   final String? secret;
 
-  const QrViewer({
+  const QrDisplay({
     super.key,
     required this.ticketId,
     required this.secret,

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../../shared/database/database.dart';
 import '../../shared/theme/brand_colors.dart';
 
-class StaffNavbar extends StatelessWidget {
+class Navbar extends StatelessWidget {
   final int selectedIndex;
   final List<WardrobeSlot> allSlots;
   final Function(int) onTabSelected;
   final VoidCallback onLockedTabClick;
 
-  const StaffNavbar({
+  const Navbar({
     super.key,
     required this.selectedIndex,
     required this.allSlots,

@@ -4,37 +4,16 @@ import 'staff_app/views/staff_view.dart';
 import 'staff_app/views/qr_display_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';
-import 'shared/theme/brand_colors.dart';
+import 'widgets/splash.dart';
+import 'widgets/error.dart';
+import 'widgets/fatal_error.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Global Error Catcher for Debugging
   ErrorWidget.builder = (FlutterErrorDetails details) {
-    return Scaffold(
-      backgroundColor: BrandColors.background,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 48),
-                const SizedBox(height: 20),
-                const Text('Startfehler oder Absturz (Staff):', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
-                const SizedBox(height: 12),
-                Text(
-                  '${details.exception}\n\n${details.stack}',
-                  style: const TextStyle(color: BrandColors.unpaid, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+    return FatalError(details: details, titleSuffix: 'Staff');
   };
 
   runApp(const ChecketStaffApp());
@@ -79,10 +58,13 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
           future: _initFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              return _buildSplash();
+              return const Splash();
             }
             if (snapshot.hasError) {
-              return _buildError(snapshot.error.toString());
+              return Error(
+                error: snapshot.error.toString(),
+                onRetry: () => setState(() { _initFuture = _initialize(); }),
+              );
             }
             return child ?? const SizedBox.shrink();
           },
@@ -102,49 +84,6 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
         
         return MaterialPageRoute(builder: (_) => const StaffView());
       },
-    );
-  }
-
-  Widget _buildSplash() {
-    return Scaffold(
-      backgroundColor: BrandColors.background,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/images/full-icon.png', height: 60, errorBuilder: (_, __, ___) =>
-            const Text('CHECKET', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: BrandColors.white))),
-            const SizedBox(height: 40),
-            const CircularProgressIndicator(color: BrandColors.active),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildError(String error) {
-    return Scaffold(
-      backgroundColor: BrandColors.background,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, color: BrandColors.unpaid, size: 64),
-              const SizedBox(height: 24),
-              const Text('Initialisierungsfehler', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              Text(error, textAlign: TextAlign.center, style: const TextStyle(color: BrandColors.free, fontSize: 13)),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () => setState(() { _initFuture = _initialize(); }),
-                child: const Text('Erneut versuchen'),
-              )
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

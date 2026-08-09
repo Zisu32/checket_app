@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/theme/brand_colors.dart';
 import '../../shared/services/monitor_service.dart';
-import '../widgets/qr_viewer.dart';
+import '../widgets/qr_display.dart';
 
 class QrDisplayView extends StatefulWidget {
   final int? ticketId;
@@ -83,7 +83,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20),
-            child: QrViewer(ticketId: _currentId, secret: _currentSecret),
+            child: QrDisplay(ticketId: _currentId, secret: _currentSecret),
           ),
         ),
       ),

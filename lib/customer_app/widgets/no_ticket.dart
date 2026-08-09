@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../shared/theme/brand_colors.dart';
 
-class NoTicketView extends StatelessWidget {
-  const NoTicketView({super.key});
+class NoTicket extends StatelessWidget {
+  const NoTicket({super.key});
 
   @override
   Widget build(BuildContext context) {

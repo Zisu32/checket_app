@@ -8,7 +8,7 @@ import '../../shared/services/platform_hints_service.dart';
 import '../../shared/theme/brand_colors.dart';
 import '../widgets/ticket_card.dart';
 import '../widgets/ticket_info_area.dart';
-import '../widgets/no_ticket_view.dart';
+import '../widgets/no_ticket.dart';
 
 class CustomerView extends StatefulWidget {
   final int? ticketId;
@@ -101,7 +101,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
     final isShortScreen = screenHeight < 700;
 
     if (_activeId == null || _activeSecret == null) {
-      return const NoTicketView();
+      return const NoTicket();
     }
 
     return ValueListenableBuilder<String?>(
