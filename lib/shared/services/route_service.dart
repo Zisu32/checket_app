@@ -40,11 +40,16 @@ class RouteService {
   }
 
   ({int? id, String? secret}) parseStaffParams(String? routeName) {
-    if (routeName == null || !routeName.contains('/qr')) {
+    if (routeName == null) return (id: null, secret: null);
+
+    // Standardize route name to ensure it starts with / and contains qr
+    final path = routeName.startsWith('/') ? routeName : '/$routeName';
+    if (!path.contains('/qr')) {
       return (id: null, secret: null);
     }
 
-    final uri = Uri.parse(routeName.startsWith('/') ? routeName : '/$routeName');
+    // Extract query parameters from the path (e.g., /qr?id=12&secret=ABC)
+    final uri = Uri.parse(path);
     final idStr = uri.queryParameters['id'] ?? '';
     final secret = uri.queryParameters['secret'];
 

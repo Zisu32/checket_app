@@ -77,7 +77,8 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
     MonitorService().updateMonitor(id, secret);
     final origin = web.window.location.origin;
     final path = web.window.location.pathname;
-    final qrUrl = '$origin$path#/qr';
+    // Re-add query parameters so the tab can initialize correctly or handle a refresh
+    final qrUrl = '$origin$path#/qr?id=$id&secret=$secret';
     web.window.open(qrUrl, 'checket_monitor');
   }
 
