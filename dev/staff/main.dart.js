@@ -44372,7 +44372,7 @@ $1(a){return"ABCDEFGHJKLMNPQRSTUVWXYZ0123456789".charCodeAt(this.a.qE(34))},
 $S:41}
 A.asL.prototype={
 $1(a){var s=t.E
-return new A.rO(A.C0(A.c([B.EE,B.yO,A.a30(new A.Ks(B.ls,B.A5,B.Vj,null))],s),B.X,B.as,B.aB),B.Vp,A.c([A.Ie(B.b7,45,new A.asK(a),"Okay",230)],s),B.bx,B.bN,null)},
+return new A.rO(A.C0(A.c([B.EE,B.yO,A.a30(new A.Ks(B.ls,B.A5,B.Vj,null))],s),B.X,B.as,B.aB),B.Vp,A.c([A.Ie(B.b7,40,new A.asK(a),"Okay",220)],s),B.bx,B.bN,null)},
 $S:458}
 A.asK.prototype={
 $0(){A.fX(this.a,!1).k5(null)
@@ -44457,7 +44457,7 @@ $0(){return this.a.f.$1(this.b)},
 $S:0}
 A.LR.prototype={
 K(a){var s=t.E
-return A.im(A.c([A.CD(new A.d3(B.mT,A.C0(A.c([B.EC,A.Ie(B.b7,45,new A.a7a(this),"Ticket wiederherstellen",230)],s),B.X,B.jN,B.aB),null),80,null),B.mH,A.a30(A.ayB(new A.a7b(this),this.c.aqw(),t.wp))],s),B.X,B.as,B.aB)}}
+return A.im(A.c([A.CD(new A.d3(B.mT,A.C0(A.c([B.EC,A.Ie(B.b7,40,new A.a7a(this),"Ticket wiederherstellen",220)],s),B.X,B.jN,B.aB),null),80,null),B.mH,A.a30(A.ayB(new A.a7b(this),this.c.aqw(),t.wp))],s),B.X,B.as,B.aB)}}
 A.a7a.prototype={
 $0(){return this.a.d.$2(-1,"recovery")},
 $S:0}
@@ -44478,7 +44478,7 @@ $0(){return this.a.c.ql(this.b)},
 $S:0}
 A.OH.prototype={
 K(a){var s=null,r=J.xj(this.c,new A.ah7()).gu(0),q=t.E
-return A.im(A.c([A.CD(new A.d3(B.mT,A.C0(B.K4,B.X,B.as,B.aB),s),80,s),B.mH,A.a30(A.hN(new A.d3(B.DK,A.im(A.c([B.Vy,B.yP,A.i3("Sollen "+r+" aktive Jacken ins FUNDB\xdcRO verschoben und die Garderobe geschlossen werden?",B.b_,B.bD),B.hm,A.Ie(B.cL,45,new A.ah8(this),"Ja, Schicht beenden",230),B.kC,A.aEK(B.Vt,this.e)],q),B.X,B.as,B.cP),s),s,s))],q),B.X,B.as,B.aB)}}
+return A.im(A.c([A.CD(new A.d3(B.mT,A.C0(B.K4,B.X,B.as,B.aB),s),80,s),B.mH,A.a30(A.hN(new A.d3(B.DK,A.im(A.c([B.Vy,B.yP,A.i3("Sollen "+r+" aktive Jacken ins FUNDB\xdcRO verschoben und die Garderobe geschlossen werden?",B.b_,B.bD),B.hm,A.Ie(B.cL,40,new A.ah8(this),"Ja, Schicht beenden",220),B.kC,A.aEK(B.Vt,this.e)],q),B.X,B.as,B.cP),s),s,s))],q),B.X,B.as,B.aB)}}
 A.ah7.prototype={
 $1(a){return a.b==="active"},
 $S:91}
@@ -44565,7 +44565,7 @@ o=A.c([A.i3("B\xfcgel "+r.a,B.hr,k),B.yP],p)
 n=r.b
 m=n==="active"
 l=!m
-if(!l||n==="temporary"||n==="forgotten")B.b.J(o,A.c([A.hN(A.Ie(B.b7,45,new A.atQ(s,a),"Ticket wiederherstellen",230),k,k),B.kD],p))
+if(!l||n==="temporary"||n==="forgotten")B.b.J(o,A.c([A.hN(A.Ie(B.b7,40,new A.atQ(s,a),"Ticket wiederherstellen",220),k,k),B.kD],p))
 o.push(B.R5)
 o.push(B.Dl)
 o.push(B.kD)
@@ -45039,7 +45039,7 @@ var $async$fn=A.u(function(b,c){if(b===1)return A.p(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.r3(new A.mr(1786285612,p.b),t.hU).aL(new A.ari(),t.y):o
+q=o==null?p.d=n.a.r3(new A.mr(1786286111,p.b),t.hU).aL(new A.ari(),t.y):o
 s=1
 break
 case 1:return A.q(q,r)}})
@@ -46049,7 +46049,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.aaE?2:4
 break
-case 2:p=1786285612
+case 2:p=1786286111
 s=3
 break
 case 4:s=n instanceof A.Gs?5:7
@@ -46062,10 +46062,10 @@ break
 case 7:throw A.e(A.cL("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.l(a.TA(new A.QZ(q,new A.pA()),new A.AS(p,1786285612)),$async$pq)
-case 9:s=n instanceof A.Gs&&p!==1786285612?10:11
+return A.l(a.TA(new A.QZ(q,new A.pA()),new A.AS(p,1786286111)),$async$pq)
+case 9:s=n instanceof A.Gs&&p!==1786286111?10:11
 break
-case 10:n.a.V9("PRAGMA user_version = 1786285612;")
+case 10:n.a.V9("PRAGMA user_version = 1786286111;")
 s=12
 return A.l(A.cG(null,t.H),$async$pq)
 case 12:case 11:return A.q(null,r)}})
