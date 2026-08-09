@@ -48,9 +48,11 @@ class LostFoundTabView extends StatelessWidget {
             stream: syncService.watchLostItems(),
             builder: (context, snapshot) {
               final items = snapshot.data ?? [];
-              if (items.isEmpty) return const Center(child: Text(
+              if (items.isEmpty) {
+                return const Center(child: Text(
                   'Keine Gegenstände im Fundbüro',
                   style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)));
+              }
 
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(

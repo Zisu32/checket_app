@@ -5,12 +5,14 @@ class PageIndicator extends StatelessWidget {
   final int totalSlots;
   final int itemsPerPage;
   final int currentPage;
+  final Function(int) onPageSelected;
 
   const PageIndicator({
     super.key,
     required this.totalSlots,
     required this.itemsPerPage,
     required this.currentPage,
+    required this.onPageSelected,
   });
 
   @override
@@ -23,13 +25,22 @@ class PageIndicator extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(totalPages, (index) {
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: currentPage == index ? AppTheme.white : AppTheme.free,
+          return MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => onPageSelected(index),
+              behavior: HitTestBehavior.opaque,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: currentPage == index ? AppTheme.white : AppTheme.free,
+                  ),
+                ),
+              ),
             ),
           );
         }),

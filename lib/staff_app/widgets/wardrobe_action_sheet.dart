@@ -49,6 +49,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                 ),
               ),
               const SizedBox(height: 16),
+              if (slot.status == 'active' || slot.status == 'temporary' || slot.status == 'forgotten') ...[
                 Center(
                   child: ElevatedButton(
                     onPressed: () {

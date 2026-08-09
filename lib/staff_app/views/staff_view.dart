@@ -151,6 +151,13 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                   totalSlots: allSlots.length,
                   itemsPerPage: _itemsPerPage,
                   currentPage: _currentPage,
+                  onPageSelected: (page) {
+                    _pageController.animateToPage(
+                      page,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
                 ),
             ],
           ),
