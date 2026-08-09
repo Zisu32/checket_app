@@ -39,16 +39,20 @@ class RouteService {
     );
   }
 
-  ({int? id, String? secret}) parseStaffParams(String? routeName) {
-    if (routeName == null) return (id: null, secret: null);
+  /// Parse monitor parameters from a Flutter route name.
+  /// Returns a record with optional params and a flag if the route is valid.
+  ({int? id, String? secret, bool isQrRoute}) parseStaffParams(String? routeName) {
+    if (routeName == null) return (id: null, secret: null, isQrRoute: false);
 
     // Standardize route name to ensure it starts with / and contains qr
     final path = routeName.startsWith('/') ? routeName : '/$routeName';
-    if (!path.contains('/qr')) {
-      return (id: null, secret: null);
+    final isQr = path.contains('/qr');
+
+    if (!isQr) {
+      return (id: null, secret: null, isQrRoute: false);
     }
 
-    // Extract query parameters from the path (e.g., /qr?id=12&secret=ABC)
+    // Extract query parameters if present (for backward compatibility or direct links)
     final uri = Uri.parse(path);
     final idStr = uri.queryParameters['id'] ?? '';
     final secret = uri.queryParameters['secret'];
@@ -56,6 +60,7 @@ class RouteService {
     return (
       id: int.tryParse(idStr),
       secret: secret,
+      isQrRoute: true,
     );
   }
 }

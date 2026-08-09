@@ -73,7 +73,7 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
       onGenerateRoute: (settings) {
         final params = RouteService().parseStaffParams(settings.name);
 
-        if (params.id != null) {
+        if (params.isQrRoute) {
           return MaterialPageRoute(
             builder: (_) => QrDisplayView(
               ticketId: params.id, 
