@@ -17,17 +17,21 @@ class SessionEndTabView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeJacketsCount = allSlots.where((s) => s.status == 'active').length;
-    
+    final activeJacketsCount = allSlots
+        .where((s) => s.status == 'active')
+        .length;
+
     return Column(
       children: [
-        const Padding(
-          padding: EdgeInsets.all(24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(Icons.loop, color: BrandColors.white, size: 28),
-            ],
+        SizedBox(
+          height: 64,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              children: const [
+                Icon(Icons.loop, color: BrandColors.white, size: 28),
+              ],
+            ),
           ),
         ),
         const Divider(height: 1, color: BrandColors.surface),
@@ -40,13 +44,16 @@ class SessionEndTabView extends StatelessWidget {
                 children: [
                   const Text(
                     'Schicht beenden?',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: BrandColors.white),
+                    style: TextStyle(fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: BrandColors.white),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Sollen $activeJacketsCount aktive Jacken ins FUNDBÜRO verschoben und die Garderobe geschlossen werden?',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: BrandColors.white, fontSize: 16),
+                    style: const TextStyle(
+                        color: BrandColors.white, fontSize: 16),
                   ),
                   const SizedBox(height: 40),
                   ElevatedButton(
@@ -54,13 +61,15 @@ class SessionEndTabView extends StatelessWidget {
                       backgroundColor: BrandColors.unpaid,
                       foregroundColor: BrandColors.white,
                       minimumSize: const Size(240, 50),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () async {
                       await syncService.archiveAndResetShift();
                       onComplete();
                     },
-                    child: const Text('Ja, Schicht beenden', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    child: const Text('Ja, Schicht beenden', style: TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
                 ],
               ),

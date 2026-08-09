@@ -90,12 +90,21 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
           children: [
             const Icon(Icons.loop, color: BrandColors.white, size: 24),
             const SizedBox(width: 12),
-            const Text('Schichtende\nnicht möglich', style: TextStyle(color: BrandColors.white)),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Schichtende nicht möglich',
+                  style: TextStyle(color: BrandColors.white),
+                ),
+              ),
+            ),
           ],
         ),
         content: const Text(
           'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
-          style: TextStyle(color: BrandColors.white)
+          style: TextStyle(color: BrandColors.white),
         ),
         actions: [
           ElevatedButton(
@@ -104,7 +113,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
               backgroundColor: BrandColors.active,
               foregroundColor: BrandColors.white,
             ),
-            child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold))
+            child: const Text('Okay', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
