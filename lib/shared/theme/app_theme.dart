@@ -29,8 +29,8 @@ class AppTheme {
     required String text,
     required Color color,
     required VoidCallback onTap,
-    double? width = 230,
-    double height = 45,
+    double? width = 220,
+    double height = 40,
   }) {
     return SizedBox(
       width: width,
