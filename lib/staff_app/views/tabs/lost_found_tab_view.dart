@@ -43,7 +43,7 @@ class LostFoundTabView extends StatelessWidget {
             ),
           ),
         ),
-        const Divider(height: 1, indent: 25, endIndent: 25, color: BrandColors.surface),
+        const Divider(height: 1, indent: 20, endIndent: 20, color: BrandColors.surface),
         Expanded(
           child: StreamBuilder<List<LostItem>>(
             stream: syncService.watchLostItems(),
