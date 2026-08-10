@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../shared/services/sync_service.dart';
 import '../../shared/theme/app_theme.dart';
 
@@ -24,10 +25,10 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset(
-            'assets/images/full-icon.png',
+          SvgPicture.asset(
+            'assets/images/full-icon.svg',
             height: 28,
-            errorBuilder: (_, __, ___) => const Text(
+            placeholderBuilder: (_) => const Text(
               'CHECKET',
               style: TextStyle(
                 fontWeight: FontWeight.bold,

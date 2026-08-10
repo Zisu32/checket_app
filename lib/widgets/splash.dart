@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../shared/theme/app_theme.dart';
 
 class Splash extends StatelessWidget {
@@ -12,10 +13,10 @@ class Splash extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/full-icon.png',
+            SvgPicture.asset(
+              'assets/images/full-icon.svg',
               height: 60,
-              errorBuilder: (_, __, ___) => const Text(
+              placeholderBuilder: (_) => const Text(
                 'CHECKET',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,

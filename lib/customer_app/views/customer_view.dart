@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
@@ -154,12 +155,17 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
                   elevation: 0,
                   automaticallyImplyLeading: false,
                   centerTitle: true,
-                  title: Image.asset(
-                    'assets/images/full-icon.png',
+                  title: SvgPicture.asset(
+                    'assets/images/full-icon.svg',
                     height: 28,
-                    errorBuilder: (context, error, stackTrace) => const Text(
+                    placeholderBuilder: (_) => const Text(
                       'CHECKET',
-                      style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1, color: AppTheme.white, fontSize: AppTheme.small),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                        color: AppTheme.white,
+                        fontSize: AppTheme.small,
+                      ),
                     ),
                   ),
                 ),

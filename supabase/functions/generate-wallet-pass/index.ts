@@ -48,7 +48,7 @@ serve(async (req) => {
         genericType: "GENERIC_TYPE_UNSPECIFIED",
         hexBackgroundColor: "#11171C", // Your Header color
         logo: {
-          sourceUri: { uri: "https://zisu32.github.io/checket_app/assets/images/full-icon.png" },
+          sourceUri: { uri: "https://zisu32.github.io/checket_app/assets/images/full-icon.svg" },
         },
         cardTitle: {
           defaultValue: { language: "de", value: "CHECKET Garderobe" },
@@ -64,7 +64,7 @@ serve(async (req) => {
           value: `https://zisu32.github.io/checket_app/#/ticket?id=${ticketId}&secret=${secret}`,
         },
         heroImage: {
-          sourceUri: { uri: "https://zisu32.github.io/checket_app/assets/images/full-icon.png" }
+          sourceUri: { uri: "https://zisu32.github.io/checket_app/assets/images/full-icon.svg" }
         }
       }
 

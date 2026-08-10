@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../shared/theme/app_theme.dart';
 
 class NoTicket extends StatelessWidget {
@@ -14,10 +15,18 @@ class NoTicket extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/full-icon.png',
-                  height: 60,
-                  errorBuilder: (context, error, stackTrace) => const Text('CHECKET',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppTheme.medium, color: AppTheme.white))),
+              SvgPicture.asset(
+                'assets/images/full-icon.svg',
+                height: 50,
+                placeholderBuilder: (_) => const Text(
+                  'CHECKET',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: AppTheme.medium,
+                    color: AppTheme.white,
+                  ),
+                ),
+              ),
               const SizedBox(height: 40),
               const Icon(Icons.search_off, color: AppTheme.free, size: 64),
               const SizedBox(height: 24),

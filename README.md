@@ -8,8 +8,9 @@ Checket ist ein digitales Garderoben-Management-System, das physische Garderoben
 * **Zwei-Tab-System**: Ein separater Kunden-Tab ("Checket QR"), der live über `BroadcastChannel` aktualisiert wird. Die URL bleibt dabei sauber (`#/qr`) und verbirgt sensible Ticket-Daten.
 * **Digitales Kunden-Ticket**: Web-Ansicht für Gäste mit Live-Status (animiert) und optionaler Wallet-Integration (Apple/Google).
 * **Intelligentes Fundbüro**: Automatisierte Archivierung von Jacken am Schichtende mit einfacher Aushändigungs-Logik.
-* **Local-First Sync**: Volle Offline-Fähigkeit dStealth Monitor (urch lokalen Drift-Cache; automatischer Hintergrund-Abgleich mit Supabase Realtime.
-* **Sicherheits-Check**: Integrierte Sperre am Schichtende, falls noch unbezahlte Posten im System sind.
+* **Local-First Sync**: Volle Offline-Fähigkeit (Durch lokalen Drift-Cache; automatischer Hintergrund-Abgleich mit Supabase Realtime.
+* **Sicherheits-Check**: Integrierte Sperre am Schichtende, falls noch unbezahlte Jacken im System sind.
+* **Zur Wallet-Hinzufügen**: Webticket kann zur Wallet hinzugefügt werden, sodass eine Push-Benachrichtigung gesendet werden kann, falls der Kunde die Jacke vergisst.
 
 ---
 
@@ -37,20 +38,6 @@ Obwohl es zwei getrennte Anwendungen sind, bilden sie ein geschlossenes System:
 3.  **Einheitliches Design**: Durch die zentrale `AppTheme` Klasse und die geteilten `widgets/` (Splash, Error-Screens) fühlen sich beide Anwendungen für den Nutzer wie eine einzige, konsistente Marke an.
 4.  **Integriertes Deployment**: GitHub Actions baut beide Apps in einem Durchgang. Die Kunden-App landet im Hauptverzeichnis (`/`), während die Mitarbeiter-App unter `/staff/` abgelegt wird.
 
----
-
-## Architektur & Design-System
-### Theme & Design System (`lib/shared/theme/`)
-Das gesamte Erscheinungsbild wird zentral über die **`AppTheme`** Klasse gesteuert. Dies stellt sicher, dass Farben und Proportionen in allen App-Teilen konsistent bleiben.
-
-* **Farbschema**: Dunkles "Checket-Deep-Blue" mit Status-Farben (Grün für Aktiv, Rot für Unbezahlt, Orange für Temporär, Blau für Fundbüro).
-* **Typografie-System**:
-    * **`xsmall` (11.0)**: Optimiert für Beschriftungen in der Navigationsleiste.
-    * **`small` (16.0)**: Die Standardgröße für alle Fließtexte, Listen und Schaltflächen.
-    * **`medium` (25.0)**: Für alle Hauptüberschriften und Seitentitel.
-* **Zentraler UI-Builder**:
-    * **`buildPrimaryButton()`**: Eine statische Methode, die einheitliche Aktions-Buttons (50px Höhe, 12px Rundung) für das gesamte Projekt erzeugt.
-
 ### Verzeichnisstruktur (Inside `lib/`)
 
 #### `shared/` (Zentrales Fundament)
@@ -66,7 +53,7 @@ Infrastruktur-Widgets, die beide Apps beim Booten teilen (Splash-Screen, Fehlerb
 *   **`views/tabs/`**: Die Module der Navbar (Dashboard, Fundbüro, Schichtende).
 *   **`widgets/`**: Spezifische Bedienelemente wie das Aktionsmenü für Bügel oder die Navigationsleiste.
 
-#### `customer_app/` (Gäste-Portal)
+#### `customer_app/` (Webticket)
 *   **`views/`**: Die Ticket-Hauptansicht.
 *   **`widgets/`**: Ticket-spezifische UI-Komponenten (Animierte Kachel, Wallet-Integration).
 
@@ -103,10 +90,10 @@ flutter run -d chrome -t lib/main_customer.dart \
 ```
 
 ### Deployment (Automatisch)
-Das Deployment erfolgt über GitHub Actions (`deploy.yml`) bei jedem Push auf `main` oder `dev`. Die App wird automatisch für GitHub Pages optimiert gebaut und unter der passenden Base-HREF veröffentlicht.
+Das Deployment erfolgt über GitHub Actions (`deploy.yml`) bei jedem Push auf `dev` oder Pull-Request auf `main`. Die App wird automatisch für GitHub Pages optimiert gebaut und unter der passenden Base-HREF veröffentlicht.
 
 ---
 
 ## Live Umgebungen (GitHub Pages)
-* **Produktion:** `https://zisu32.github.io/checket_app/`
-* **Entwicklung:** `https://zisu32.github.io/checket_app/dev/`
+* **Produktion:** `https://<github-user>.github.io/checket_app/`
+* **Entwicklung:** `https://<github-user>..github.io/checket_app/dev/`
