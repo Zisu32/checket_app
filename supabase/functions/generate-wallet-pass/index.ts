@@ -79,7 +79,7 @@ serve(async (req) => {
         },
       }
 
-      // 5. Sign JWT with RS256
+      // 5. Sign JWT
       const key = await jose.importPKCS8(PRIVATE_KEY, "RS256")
       const jwt = await new jose.SignJWT(claims)
         .setProtectedHeader({ alg: "RS256" })
