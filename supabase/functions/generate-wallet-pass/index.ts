@@ -41,7 +41,7 @@ serve(async (req) => {
         throw new Error('Google Wallet Konfiguration fehlt in den Supabase Secrets.')
       }
 
-      // 3. Define the Pass Object (Generic Object)
+      // 3. Define the Pass Object
       const genericObject = {
         id: `${ISSUER_ID}.checket_${ticketId}_${Date.now()}`,
         classId: `${ISSUER_ID}.checket_ticket_v1`,

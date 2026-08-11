@@ -24,7 +24,7 @@ serve(async (req) => {
       )
     }
 
-    // 2. Trigger Reader Checkout (Solo Terminal) using Static API Key
+    // 2. Trigger Solo Terminal Checkout using Static API Key
     try {
       const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/checkouts`, {
         method: 'POST',

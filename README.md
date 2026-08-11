@@ -117,8 +117,10 @@ flutter run -d chrome -t lib/main_customer.dart \
 
 ### Automatisches Deployment (Edge Functions)
 Dank der nativen **Supabase-GitHub-Integration** werden deine Edge Functions (`sumup-terminal-pay`, `generate-wallet-pass`) bei jedem `git push` auf den `dev` oder `main` Branch automatisch aktualisiert.
-*   **Trigger**: Das Deployment startet nur, wenn Änderungen innerhalb des Ordners **`/supabase/functions`** erkannt werden.
-*   **Status**: Du kannst den Verlauf der Deployments direkt im Supabase Dashboard unter **Settings > Integrations > GitHub** einsehen.
+
+*   **Wichtig**: Damit neue Funktionen vom System erkannt werden, müssen sie zwingend in der Datei **`supabase/config.toml`** unter `[functions.name]` registriert sein.
+*   **Trigger**: Das Deployment startet automatisch, sobald Änderungen innerhalb des Ordners **`/supabase/functions`** erkannt werden.
+*   **Status**: Den Verlauf der Deployments kannst du im Supabase Dashboard unter **Settings > Integrations > GitHub** einsehen.
 
 ### Datenbank aktiv halten (Keep-Alive)
 Supabase pausiert kostenlose Projekte nach 7 Tagen Inaktivität. Checket verfügt über einen automatisierten "Herzschlag" (**`supabase_keep_alive.yml`**), der alle 3 Tage einen Ping an deine Dev- und Prod-Datenbanken sendet, um diese dauerhaft wach zu halten.️
