@@ -93,9 +93,9 @@ Aus Sicherheitsgründen wird der Zahlbetrag für die Garderobe ausschließlich i
 
 Um den Preis zu ändern (z. B. von 2,50€ auf 3,00€):
 1.  Öffne die Datei: `supabase/functions/sumup-terminal-pay/index.ts`.
-2.  Suche die Zeile `amount: 2.50`.
+2.  Suche die Zeile `amount: 1.00`.
 3.  Ändere den Wert und speichere die Datei.
-4.  Deploye die Edge Function neu (`supabase functions deploy sumup-terminal-pay`).
+4.  Push den Code zu GitHub. Das Deployment erfolgt automatisch (siehe unten).
 
 ---
 
@@ -115,6 +115,11 @@ flutter run -d chrome -t lib/main_customer.dart \
   --dart-define=SUPABASE_PUBLISHABLE_KEY=<dev-key>
 ```
 
+### Automatisches Deployment (Edge Functions)
+Dank der nativen **Supabase-GitHub-Integration** werden deine Edge Functions (`sumup-terminal-pay`, `generate-wallet-pass`) bei jedem `git push` auf den `dev` oder `main` Branch automatisch aktualisiert.
+*   **Trigger**: Das Deployment startet nur, wenn Änderungen innerhalb des Ordners **`/supabase/functions`** erkannt werden.
+*   **Status**: Du kannst den Verlauf der Deployments direkt im Supabase Dashboard unter **Settings > Integrations > GitHub** einsehen.
+
 ### Datenbank aktiv halten (Keep-Alive)
 Supabase pausiert kostenlose Projekte nach 7 Tagen Inaktivität. Checket verfügt über einen automatisierten "Herzschlag" (**`supabase_keep_alive.yml`**), der alle 3 Tage einen Ping an deine Dev- und Prod-Datenbanken sendet, um diese dauerhaft wach zu halten.️
 
@@ -122,6 +127,6 @@ Supabase pausiert kostenlose Projekte nach 7 Tagen Inaktivität. Checket verfüg
 
 ## Live Umgebungen (GitHub Pages)
 * **Produktion:** `https://<github-user>.github.io/checket_app/`
-* **Entwicklung:** `https://<github-user>.github.io/checket_app/dev/`
+* **Entwicklung:** `https://<github-user>..github.io/checket_app/dev/`
 
 ---
