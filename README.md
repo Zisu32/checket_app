@@ -10,6 +10,7 @@ Checket ist ein digitales Garderoben-Management-System, das physische Garderoben
 * **Intelligentes Fundbüro**: Automatisierte Archivierung von Jacken am Schichtende mit einfacher Aushändigungs-Logik.
 * **Local-First Sync**: Volle Offline-Fähigkeit (Durch lokalen Drift-Cache; automatischer Hintergrund-Abgleich mit Supabase Realtime.
 * **Sicherheits-Check**: Integrierte Sperre am Schichtende, falls noch unbezahlte Jacken im System sind.
+* **SumUp Cloud Integration**: Direkte Ansteuerung des **SumUp Solo** Terminals über das Dashboard (Cloud API).
 * **Zur Wallet-Hinzufügen**: Webticket kann zur Wallet hinzugefügt werden, sodass eine Push-Benachrichtigung gesendet werden kann, falls der Kunde die Jacke vergisst.
 
 ---
@@ -42,8 +43,8 @@ Obwohl es zwei getrennte Anwendungen sind, bilden sie ein geschlossenes System:
 
 #### `shared/` (Zentrales Fundament)
 *   **`database/`**: Definition des Drift-Schemas (`database.dart`) und generierter SQLite-Code.
-*   **`services/`**: Plattformunabhängige Logik (Synchronisation, Routing-Dienst, Tab-Kommunikation).
-*   **`theme/`**: Das visuelle Herzstück (`app_theme.dart`). Hier liegen alle Farben, die typografische Skala (**xsmall**, **small**, **medium**) und der zentrale Button-Builder.
+*   **`services/`**: Plattformunabhängige Logik (Synchronisation, Routing, Tab-Kommunikation, SumUp API).
+*   **`theme/`**: Das visuelle Herzstück (`app_theme.dart`). Hier liegen alle Farben, Schriftgrößen und der zentrale Button-Builder.
 
 #### `widgets/` (Globale UI-Bausteine)
 Infrastruktur-Widgets, die beide Apps beim Booten teilen (Splash-Screen, Fehlerbehandlung, Fatal-Error-Debugger).

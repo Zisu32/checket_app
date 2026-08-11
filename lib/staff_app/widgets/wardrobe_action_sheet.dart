@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
+import '../../shared/services/sumup_service.dart';
 import '../../shared/theme/app_theme.dart';
 
 class WardrobeActionSheet extends StatefulWidget {
@@ -22,6 +23,8 @@ class WardrobeActionSheet extends StatefulWidget {
 }
 
 class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
+  bool _isProcessingSumUp = false;
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<WardrobeSlot>>(
@@ -85,12 +88,35 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                 ),
               if (slot.status == 'unpaid') ...[
                 ListTile(
-                  leading: const Icon(Icons.contactless_outlined, color: AppTheme.active),
-                  title: const Text('Kontaktloses bezahlen', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)),
-                  onTap: () async {
-                    final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'nfc', updatedAt: DateTime.now());
-                    await widget.syncService.updateSlot(updated);
-                    if (context.mounted) Navigator.pop(context);
+                  leading: _isProcessingSumUp 
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.active))
+                    : const Icon(Icons.contactless_outlined, color: AppTheme.active),
+                  title: Text(
+                    _isProcessingSumUp ? 'Warte auf Terminal...' : 'Kontaktloses bezahlen', 
+                    style: const TextStyle(fontSize: AppTheme.small, color: AppTheme.white)
+                  ),
+                  onTap: _isProcessingSumUp ? null : () async {
+                    setState(() => _isProcessingSumUp = true);
+                    try {
+                      final success = await SumUpService().triggerTerminalPayment(
+                        slotId: slot.id,
+                        secret: slot.secret,
+                      );
+                      
+                      if (success) {
+                        final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'nfc', updatedAt: DateTime.now());
+                        await widget.syncService.updateSlot(updated);
+                        if (mounted) Navigator.pop(context);
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Fehler: $e'), backgroundColor: AppTheme.unpaid)
+                        );
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isProcessingSumUp = false);
+                    }
                   },
                 ),
                 ListTile(
