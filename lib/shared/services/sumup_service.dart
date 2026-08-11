@@ -23,10 +23,11 @@ class SumUpService {
       );
 
       if (response.status == 200) {
-        // Success means the terminal was triggered
         return true;
       } else {
-        throw response.data['error'] ?? 'Unbekannter Fehler bei SumUp.';
+        // Extract error message from the response data
+        final errorMsg = response.data is Map ? response.data['error'] : 'Fehler beim Aufruf der Zahlungsfunktion.';
+        throw errorMsg ?? 'Unbekannter Fehler bei SumUp.';
       }
     } catch (e) {
       rethrow;

@@ -18,40 +18,54 @@ serve(async (req) => {
     const AFFILIATE_KEY = Deno.env.get('SUMUP_AFFILIATE_KEY')
 
     if (!API_KEY || !MERCHANT_CODE || !AFFILIATE_KEY) {
-      throw new Error('SumUp configuration (API_KEY, MERCHANT_CODE, or AFFILIATE_KEY) missing in Supabase secrets.')
+      return new Response(
+        JSON.stringify({ error: 'SumUp Konfiguration fehlt in den Supabase Secrets.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
     // 2. Trigger Reader Checkout (Solo Terminal) using Static API Key
-    // This removes the need for the OAuth token dance.
-    const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/checkouts`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        amount: 1.00, // Wardrobe price (Managed centrally in the cloud)
-        currency: 'EUR',
-        foreign_tx_id: `hook_${slotId}_${Date.now()}`, // Unique ID for tracking
-        affiliate_key: AFFILIATE_KEY,
-      }),
-    })
+    try {
+      const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/checkouts`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: 2.50, // Wardrobe price
+          currency: 'EUR',
+          foreign_tx_id: `hook_${slotId}_${Date.now()}`,
+          affiliate_key: AFFILIATE_KEY,
+        }),
+      })
 
-    const checkoutData = await checkoutResponse.json()
+      const checkoutData = await checkoutResponse.json()
 
-    if (checkoutResponse.status !== 201) {
-      throw new Error(checkoutData.error?.message || 'Failed to trigger SumUp terminal via Cloud API.')
+      if (checkoutResponse.status !== 201) {
+        // Here we extract the SPECIFIC error from SumUp (e.g., "Terminal not found")
+        return new Response(
+          JSON.stringify({ error: checkoutData.error?.message || 'SumUp Terminal konnte nicht aktiviert werden.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, checkout: checkoutData }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+
+    } catch (fetchError) {
+      return new Response(
+        JSON.stringify({ error: `Verbindung zu SumUp fehlgeschlagen: ${fetchError.message}` }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    return new Response(JSON.stringify({ success: true, checkout: checkoutData }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
-
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
   }
 })
