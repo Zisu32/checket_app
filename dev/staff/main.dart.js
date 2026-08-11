@@ -46331,27 +46331,28 @@ p=r.gep().i(0,"secret")
 return new A.yf(A.oh(q,o),!0,p)}}
 A.amK.prototype={
 Cf(a,b){return this.auF(a,b)},
-auF(a,b){var s=0,r=A.u(t.y),q,p=2,o=[],n,m,l,k,j
+auF(a,b){var s=0,r=A.u(t.y),q,p=2,o=[],n,m,l,k,j,i
 var $async$Cf=A.v(function(c,d){if(c===1){o.push(d)
 s=p}for(;;)switch(s){case 0:p=4
-l=$.kh().b
-l===$&&A.a()
-n=l
-l=n.as
-l===$&&A.a()
+k=$.kh().b
+k===$&&A.a()
+n=k
+k=n.as
+k===$&&A.a()
 s=7
-return A.l(l.lC("sumup-terminal-pay",A.ab(["slotId",b,"secret",a],t.N,t.K)),$async$Cf)
+return A.l(k.lC("sumup-terminal-pay",A.ab(["slotId",b,"secret",a],t.N,t.K)),$async$Cf)
 case 7:m=d
 if(m.b===200){q=!0
 s=1
-break}else{l=J.bK(m.a,"error")
-if(l==null)l="Unbekannter Fehler bei SumUp."
-throw A.e(l)}p=2
+break}else{l=t.f.b(m.a)?J.bK(m.a,"error"):"Fehler beim Aufruf der Zahlungsfunktion."
+k=l
+if(k==null)k="Unbekannter Fehler bei SumUp."
+throw A.e(k)}p=2
 s=6
 break
 case 4:p=3
-j=o.pop()
-throw j
+i=o.pop()
+throw i
 s=6
 break
 case 3:s=2
@@ -47501,7 +47502,7 @@ var $async$fM=A.v(function(b,c){if(b===1)return A.q(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.rS(new A.ns(1786474651,p.b),t.hU).aL(new A.aw8(),t.y):o
+q=o==null?p.d=n.a.rS(new A.ns(1786477814,p.b),t.hU).aL(new A.aw8(),t.y):o
 s=1
 break
 case 1:return A.r(q,r)}})
@@ -48511,7 +48512,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.aey?2:4
 break
-case 2:p=1786474651
+case 2:p=1786477814
 s=3
 break
 case 4:s=n instanceof A.IT?5:7
@@ -48524,10 +48525,10 @@ break
 case 7:throw A.e(A.cG("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.l(a.VC(new A.Um(q,new A.qX()),new A.CQ(p,1786474651)),$async$qa)
-case 9:s=n instanceof A.IT&&p!==1786474651?10:11
+return A.l(a.VC(new A.Um(q,new A.qX()),new A.CQ(p,1786477814)),$async$qa)
+case 9:s=n instanceof A.IT&&p!==1786477814?10:11
 break
-case 10:n.a.Xn("PRAGMA user_version = 1786474651;")
+case 10:n.a.Xn("PRAGMA user_version = 1786477814;")
 s=12
 return A.l(A.cX(null,t.H),$async$qa)
 case 12:case 11:return A.r(null,r)}})
