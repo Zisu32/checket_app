@@ -43,7 +43,6 @@ serve(async (req) => {
       const checkoutData = await checkoutResponse.json()
 
       if (checkoutResponse.status !== 201) {
-        // Here we extract the SPECIFIC error from SumUp (e.g., "Terminal not found")
         return new Response(
           JSON.stringify({ error: checkoutData.error?.message || 'SumUp Terminal konnte nicht aktiviert werden.' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
