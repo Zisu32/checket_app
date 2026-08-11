@@ -30,7 +30,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: 2.50, // Wardrobe price (Managed centrally in the cloud)
+        amount: 1.00, // Wardrobe price (Managed centrally in the cloud)
         currency: 'EUR',
         foreign_tx_id: `hook_${slotId}_${Date.now()}`, // Unique ID for tracking
         affiliate_key: AFFILIATE_KEY,
