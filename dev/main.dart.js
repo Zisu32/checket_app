@@ -45045,31 +45045,35 @@ s.a3e()},
 O(a){var s=this,r=A.cz(a,null,t.w).w
 if(s.y==null||s.z==null)return B.ue
 return new A.mi(s.d.d,new A.ap5(s,r.a.b<700),null,null,t.Sj)},
-wd(){var s=0,r=A.u(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e
-var $async$wd=A.v(function(a,b){if(a===1){o.push(b)
+wd(){var s=0,r=A.u(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e,d,c,b,a
+var $async$wd=A.v(function(a0,a1){if(a0===1){o.push(a1)
 s=p}for(;;)switch(s){case 0:p=4
-i=$.jQ().b
-i===$&&A.a()
-m=i
-i=m.as
-i===$&&A.a()
-h=n.y
-g=n.z
+g=$.jQ().b
+g===$&&A.a()
+m=g
+g=v.G
+l=g.window.location.origin
+k=g.window.location.pathname
+f=m.as
+f===$&&A.a()
+e=n.y
+d=n.z
+c=A.aEZ()?"apple":"google"
 s=7
-return A.k(i.kQ("generate-wallet-pass",A.af(["ticketId",h,"secret",g,"platform",A.aEZ()?"apple":"google"],t.N,t.X)),$async$wd)
-case 7:l=b
-k=A.bt(J.bK(l.a,"url"))
-if(k!=null&&k.length!==0)v.G.window.open(k,"_blank")
+return A.k(f.kQ("generate-wallet-pass",A.af(["ticketId",e,"secret",d,"platform",c,"origin",A.j(l)+A.j(k)],t.N,t.X)),$async$wd)
+case 7:j=a1
+i=A.bt(J.bK(j.a,"url"))
+if(i!=null&&i.length!==0)g.window.open(i,"_blank")
 else throw A.e("Ung\xfcltige Antwort vom Server.")
 p=2
 s=6
 break
 case 4:p=3
-e=o.pop()
-j=A.T(e)
-i=n.c
-if(i==null){s=1
-break}i.ak(t.Pu).f.a_K(A.aFK(null,null,null,B.dF,null,B.ap,null,A.vY("Fehler beim Erstellen des Passes: "+A.j(j),null,null),null,B.GT,null,null,null,null,null,null,null,null,null,null))
+a=o.pop()
+h=A.T(a)
+g=n.c
+if(g==null){s=1
+break}g.ak(t.Pu).f.a_K(A.aFK(null,null,null,B.dF,null,B.ap,null,A.vY("Fehler beim Erstellen des Passes: "+A.j(h),null,null),null,B.GT,null,null,null,null,null,null,null,null,null,null))
 s=6
 break
 case 3:s=2
@@ -46203,7 +46207,7 @@ var $async$fl=A.v(function(b,c){if(b===1)return A.q(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.qw(new A.mX(1786638319,p.b),t.hU).au(new A.asx(),t.y):o
+q=o==null?p.d=n.a.qw(new A.mX(1786641911,p.b),t.hU).au(new A.asx(),t.y):o
 s=1
 break
 case 1:return A.r(q,r)}})
@@ -47198,7 +47202,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.abW?2:4
 break
-case 2:p=1786638319
+case 2:p=1786641911
 s=3
 break
 case 4:s=n instanceof A.H1?5:7
@@ -47211,10 +47215,10 @@ break
 case 7:throw A.e(A.cM("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.k(a.Tr(new A.S7(q,new A.qd()),new A.BA(p,1786638319)),$async$pa)
-case 9:s=n instanceof A.H1&&p!==1786638319?10:11
+return A.k(a.Tr(new A.S7(q,new A.qd()),new A.BA(p,1786641911)),$async$pa)
+case 9:s=n instanceof A.H1&&p!==1786641911?10:11
 break
-case 10:n.a.UX("PRAGMA user_version = 1786638319;")
+case 10:n.a.UX("PRAGMA user_version = 1786641911;")
 s=12
 return A.k(A.dG(null,t.H),$async$pa)
 case 12:case 11:return A.r(null,r)}})
