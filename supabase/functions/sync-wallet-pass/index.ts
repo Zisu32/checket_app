@@ -5,6 +5,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+function getSecretKey(): string {
+  const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
+
+  // 1. Wahl: JSON aus SUPABASE_SECRET_KEYS parsen
+  if (envSecretKeys) {
+    try {
+      const parsed = JSON.parse(envSecretKeys);
+      if (parsed?.default) {
+        return parsed.default;
+      }
+    } catch {
+      // Falls es kein validiertes JSON ist, sondern aus Versehen doch ein Direct-String:
+      return envSecretKeys;
+    }
+  }
+
+  // 2. Wahl: Einzelne Variable SUPABASE_SECRET_KEY
+  const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
+  if (singleSecretKey) {
+    return singleSecretKey;
+  }
+
+  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -57,6 +82,7 @@ Deno.serve(async (req) => {
     const currentStatus = statusMap[record.status] || { color: '#232F39', text: 'Status aktualisiert' }
 
     // 3. Update the Object in Google Wallet
+    // The ID matches the one generated in generate-wallet-pass: issuerId.checket_ticketId_secret
     const resourceId = `${ISSUER_ID}.checket_${record.id}_${record.secret}`
     console.log(`Patching pass: ${resourceId} with color ${currentStatus.color}`)
 

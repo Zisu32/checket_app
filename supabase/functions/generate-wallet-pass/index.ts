@@ -6,6 +6,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+function getSecretKey(): string {
+  const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
+
+  // 1. Wahl: JSON aus SUPABASE_SECRET_KEYS parsen
+  if (envSecretKeys) {
+    try {
+      const parsed = JSON.parse(envSecretKeys);
+      if (parsed?.default) {
+        return parsed.default;
+      }
+    } catch {
+      // Falls es kein validiertes JSON ist, sondern aus Versehen doch ein Direct-String:
+      return envSecretKeys;
+    }
+  }
+
+  // 2. Wahl: Einzelne Variable SUPABASE_SECRET_KEY
+  const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
+  if (singleSecretKey) {
+    return singleSecretKey;
+  }
+
+  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
+}
+
 Deno.serve(async (req) => {
   // Handle CORS Preflight
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -18,15 +43,16 @@ Deno.serve(async (req) => {
     console.log(`Platform: ${platform}`)
     console.log(`Origin: ${origin}`)
 
-    // 1. Initialize Supabase Admin
+    // 1. Initialize Supabase Admin using Best Practice helper
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const secretKey = Deno.env.get('SUPABASE_SECRET_KEYS')
+    if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
 
-    if (!supabaseUrl || !secretKey) {
-      throw new Error('Supabase configuration missing in secrets.')
-    }
-
-    const supabase = createClient(supabaseUrl, secretKey)
+    const supabase = createClient(supabaseUrl, getSecretKey(), {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      }
+    })
 
     // Use passed origin or fallback to production domain
     const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
