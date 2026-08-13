@@ -13,29 +13,44 @@ serve(async (req) => {
 
   try {
     const { ticketId, secret, platform, origin } = await req.json()
-    console.log(`Adding ticket ${ticketId} to wallet for platform ${platform}. Origin: ${origin}`)
+    console.log(`--- WALLET REQUEST START ---`)
+    console.log(`Ticket ID: ${ticketId} (Type: ${typeof ticketId})`)
+    console.log(`Secret: ${secret?.substring(0, 3)}...`)
+    console.log(`Platform: ${platform}`)
+    console.log(`Origin: ${origin}`)
 
-    // 1. Initialize Supabase Admin (for verification)
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SECRET_KEYS') ?? ''
-    )
+    // 1. Initialize Supabase Admin
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const secretKey = Deno.env.get('SUPABASE_SECRET_KEYS')
+
+    console.log(`Supabase URL configured: ${supabaseUrl ? 'YES' : 'MISSING'}`)
+    console.log(`SecretKey available: ${secretKey ? 'YES (' + secretKey.substring(0, 5) + '...)' : 'MISSING'}`)
+
+    const supabase = createClient(supabaseUrl ?? '', secretKey ?? '')
 
     // Use passed origin or fallback to production domain
-    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
+    const baseDomain = origin ? origin.replace(/\/$/, "")
 
     // 2. Validate Ticket (Check if ID and Secret match in the database)
     const { data: slot, error: slotError } = await supabase
       .from('checket_garderobe')
       .select('id, status')
-      .eq('id', Number(ticketId)) // Ensure it's a number
+      .eq('id', Number(ticketId))
       .eq('secret', secret)
       .single()
 
-    if (slotError || !slot) {
-      console.error(`Validation failed for ticket ${ticketId}:`, slotError)
+    if (slotError) {
+      console.error(`Database Query Error for ID ${ticketId}:`, slotError.message)
+      console.error(`Error Code:`, slotError.code)
+      throw new Error(`Ticket-Abfrage fehlgeschlagen: ${slotError.message}`)
+    }
+
+    if (!slot) {
+      console.error(`No slot found for ID ${ticketId} with provided secret.`)
       throw new Error('Ticket ungültig oder nicht gefunden.')
     }
+
+    console.log(`Validation Success: Slot ${slot.id} is in status ${slot.status}`)
 
     // Helper for Status Coloring & Text
     const statusMap: Record<string, { color: string, text: string }> = {
