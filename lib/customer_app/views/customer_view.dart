@@ -215,12 +215,17 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
   Future<void> _addToWallet() async {
     try {
       final supabase = Supabase.instance.client;
+      // Send the current origin so the backend can generate correct links for dev/prod
+      final origin = web.window.location.origin;
+      final path = web.window.location.pathname;
+
       final response = await supabase.functions.invoke(
         'generate-wallet-pass',
         body: {
           'ticketId': _activeId,
           'secret': _activeSecret,
           'platform': PlatformHintsService.isIOS ? 'apple' : 'google',
+          'origin': '$origin$path',
         },
       );
 

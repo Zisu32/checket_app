@@ -12,13 +12,16 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { ticketId, secret, platform } = await req.json()
+    const { ticketId, secret, platform, origin } = await req.json()
 
     // 1. Initialize Supabase Admin (for verification)
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
+      Deno.env.get('SUPABASE_SECRET_KEYS') ?? ''
     )
+
+    // Use passed origin or fallback to production domain
+    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
 
     // 2. Validate Ticket (Check if ID and Secret match in the database)
     const { data: slot, error: slotError } = await supabase
@@ -32,6 +35,16 @@ serve(async (req) => {
       throw new Error('Ticket ungültig oder nicht gefunden.')
     }
 
+    // Helper for Status Coloring & Text
+    const statusMap: Record<string, { color: string, text: string }> = {
+      'unpaid': { color: '#B71C1C', text: 'Zahlung ausstehend' },
+      'active': { color: '#00B58B', text: 'Jacke auf Platz aktiv' },
+      'temporary': { color: '#E67B00', text: 'Jacke temporär draußen' },
+      'forgotten': { color: '#0081C3', text: 'Jacke im Fundbüro' },
+      'free': { color: '#818181', text: 'Bügel ist frei' },
+    }
+    const currentStatus = statusMap[slot.status] || { color: '#232F39', text: 'Status unbekannt' }
+
     if (platform === 'google') {
       const ISSUER_ID = Deno.env.get('GOOGLE_ISSUER_ID')
       const CLIENT_EMAIL = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')
@@ -43,28 +56,24 @@ serve(async (req) => {
 
       // 3. Define the Pass Object
       const genericObject = {
-        id: `${ISSUER_ID}.checket_${ticketId}_${Date.now()}`,
+        id: `${ISSUER_ID}.checket_${ticketId}_${secret}`,
         classId: `${ISSUER_ID}.checket_ticket_v1`,
         genericType: "GENERIC_TYPE_UNSPECIFIED",
-        hexBackgroundColor: "#11171C", // Your Header color
+        hexBackgroundColor: currentStatus.color,
         logo: {
-          sourceUri: { uri: "https://checket.eu/assets/images/full-icon.svg" },
+          sourceUri: { uri: `${baseDomain}/assets/images/logo-icon.png` },
         },
         cardTitle: {
-          defaultValue: { language: "de", value: "CHECKET Garderobe" },
+          defaultValue: { language: "de", value: "CHECKET" },
         },
         subheader: {
-          defaultValue: { language: "de", value: "BÜGELNUMMER" },
+          defaultValue: { language: "de", value: currentStatus.text },
         },
         header: {
-          defaultValue: { language: "de", value: `#${ticketId}` },
-        },
-        barcode: {
-          type: "QR_CODE",
-          value: `https://checket.eu/#/ticket?id=${ticketId}&secret=${secret}`,
+          defaultValue: { language: "de", value: `${ticketId}` },
         },
         heroImage: {
-          sourceUri: { uri: "https://checket.eu/assets/images/full-icon.svg" }
+          sourceUri: { uri: `${baseDomain}/assets/images/hero-icon.png` }
         }
       }
 
