@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     // Use passed origin or fallback to production domain
     const baseDomain = origin ? origin.replace(/\/$/, "")
 
-    // 2. Validate Ticket (Check if ID and Secret match in the database)
+    // 2. Validate Ticket
     const tid = Number(ticketId)
     const { data: slot, error: slotError } = await supabase
       .from('checket_garderobe')
