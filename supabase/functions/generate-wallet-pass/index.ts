@@ -37,11 +37,8 @@ Deno.serve(async (req) => {
 
   try {
     const { ticketId, secret, platform, origin } = await req.json()
-    console.log(`--- WALLET REQUEST START ---`)
-    console.log(`Ticket ID: ${ticketId} (Type: ${typeof ticketId})`)
-    console.log(`Secret: ${secret?.substring(0, 3)}...`)
+    console.log(`Ticket ID: ${ticketId}`)
     console.log(`Platform: ${platform}`)
-    console.log(`Origin: ${origin}`)
 
     // 1. Initialize Supabase Admin using Best Practice helper
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -55,7 +52,7 @@ Deno.serve(async (req) => {
     })
 
     // Use passed origin or fallback to production domain
-    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
+    const baseDomain = origin ? origin.replace(/\/$/, "")
 
     // 2. Validate Ticket (Check if ID and Secret match in the database)
     const tid = Number(ticketId)
@@ -138,7 +135,7 @@ Deno.serve(async (req) => {
         .sign(key)
 
       return new Response(
-        JSON.stringify({ url: `https://pay.google.com/gp/p/save/${jwt}` }),
+        JSON.stringify({ url: `https://pay.google.com/gp/v/save/${jwt}` }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
