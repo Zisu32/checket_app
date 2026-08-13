@@ -36,12 +36,12 @@ jobs:
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "URL=${{ secrets.SUPABASE_URL_PROD }}" >> $GITHUB_ENV
             echo "KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}" >> $GITHUB_ENV
-            echo "BASE_HREF=/${{ github.event.repository.name }}/" >> $GITHUB_ENV
+            echo "BASE_HREF=/" >> $GITHUB_ENV
             echo "TARGET_FOLDER=." >> $GITHUB_ENV
           else
             echo "URL=${{ secrets.SUPABASE_URL_DEV }}" >> $GITHUB_ENV
             echo "KEY=${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}" >> $GITHUB_ENV
-            echo "BASE_HREF=/${{ github.event.repository.name }}/dev/" >> $GITHUB_ENV
+            echo "BASE_HREF=/dev/" >> $GITHUB_ENV
             echo "TARGET_FOLDER=dev" >> $GITHUB_ENV
           fi
 

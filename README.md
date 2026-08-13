@@ -127,8 +127,10 @@ Supabase pausiert kostenlose Projekte nach 7 Tagen Inaktivität. Checket verfüg
 
 ---
 
-## Live Umgebungen (GitHub Pages)
-* **Produktion:** `https://<github-user>.github.io/checket_app/`
-* **Entwicklung:** `https://<github-user>..github.io/checket_app/dev/`
+## Live Umgebungen (Custom Domain)
+* **Produktion (Kunden-Ticket):** `https://checket.eu/`
+* **Produktion (Mitarbeiter-Dashboard):** `https://checket.eu/staff/`
+* **Entwicklung (Kunden-Ticket):** `https://checket.eu/dev/`
+* **Entwicklung (Mitarbeiter-Dashboard):** `https://checket.eu/dev/staff/`
 
 ---
