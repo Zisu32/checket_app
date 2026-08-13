@@ -13,6 +13,7 @@ serve(async (req) => {
 
   try {
     const { ticketId, secret, platform, origin } = await req.json()
+    console.log(`Adding ticket ${ticketId} to wallet for platform ${platform}. Origin: ${origin}`)
 
     // 1. Initialize Supabase Admin (for verification)
     const supabase = createClient(
@@ -27,11 +28,12 @@ serve(async (req) => {
     const { data: slot, error: slotError } = await supabase
       .from('checket_garderobe')
       .select('id, status')
-      .eq('id', ticketId)
+      .eq('id', Number(ticketId)) // Ensure it's a number
       .eq('secret', secret)
       .single()
 
     if (slotError || !slot) {
+      console.error(`Validation failed for ticket ${ticketId}:`, slotError)
       throw new Error('Ticket ungültig oder nicht gefunden.')
     }
 
