@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import * as jose from "https://deno.land/x/jose@v5.2.3/index.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -7,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS Preflight
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -23,30 +22,31 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const secretKey = Deno.env.get('SUPABASE_SECRET_KEYS')
 
-    console.log(`Supabase URL configured: ${supabaseUrl ? 'YES' : 'MISSING'}`)
-    console.log(`SecretKey available: ${secretKey ? 'YES (' + secretKey.substring(0, 5) + '...)' : 'MISSING'}`)
+    if (!supabaseUrl || !secretKey) {
+      throw new Error('Supabase configuration missing in secrets.')
+    }
 
-    const supabase = createClient(supabaseUrl ?? '', secretKey ?? '')
+    const supabase = createClient(supabaseUrl, secretKey)
 
     // Use passed origin or fallback to production domain
-    const baseDomain = origin ? origin.replace(/\/$/, "")
+    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
 
     // 2. Validate Ticket (Check if ID and Secret match in the database)
+    const tid = Number(ticketId)
     const { data: slot, error: slotError } = await supabase
       .from('checket_garderobe')
-      .select('id, status')
-      .eq('id', Number(ticketId))
+      .select('id, status, secret')
+      .eq('id', tid)
       .eq('secret', secret)
       .single()
 
     if (slotError) {
-      console.error(`Database Query Error for ID ${ticketId}:`, slotError.message)
-      console.error(`Error Code:`, slotError.code)
+      console.error(`Database Query Error for ID ${tid}:`, slotError.message)
       throw new Error(`Ticket-Abfrage fehlgeschlagen: ${slotError.message}`)
     }
 
     if (!slot) {
-      console.error(`No slot found for ID ${ticketId} with provided secret.`)
+      console.error(`No slot found for ID ${tid} with provided secret.`)
       throw new Error('Ticket ungültig oder nicht gefunden.')
     }
 
@@ -124,6 +124,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error(`Wallet Error:`, error.message)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

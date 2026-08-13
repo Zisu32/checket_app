@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { google } from "npm:googleapis"
 
 const corsHeaders = {
@@ -6,16 +5,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
     const payload = await req.json()
     const { record, old_record } = payload
 
+    console.log(`--- SYNC REQUEST START ---`)
+    console.log(`Update on ticket ID: ${record.id}`)
+
     // Only proceed if status has changed
     if (record.status === old_record?.status) {
-      return new Response(JSON.stringify({ message: 'No status change' }), { status: 200 })
+      console.log('No status change, skipping update.')
+      return new Response(JSON.stringify({ message: 'No status change' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
 
     const ISSUER_ID = Deno.env.get('GOOGLE_ISSUER_ID')
@@ -23,7 +29,7 @@ serve(async (req) => {
     const PRIVATE_KEY = Deno.env.get('GOOGLE_PRIVATE_KEY')?.replace(/\\n/g, '\n')
 
     if (!ISSUER_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
-      throw new Error('Google Wallet configuration missing.')
+      throw new Error('Google Wallet configuration missing in secrets.')
     }
 
     // 1. Authenticate with Google
@@ -51,8 +57,8 @@ serve(async (req) => {
     const currentStatus = statusMap[record.status] || { color: '#232F39', text: 'Status aktualisiert' }
 
     // 3. Update the Object in Google Wallet
-    // The ID matches the one generated in generate-wallet-pass
     const resourceId = `${ISSUER_ID}.checket_${record.id}_${record.secret}`
+    console.log(`Patching pass: ${resourceId} with color ${currentStatus.color}`)
 
     await walletobjects.genericObject.patch({
       resourceId: resourceId,
@@ -64,13 +70,15 @@ serve(async (req) => {
       },
     })
 
+    console.log(`Successfully updated pass for ticket ${record.id}`)
+
     return new Response(JSON.stringify({ success: true, updatedId: resourceId }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
 
   } catch (error) {
-    console.error('Wallet Sync Error:', error)
+    console.error('Wallet Sync Error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
