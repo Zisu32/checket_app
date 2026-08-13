@@ -19,8 +19,19 @@ class QrDisplay extends StatelessWidget {
     
     // Generate URL for QR
     final origin = web.window.location.origin;
-    final path = web.window.location.pathname.replaceAll('/staff/', '/');
-    
+    // Strip '/staff/' or '/staff' from the end of the pathname
+    String path = web.window.location.pathname;
+    if (path.endsWith('/staff/')) {
+      path = path.substring(0, path.length - 7);
+    } else if (path.endsWith('/staff')) {
+      path = path.substring(0, path.length - 6);
+    }
+
+    // Ensure path ends with exactly one slash if it's not empty, or is just a slash
+    if (!path.endsWith('/')) {
+      path += '/';
+    }
+
     String qrData;
     if (isRecovery) {
       qrData = '$origin$path'; // Base website
@@ -65,9 +76,9 @@ class QrDisplay extends StatelessWidget {
         ),
         const SizedBox(height: 40),
         Text(
-          isRecovery 
-            ? 'Dein Handy lädt dein Ticket automatisch aus dem Speicher.' 
-            : 'Dein digitales Ticket für die Garderobe.',
+          isRecovery
+              ? 'Dein Handy lädt dein Ticket automatisch aus dem Speicher.'
+              : 'Dein digitales Ticket für die Garderobe.',
           textAlign: TextAlign.center,
           style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
         ),
