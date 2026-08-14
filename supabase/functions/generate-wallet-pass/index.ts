@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
       }
     })
 
-    // Use passed origin or fallback to production domain
+    // Use passed origin
     const baseDomain = origin ? origin.replace(/\/$/, "")
 
     // 2. Validate Ticket
