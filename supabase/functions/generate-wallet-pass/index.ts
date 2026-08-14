@@ -9,7 +9,7 @@ const corsHeaders = {
 function getSecretKey(): string {
   const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
 
-  // 1. Wahl: JSON aus SUPABASE_SECRET_KEYS parsen
+  // JSON aus SUPABASE_SECRET_KEYS parsen
   if (envSecretKeys) {
     try {
       const parsed = JSON.parse(envSecretKeys);
@@ -17,12 +17,12 @@ function getSecretKey(): string {
         return parsed.default;
       }
     } catch {
-      // Falls es kein validiertes JSON ist, sondern aus Versehen doch ein Direct-String:
+      // Falls es kein validiertes JSON ist, sondern ein Direct-String:
       return envSecretKeys;
     }
   }
 
-  // 2. Wahl: Einzelne Variable SUPABASE_SECRET_KEY
+  // Einzelne Variable SUPABASE_SECRET_KEY
   const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
   if (singleSecretKey) {
     return singleSecretKey;

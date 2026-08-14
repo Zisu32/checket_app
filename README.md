@@ -30,24 +30,24 @@ Checket nutzt eine **Split-App-Architektur**, bei der zwei spezialisierte Flutte
     *   **Funktionen**: Live-Statusanzeige der eigenen Jacke, Wallet-Integration.
     *   **Persistence**: Nutzt `localStorage`, um das Ticket auch ohne URL-Parameter beim Neuladen (z.B. als PWA) wiederzufinden.
 
-*   **`shared/database`** : Definition des Drift-Schemas (`database.dart`) und generierter SQLite-Code.
+*   **`shared/database`** : Definition des Drift-Schemas und generierter SQLite-Code.
 *   **`shared/services/`** : Plattformunabhängige Logik
     *   `sync_service.dart`: Cloud-Synchronisation zur DB & Realtime.
     *   `route_service.dart`: Zentrales URL-Parsing & State-Recovery.
     *   `monitor_service.dart`: Kommunikation zwischen Dashboard und Monitor.
     *   `sumup_service.dart`: Brücke zur SumUp Cloud API.
     *   `platform_hints_service.dart`: Geräte-Erkennung (iOS/Android).
-*   **`shared/theme/`**: Das visuelle Herzstück (`app_theme.dart`). Hier liegen alle Farben, Schriftgrößen (**xsmall, small, medium**) und der zentrale Button-Builder.
+*   **`shared/theme/`**: Das visuelle Herzstück. Hier liegen alle Farben, Schriftgrößen und der zentrale Button-Builder.
 
-*   **`widgets/`** : Globale UI-Widgets, die beide Apps beim Booten teilen.
+#### `widgets/` : Globale UI-Widgets, die beide Apps beim Booten teilen.
 
 #### `staff_app/` Workspace für Mitarbeiter
-*   **`views/`**: Die Hauptbildschirme (`staff_view.dart`, `qr_display_view.dart`).
-*   **`views/tabs/`**: Die Module der Navbar (`dashboard_tab_view.dart`, `lost_found_tab_view.dart`, `session_end_tab_view.dart`).
+*   **`views/`**: Die Hauptbildschirme.
+*   **`views/tabs/`**: Die Tab-Views der Navbar.
 *   **`widgets/`**: Spezifische Bedienelemente.
 
 #### `customer_app/` Gäste-Portal
-*   **`views/`**: Der Einstiegspunkt für Kunden (`customer_view.dart`).
+*   **`views/`**: Der Einstiegspunkt für Kunden.
 *   **`widgets/`**: Ticket-spezifische UI-Komponenten.
 
 ### Wie alles zusammenhängt
@@ -71,11 +71,18 @@ Um das physische **SumUp Solo** Terminal direkt aus dem Dashboard anzusteuern, f
 3.  **Merchant Code**: Notiere dir deine Händlernummer (zu finden unter **Profil > Profil-Details**).
 4.  **Affiliate Key**: Gehe zu **Einstellungen > Für Entwickler >** und generiere einen Affiliate Key.
 
-### 2. Terminal koppeln (API-Modus)
-1.  Melde dich auf deinem **SumUp Solo** Terminal ab (Einstellungen > Info > Abmelden).
-2.  Gehe zu **Verbindungen > API > Verbinden**.
-3.  Das Gerät zeigt einen **6-stelligen Pairing-Code** an.
-4.  Registriere das Terminal einmalig im SumUp Developer Portal mit diesem Code.
+### 2. Terminal koppeln (Cloud-API)
+Um das Terminal mit deinem Account zu verknüpfen, ohne manuell API-Befehle zu senden:
+1.  Melde dich im [me.sumup.com](https://me.sumup.com) an.
+2.  Gehe zu den [Geschäftseinstellungen](https://me.sumup.com/de-de/settings?tab=business).
+3.  Klicke unter **"Für Entwickler:innen"** auf den Menüpunkt **"Cloud-API"**.
+4.  Wähle **"Kartenterminal hinzufügen"**.
+5.  **Am SumUp Solo**: 
+    *   Schalte das Gerät ein. 
+    *   Melde dich ab, falls du noch mit einem Benutzerkonto eingeloggt bist (Einstellungen > Info > Abmelden).
+    *   Baue eine neue WLAN-Verbindung auf.
+    *   Wähle im Verbindungsmenü **"Cloud-API"** aus.
+    *   Gib den am Terminal angezeigten Code auf der SumUp Webseite ein.
 
 ### 3. Supabase Secrets setzen
 Hinterlege die Daten sicher in deinen Supabase-Projekten (Dev & Prod):
@@ -85,15 +92,13 @@ supabase secrets set SUMUP_MERCHANT_CODE
 supabase secrets set SUMUP_AFFILIATE_KEY
 ```
 
----
-
-## Preis anpassen
+### 4. Preis anpassen
 
 Aus Sicherheitsgründen wird der Zahlbetrag für die Garderobe ausschließlich im **Backend** verwaltet. Dies verhindert, dass Nutzer den Preis im Browser manipulieren können.
 
-Um den Preis zu ändern (z. B. von 2,50€ auf 3,00€):
+Um den Preis zu ändern:
 1.  Öffne die Datei: `supabase/functions/sumup-terminal-pay/index.ts`.
-2.  Suche die Zeile `amount: 1.00`.
+2.  Suche die Zeile `amount:`.
 3.  Ändere den Wert und speichere die Datei.
 4.  Push den Code zu GitHub. Das Deployment erfolgt automatisch (siehe unten).
 
@@ -116,11 +121,10 @@ flutter run -d chrome -t lib/main_customer.dart \
 ```
 
 ### Automatisches Deployment (Edge Functions)
-Dank der nativen **Supabase-GitHub-Integration** werden deine Edge Functions (`sumup-terminal-pay`, `generate-wallet-pass`) bei jedem `git push` auf den `dev` oder `main` Branch automatisch aktualisiert.
+Dank der nativen **Supabase-GitHub-Integration** werden die Edge Functions (`sumup-terminal-pay`, `generate-wallet-pass`, `sync-wallet-pass`) bei jedem `git push` auf den `dev` Branch automatisch aktualisiert.
 
 *   **Wichtig**: Damit neue Funktionen vom System erkannt werden, müssen sie zwingend in der Datei **`supabase/config.toml`** unter `[functions.name]` registriert sein.
 *   **Trigger**: Das Deployment startet automatisch, sobald Änderungen innerhalb des Ordners **`/supabase/functions`** erkannt werden.
-*   **Status**: Den Verlauf der Deployments kannst du im Supabase Dashboard unter **Settings > Integrations > GitHub** einsehen.
 
 ### Datenbank aktiv halten (Keep-Alive)
 Supabase pausiert kostenlose Projekte nach 7 Tagen Inaktivität. Checket verfügt über einen automatisierten "Herzschlag" (**`supabase_keep_alive.yml`**), der alle 3 Tage einen Ping an deine Dev- und Prod-Datenbanken sendet, um diese dauerhaft wach zu halten.️
@@ -128,9 +132,7 @@ Supabase pausiert kostenlose Projekte nach 7 Tagen Inaktivität. Checket verfüg
 ---
 
 ## Live Umgebungen (Custom Domain)
-* **Produktion (Kunden-Ticket):** `https://checket.eu/`
 * **Produktion (Mitarbeiter-Dashboard):** `https://checket.eu/staff/`
-* **Entwicklung (Kunden-Ticket):** `https://checket.eu/dev/`
 * **Entwicklung (Mitarbeiter-Dashboard):** `https://checket.eu/dev/staff/`
 
 ---
