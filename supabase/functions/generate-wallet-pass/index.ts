@@ -1,4 +1,4 @@
-import { serve } from 'https://esm.sh'
+import * as jose from "https://esm.sh"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -31,7 +31,7 @@ function getSecretKey(): string {
   throw new Error('Kein gültiger Supabase Secret Key gefunden!');
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS Preflight
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
