@@ -1,4 +1,4 @@
-import * as jose from "https://deno.land/x/jose@v5.2.3/index.ts"
+import { serve } from 'https://esm.sh'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -31,7 +31,7 @@ function getSecretKey(): string {
   throw new Error('Kein gültiger Supabase Secret Key gefunden!');
 }
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS Preflight
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     console.log(`Ticket ID: ${ticketId}`)
     console.log(`Platform: ${platform}`)
 
-    // 1. Initialize Supabase Admin using Best Practice helper
+    // Initialize Supabase Admin using Best Practice helper
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
 
@@ -52,9 +52,9 @@ Deno.serve(async (req) => {
     })
 
     // Use passed origin
-    const baseDomain = origin ? origin.replace(/\/$/, "")
+    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
 
-    // 2. Validate Ticket
+    // Validate Ticket
     const tid = Number(ticketId)
     const { data: slot, error: slotError } = await supabase
       .from('checket_garderobe')
