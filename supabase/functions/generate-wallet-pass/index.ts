@@ -1,4 +1,4 @@
-import * as jose from "https://esm.sh"
+import * as jose from "https://deno.land/x/jose@v5.2.3/index.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {

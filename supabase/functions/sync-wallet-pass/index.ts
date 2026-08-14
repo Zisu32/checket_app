@@ -5,31 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-function getSecretKey(): string {
-  const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
-
-  // 1. Wahl: JSON aus SUPABASE_SECRET_KEYS parsen
-  if (envSecretKeys) {
-    try {
-      const parsed = JSON.parse(envSecretKeys);
-      if (parsed?.default) {
-        return parsed.default;
-      }
-    } catch {
-      // Falls es kein validiertes JSON ist, sondern aus Versehen doch ein Direct-String:
-      return envSecretKeys;
-    }
-  }
-
-  // 2. Wahl: Einzelne Variable SUPABASE_SECRET_KEY
-  const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
-  if (singleSecretKey) {
-    return singleSecretKey;
-  }
-
-  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -54,7 +29,7 @@ Deno.serve(async (req) => {
     const PRIVATE_KEY = Deno.env.get('GOOGLE_PRIVATE_KEY')?.replace(/\\n/g, '\n')
 
     if (!ISSUER_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
-      throw new Error('Google Wallet configuration missing in secrets.')
+      throw new Error('Google Wallet Konfiguration fehlt.')
     }
 
     // 1. Authenticate with Google

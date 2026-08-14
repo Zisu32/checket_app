@@ -1,5 +1,3 @@
-import * as jose from "https://esm.sh"
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
