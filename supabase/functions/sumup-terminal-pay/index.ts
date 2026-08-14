@@ -35,6 +35,7 @@ Deno.serve(async (req) => {
 
     // PAYLOAD VERARBEITUNG
     const { slotId, secret } = await req.json()
+    console.log(`Slot ID: ${slotId}`)
 
     if (!slotId) {
       return new Response(
@@ -45,14 +46,11 @@ Deno.serve(async (req) => {
 
     // DATENBANK-CHECK
     const sid = Number(slotId)
-    
-    // Slot abfragen
     let query = supabase
       .from('checket_garderobe')
       .select('id, status, secret')
       .eq('id', sid)
 
-    // Falls secret mitgegeben wurde, auch dieses abgleichen
     if (secret) {
       query = query.eq('secret', secret)
     }
@@ -67,7 +65,6 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Prüfung: Ist der Slot bereits aktiv?
     if (slot.status === 'active') {
       console.log(`Checkout abgebrochen: Slot ${sid} ist bereits 'active'.`)
       return new Response(
@@ -79,19 +76,19 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 1. Get Static Credentials from Supabase Secrets
+    // SUMUP CLOUD API TRIGGER
     const API_KEY = Deno.env.get('SUMUP_API_KEY')
     const MERCHANT_CODE = Deno.env.get('SUMUP_MERCHANT_CODE')
     const AFFILIATE_KEY = Deno.env.get('SUMUP_AFFILIATE_KEY')
 
     if (!API_KEY || !MERCHANT_CODE || !AFFILIATE_KEY) {
+      console.error('SumUp secrets are missing.')
       return new Response(
         JSON.stringify({ error: 'SumUp Konfiguration fehlt in den Supabase Secrets.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // 2. Trigger Solo Terminal Checkout using Static API Key
     try {
       const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/checkouts`, {
         method: 'POST',
@@ -100,18 +97,38 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: 1.00, // Wardrobe price
+          amount: 1.00, // Standard wardrobe price
           currency: 'EUR',
           foreign_tx_id: `hook_${slotId}_${Date.now()}`,
           affiliate_key: AFFILIATE_KEY,
         }),
       })
 
-      const checkoutData = await checkoutResponse.json()
+      const rawBody = await checkoutResponse.text()
+      console.log(`SumUp Raw Response (Status ${checkoutResponse.status}):`, rawBody)
+
+      let checkoutData;
+      try {
+        checkoutData = JSON.parse(rawBody)
+      } catch (e) {
+        console.error('Failed to parse SumUp JSON response:', e)
+      }
 
       if (checkoutResponse.status !== 201) {
+        // Extract specific error details from SumUp
+        const errorMsg = checkoutData?.detail ||
+                         checkoutData?.message ||
+                         checkoutData?.error?.message ||
+                         checkoutData?.error_code ||
+                         'SumUp Terminal konnte nicht aktiviert werden.';
+
+        console.error('SumUp API Error:', errorMsg)
+
         return new Response(
-          JSON.stringify({ error: checkoutData.error?.message || 'SumUp Terminal konnte nicht aktiviert werden.' }),
+          JSON.stringify({
+            error: errorMsg,
+            raw: checkoutData
+          }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
@@ -122,6 +139,7 @@ Deno.serve(async (req) => {
       )
 
     } catch (fetchError) {
+      console.error('Fetch to SumUp failed:', fetchError)
       return new Response(
         JSON.stringify({ error: `Verbindung zu SumUp fehlgeschlagen: ${fetchError.message}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -129,6 +147,7 @@ Deno.serve(async (req) => {
     }
 
   } catch (error) {
+    console.error('Internal Function Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

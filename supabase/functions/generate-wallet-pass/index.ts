@@ -84,9 +84,9 @@ Deno.serve(async (req) => {
         genericType: "GENERIC_TYPE_UNSPECIFIED",
         hexBackgroundColor: currentStatus.color,
         logo: { sourceUri: { uri: `${baseDomain}/assets/images/logo-icon.png` } },
-        cardTitle: { defaultValue: { language: "de", value: "CHECKET" } },
-        subheader: { defaultValue: { language: "de", value: currentStatus.text } },
-        header: { defaultValue: { language: "de", value: `${ticketId}` } },
+        cardTitle: { defaultValue: { value: "CHECKET" } },
+        subheader: { defaultValue: { value: currentStatus.text } },
+        header: { defaultValue: { value: `${ticketId}` } },
         heroImage: { sourceUri: { uri: `${baseDomain}/assets/images/hero-icon.png` } }
       }
 
