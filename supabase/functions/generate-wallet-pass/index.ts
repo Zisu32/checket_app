@@ -9,7 +9,7 @@ const corsHeaders = {
 function getSecretKey(): string {
   const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
 
-  // JSON aus SUPABASE_SECRET_KEYS parsen
+  // JSON aus SUPABASE_SECRET_KEYS parsens
   if (envSecretKeys) {
     try {
       const parsed = JSON.parse(envSecretKeys);
