@@ -1,21 +1,46 @@
 import { google } from "npm:googleapis"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// SECRET HANDLING
+function getSecretKey(): string {
+  const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
+  if (envSecretKeys) {
+    try {
+      const parsed = JSON.parse(envSecretKeys);
+      if (parsed?.default) return parsed.default;
+    } catch {
+      return envSecretKeys;
+    }
+  }
+  const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
+  if (singleSecretKey) return singleSecretKey;
+  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
+    // SUPABASE CLIENT
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
+
+    const supabase = createClient(supabaseUrl, getSecretKey(), {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+
+    //PAYLOAD VERARBEITUNG
     const payload = await req.json()
     const { record, old_record } = payload
 
     console.log(`--- SYNC REQUEST START ---`)
     console.log(`Update on ticket ID: ${record.id}`)
 
-    // Only proceed if status has changed
     if (record.status === old_record?.status) {
       console.log('No status change, skipping update.')
       return new Response(JSON.stringify({ message: 'No status change' }), {
@@ -32,21 +57,13 @@ Deno.serve(async (req) => {
       throw new Error('Google Wallet Konfiguration fehlt.')
     }
 
-    // 1. Authenticate with Google
     const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: CLIENT_EMAIL,
-        private_key: PRIVATE_KEY,
-      },
+      credentials: { client_email: CLIENT_EMAIL, private_key: PRIVATE_KEY },
       scopes: ['https://www.googleapis.com/auth/wallet_object.issuer'],
     })
 
-    const walletobjects = google.walletobjects({
-      version: 'v1',
-      auth: auth,
-    })
+    const walletobjects = google.walletobjects({ version: 'v1', auth: auth })
 
-    // 2. Map Status to Pass UI
     const statusMap: Record<string, { color: string, text: string }> = {
       'unpaid': { color: '#B71C1C', text: 'Zahlung ausstehend' },
       'active': { color: '#00B58B', text: 'Jacke auf Platz aktiv' },
@@ -56,8 +73,6 @@ Deno.serve(async (req) => {
     }
     const currentStatus = statusMap[record.status] || { color: '#232F39', text: 'Status aktualisiert' }
 
-    // 3. Update the Object in Google Wallet
-    // The ID matches the one generated in generate-wallet-pass: issuerId.checket_ticketId_secret
     const resourceId = `${ISSUER_ID}.checket_${record.id}_${record.secret}`
     console.log(`Patching pass: ${resourceId} with color ${currentStatus.color}`)
 

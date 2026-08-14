@@ -1,14 +1,83 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// SECRET HANDLING
+function getSecretKey(): string {
+  const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
+  if (envSecretKeys) {
+    try {
+      const parsed = JSON.parse(envSecretKeys);
+      if (parsed?.default) return parsed.default;
+    } catch {
+      return envSecretKeys;
+    }
+  }
+  const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
+  if (singleSecretKey) return singleSecretKey;
+  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
+}
+
 Deno.serve(async (req) => {
-  // Handle CORS Preflight
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
+    // SUPABASE CLIENT
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
+    
+    const supabase = createClient(supabaseUrl, getSecretKey(), {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
+
+    // PAYLOAD VERARBEITUNG
     const { slotId, secret } = await req.json()
+
+    if (!slotId) {
+      return new Response(
+        JSON.stringify({ error: 'slotId fehlt in der Anfrage.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // DATENBANK-CHECK
+    const sid = Number(slotId)
+    
+    // Slot abfragen
+    let query = supabase
+      .from('checket_garderobe')
+      .select('id, status, secret')
+      .eq('id', sid)
+
+    // Falls secret mitgegeben wurde, auch dieses abgleichen
+    if (secret) {
+      query = query.eq('secret', secret)
+    }
+
+    const { data: slot, error: slotError } = await query.single()
+
+    if (slotError || !slot) {
+      console.error(`Database Query Error for Slot ${sid}:`, slotError?.message)
+      return new Response(
+        JSON.stringify({ error: 'Garderoben-Platz ungültig oder nicht gefunden.' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Prüfung: Ist der Slot bereits aktiv?
+    if (slot.status === 'active') {
+      console.log(`Checkout abgebrochen: Slot ${sid} ist bereits 'active'.`)
+      return new Response(
+        JSON.stringify({ 
+          error: 'Dieser Garderoben-Platz ist bereits aktiv und bezahlt.',
+          status: slot.status 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     // 1. Get Static Credentials from Supabase Secrets
     const API_KEY = Deno.env.get('SUMUP_API_KEY')

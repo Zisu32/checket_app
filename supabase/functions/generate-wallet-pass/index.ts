@@ -6,56 +6,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// SECRET HANDLING
 function getSecretKey(): string {
   const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
-
-  // JSON aus SUPABASE_SECRET_KEYS parsens
   if (envSecretKeys) {
     try {
       const parsed = JSON.parse(envSecretKeys);
-      if (parsed?.default) {
-        return parsed.default;
-      }
+      if (parsed?.default) return parsed.default;
     } catch {
-      // Falls es kein validiertes JSON ist, sondern ein Direct-String:
       return envSecretKeys;
     }
   }
-
-  // Einzelne Variable SUPABASE_SECRET_KEY
   const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
-  if (singleSecretKey) {
-    return singleSecretKey;
-  }
-
+  if (singleSecretKey) return singleSecretKey;
   throw new Error('Kein gültiger Supabase Secret Key gefunden!');
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS Preflight
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { ticketId, secret, platform, origin } = await req.json()
-    console.log(`Ticket ID: ${ticketId}`)
-    console.log(`Platform: ${platform}`)
-
-    // Initialize Supabase Admin using Best Practice helper
+    // SUPABASE CLIENT
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
 
     const supabase = createClient(supabaseUrl, getSecretKey(), {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      }
+      auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // Use passed origin
-    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
+    // PAYLOAD VERARBEITUNG
+    const { ticketId, secret, platform, origin } = await req.json()
+    console.log(`Ticket ID: ${ticketId}, Platform: ${platform}`)
 
-    // Validate Ticket
+    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
     const tid = Number(ticketId)
+
     const { data: slot, error: slotError } = await supabase
       .from('checket_garderobe')
       .select('id, status, secret')
@@ -75,7 +60,6 @@ Deno.serve(async (req) => {
 
     console.log(`Validation Success: Slot ${slot.id} is in status ${slot.status}`)
 
-    // Helper for Status Coloring & Text
     const statusMap: Record<string, { color: string, text: string }> = {
       'unpaid': { color: '#B71C1C', text: 'Zahlung ausstehend' },
       'active': { color: '#00B58B', text: 'Jacke auf Platz aktiv' },
@@ -94,41 +78,26 @@ Deno.serve(async (req) => {
         throw new Error('Google Wallet Konfiguration fehlt in den Supabase Secrets.')
       }
 
-      // 3. Define the Pass Object
       const genericObject = {
         id: `${ISSUER_ID}.checket_${ticketId}_${secret}`,
         classId: `${ISSUER_ID}.checket_ticket_v1`,
         genericType: "GENERIC_TYPE_UNSPECIFIED",
         hexBackgroundColor: currentStatus.color,
-        logo: {
-          sourceUri: { uri: `${baseDomain}/assets/images/logo-icon.png` },
-        },
-        cardTitle: {
-          defaultValue: { language: "de", value: "CHECKET" },
-        },
-        subheader: {
-          defaultValue: { language: "de", value: currentStatus.text },
-        },
-        header: {
-          defaultValue: { language: "de", value: `${ticketId}` },
-        },
-        heroImage: {
-          sourceUri: { uri: `${baseDomain}/assets/images/hero-icon.png` }
-        }
+        logo: { sourceUri: { uri: `${baseDomain}/assets/images/logo-icon.png` } },
+        cardTitle: { defaultValue: { language: "de", value: "CHECKET" } },
+        subheader: { defaultValue: { language: "de", value: currentStatus.text } },
+        header: { defaultValue: { language: "de", value: `${ticketId}` } },
+        heroImage: { sourceUri: { uri: `${baseDomain}/assets/images/hero-icon.png` } }
       }
 
-      // 4. Create JWT Claims
       const claims = {
         iss: CLIENT_EMAIL,
         aud: "google",
         typ: "savetowallet",
         iat: Math.floor(Date.now() / 1000),
-        payload: {
-          genericObjects: [genericObject],
-        },
+        payload: { genericObjects: [genericObject] },
       }
 
-      // 5. Sign JWT
       const key = await jose.importPKCS8(PRIVATE_KEY, "RS256")
       const jwt = await new jose.SignJWT(claims)
         .setProtectedHeader({ alg: "RS256" })
@@ -140,7 +109,6 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Apple Implementation (Future)
     return new Response(
       JSON.stringify({ error: 'Apple Wallet erfordert Zertifikat-Signierung (PKPass).' }),
       { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
