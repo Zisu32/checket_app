@@ -47,27 +47,41 @@ Deno.serve(async (req) => {
 
     // List Terminals
     if (action === 'list-status') {
-      console.log('Action: list-status. Fetching all readers from SumUp...')
-      const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
-        headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'Accept': 'application/json'
-        }
-      })
+      console.log(`Action: list-status. Merchant: ${MERCHANT_CODE}`)
 
-      const rawBody = await readersRes.text()
-      console.log('SumUp List Readers Raw Response:', rawBody)
+      const headers = {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Accept': 'application/json'
+      }
+
+      // Try Endpoint A: Merchant-specific
+      const resA = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, { headers })
+      const bodyA = await resA.text()
+      console.log('SumUp List A (Merchant) Raw:', bodyA)
+
+      // Try Endpoint B: Global
+      const resB = await fetch(`https://api.sumup.com/v0.1/readers`, { headers })
+      const bodyB = await resB.text()
+      console.log('SumUp List B (Global) Raw:', bodyB)
 
       let readers = []
       try {
-        const readersData = JSON.parse(rawBody)
-        // SumUp Cloud API returns readers in an "items" array.
-        readers = readersData.items || readersData.readers || (Array.isArray(readersData) ? readersData : [])
+        const dataA = JSON.parse(bodyA)
+        const dataB = JSON.parse(bodyB)
+
+        const listA = dataA.items || dataA.readers || (Array.isArray(dataA) ? dataA : [])
+        const listB = dataB.items || dataB.readers || (Array.isArray(dataB) ? dataB : [])
+
+        // Merge and deduplicate by ID
+        const combined = [...listA, ...listB]
+        const unique = new Map()
+        combined.forEach(r => { if (r && r.id) unique.set(r.id, r) })
+        readers = Array.from(unique.values())
       } catch (e) {
-        console.error('Failed to parse SumUp JSON response:', e)
+        console.error('JSON Merge Error:', e)
       }
 
-      console.log(`Parsed ${readers.length} readers.`)
+      console.log(`Final unique readers count: ${readers.length}`)
 
       const { data: assignments, error: dbError } = await supabase
         .from('checket_terminal_assignments')
