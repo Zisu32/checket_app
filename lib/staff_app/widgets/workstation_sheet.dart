@@ -1,0 +1,174 @@
+import 'package:flutter/material.dart';
+import '../../shared/theme/app_theme.dart';
+import '../../shared/services/sumup_service.dart';
+
+class WorkstationSheet extends StatefulWidget {
+  final String? initialName;
+  final String? initialReaderId;
+  final List<dynamic> allReaders;
+  final List<dynamic> assignments;
+
+  const WorkstationSheet({
+    super.key,
+    this.initialName,
+    this.initialReaderId,
+    required this.allReaders,
+    required this.assignments,
+  });
+
+  @override
+  State<WorkstationSheet> createState() => _WorkstationSheetState();
+}
+
+class _WorkstationSheetState extends State<WorkstationSheet> {
+  late TextEditingController _nameController;
+  bool _showTerminalSelection = false;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _showTerminalSelection ? 'SumUp Terminal hinzufügen' : 'Neuer Arbeitsplatz',
+            style: const TextStyle(
+              fontSize: AppTheme.medium,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.white,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
+          const SizedBox(height: 24),
+          if (!_showTerminalSelection) _buildNamingStep() else _buildTerminalStep(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNamingStep() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _nameController,
+                autofocus: true,
+                style: const TextStyle(color: AppTheme.white),
+                decoration: const InputDecoration(
+                  hintText: 'Z.B. Tresen Mitte',
+                  hintStyle: TextStyle(color: Colors.white24),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            AppTheme.buildPrimaryButton(
+              text: 'Weiter',
+              color: AppTheme.active,
+              width: 100,
+              onTap: () {
+                if (_nameController.text.isNotEmpty) {
+                  setState(() => _showTerminalSelection = true);
+                }
+              },
+            ),
+          ],
+        ),
+        if (widget.initialReaderId != null) ...[
+          const SizedBox(height: 24),
+          AppTheme.buildPrimaryButton(
+            text: 'Löschen',
+            color: AppTheme.unpaid,
+            onTap: () async {
+              setState(() => _isSaving = true);
+              try {
+                await SumUpService().removeAssignment(widget.initialReaderId!);
+                if (mounted) Navigator.pop(context, true);
+              } catch (e) {
+                _showError(e.toString());
+              } finally {
+                if (mounted) setState(() => _isSaving = false);
+              }
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildTerminalStep() {
+    final assignedIds = widget.assignments.map((a) => a['reader_id']).toSet();
+    final availableReaders = widget.allReaders.where((r) {
+      // If we are editing, the current reader is also "available" for this workstation
+      if (widget.initialReaderId != null && r['id'] == widget.initialReaderId) return true;
+      return !assignedIds.contains(r['id']);
+    }).toList();
+
+    if (availableReaders.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Text('Keine freien Terminals gefunden.', style: TextStyle(color: AppTheme.white)),
+      );
+    }
+
+    return Flexible(
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: availableReaders.length,
+        itemBuilder: (context, index) {
+          final reader = availableReaders[index];
+          final name = reader['name'] ?? 'Unbekanntes Solo';
+
+          return ListTile(
+            leading: const Icon(Icons.tablet_android, color: AppTheme.active),
+            title: Text(name, style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small)),
+            subtitle: Text(reader['id'], style: const TextStyle(color: AppTheme.free, fontSize: 12)),
+            trailing: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : null,
+            onTap: _isSaving ? null : () async {
+              setState(() => _isSaving = true);
+              try {
+                await SumUpService().assignTerminal(_nameController.text, reader['id'], name);
+                if (mounted) Navigator.pop(context, true);
+              } catch (e) {
+                _showError(e.toString());
+              } finally {
+                if (mounted) setState(() => _isSaving = false);
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _showError(String msg) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler: $msg'), backgroundColor: AppTheme.unpaid),
+      );
+    }
+  }
+}
