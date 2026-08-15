@@ -18,19 +18,13 @@ function getSecretKey(): string {
   }
   const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
   if (singleSecretKey) return singleSecretKey;
-
-  // Legacy Fallback
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (serviceRoleKey) return serviceRoleKey;
-
-  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    // 1. SUPABASE CLIENT
+    // SUPABASE CLIENT
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
     
@@ -38,11 +32,11 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // 2. PAYLOAD
+    // PAYLOAD
     const body = await req.json()
     const { action = 'pay', slotId, secret, readerId, stationName, readerName } = body
 
-    // 3. SUMUP CREDENTIALS
+    // SUMUP CREDENTIALS
     const API_KEY = Deno.env.get('SUMUP_API_KEY')
     const MERCHANT_CODE = Deno.env.get('SUMUP_MERCHANT_CODE')
     const AFFILIATE_KEY = Deno.env.get('SUMUP_AFFILIATE_KEY')
@@ -51,7 +45,7 @@ Deno.serve(async (req) => {
       throw new Error('SumUp Konfiguration fehlt.')
     }
 
-    // --- ACTION: LIST STATUS ---
+    // List Terminals
     if (action === 'list-status') {
       const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
         headers: { 'Authorization': `Bearer ${API_KEY}` }
@@ -69,7 +63,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    // --- ACTION: ASSIGN ---
+    // Assign Terminals
     if (action === 'assign') {
       if (!readerId || !stationName || !readerName) throw new Error('Daten fehlen.')
       const { error } = await supabase
@@ -80,7 +74,7 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
-    // --- ACTION: REMOVE ---
+    // Remove Terminals
     if (action === 'remove') {
       if (!readerId) throw new Error('readerId fehlt.')
       const { error } = await supabase
@@ -92,14 +86,14 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
-    // --- ACTION: PAY ---
+    // PAY
     if (action === 'pay') {
       // Validation
       const sid = Number(slotId)
       const { data: slot } = await supabase.from('checket_garderobe').select('status').eq('id', sid).single()
       if (slot?.status === 'active') throw new Error('Bereits bezahlt.')
 
-      // Target Reader resolution
+      // Target Reader
       let targetReaderId = readerId
       if (!targetReaderId) {
         // Fallback to auto-discovery
