@@ -84,7 +84,7 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
                   hintText: 'z.B. Tresen Mitte',
                   hintStyle: TextStyle(color: Colors.white24),
                   enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.white)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
                 ),
               ),
             ),
