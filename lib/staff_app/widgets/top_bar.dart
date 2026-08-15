@@ -71,6 +71,13 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       automaticallyImplyLeading: false,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.settings_outlined, color: AppTheme.background, size: 26),
+          onPressed: () => Navigator.pushNamed(context, '/settings'),
+        ),
+        const SizedBox(width: 8),
+      ],
     );
   }
 }

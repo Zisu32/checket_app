@@ -18,6 +18,11 @@ function getSecretKey(): string {
   }
   const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
   if (singleSecretKey) return singleSecretKey;
+
+  // Legacy Fallback
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (serviceRoleKey) return serviceRoleKey;
+
   throw new Error('Kein gültiger Supabase Secret Key gefunden!');
 }
 
@@ -25,7 +30,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    // SUPABASE CLIENT
+    // 1. SUPABASE CLIENT
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
     
@@ -33,124 +38,109 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false }
     })
 
-    // PAYLOAD VERARBEITUNG
-    const { slotId, secret } = await req.json()
-    console.log(`Slot ID: ${slotId}`)
+    // 2. PAYLOAD
+    const body = await req.json()
+    const { action = 'pay', slotId, secret, readerId, stationName, readerName } = body
 
-    if (!slotId) {
-      return new Response(
-        JSON.stringify({ error: 'slotId fehlt in der Anfrage.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // DATENBANK-CHECK
-    const sid = Number(slotId)
-    let query = supabase
-      .from('checket_garderobe')
-      .select('id, status, secret')
-      .eq('id', sid)
-
-    if (secret) {
-      query = query.eq('secret', secret)
-    }
-
-    const { data: slot, error: slotError } = await query.single()
-
-    if (slotError || !slot) {
-      console.error(`Database Query Error for Slot ${sid}:`, slotError?.message)
-      return new Response(
-        JSON.stringify({ error: 'Garderoben-Platz ungültig oder nicht gefunden.' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    if (slot.status === 'active') {
-      console.log(`Checkout abgebrochen: Slot ${sid} ist bereits 'active'.`)
-      return new Response(
-        JSON.stringify({ 
-          error: 'Dieser Garderoben-Platz ist bereits aktiv und bezahlt.',
-          status: slot.status 
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // SUMUP CLOUD API TRIGGER
+    // 3. SUMUP CREDENTIALS
     const API_KEY = Deno.env.get('SUMUP_API_KEY')
     const MERCHANT_CODE = Deno.env.get('SUMUP_MERCHANT_CODE')
     const AFFILIATE_KEY = Deno.env.get('SUMUP_AFFILIATE_KEY')
 
     if (!API_KEY || !MERCHANT_CODE || !AFFILIATE_KEY) {
-      console.error('SumUp secrets are missing.')
-      return new Response(
-        JSON.stringify({ error: 'SumUp Konfiguration fehlt in den Supabase Secrets.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      throw new Error('SumUp Konfiguration fehlt.')
     }
 
-    try {
-      const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/checkouts`, {
+    // --- ACTION: LIST STATUS ---
+    if (action === 'list-status') {
+      const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
+        headers: { 'Authorization': `Bearer ${API_KEY}` }
+      })
+      const readersData = await readersRes.json()
+      const readers = readersData.readers || []
+
+      const { data: assignments } = await supabase
+        .from('checket_terminal_assignments')
+        .select('*')
+
+      return new Response(JSON.stringify({ readers, assignments }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
+    }
+
+    // --- ACTION: ASSIGN ---
+    if (action === 'assign') {
+      if (!readerId || !stationName || !readerName) throw new Error('Daten fehlen.')
+      const { error } = await supabase
+        .from('checket_terminal_assignments')
+        .upsert({ reader_id: readerId, station_name: stationName, reader_name: readerName, updated_at: new Date().toISOString() })
+
+      if (error) throw error
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
+    }
+
+    // --- ACTION: REMOVE ---
+    if (action === 'remove') {
+      if (!readerId) throw new Error('readerId fehlt.')
+      const { error } = await supabase
+        .from('checket_terminal_assignments')
+        .delete()
+        .eq('reader_id', readerId)
+
+      if (error) throw error
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
+    }
+
+    // --- ACTION: PAY ---
+    if (action === 'pay') {
+      // Validation
+      const sid = Number(slotId)
+      const { data: slot } = await supabase.from('checket_garderobe').select('status').eq('id', sid).single()
+      if (slot?.status === 'active') throw new Error('Bereits bezahlt.')
+
+      // Target Reader resolution
+      let targetReaderId = readerId
+      if (!targetReaderId) {
+        // Fallback to auto-discovery
+        const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
+          headers: { 'Authorization': `Bearer ${API_KEY}` }
+        })
+        const readersData = await readersRes.json()
+        const readers = readersData.readers || []
+        targetReaderId = readers.find((r: any) => r.status === 'paired')?.id || readers[0]?.id
+      }
+
+      if (!targetReaderId) throw new Error('Kein Terminal gefunden.')
+
+      const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/${targetReaderId}/checkout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: 1.00, // Standard wardrobe price
-          currency: 'EUR',
+          total_amount: { currency: 'EUR', minor_unit: 2, value: 250 },
           foreign_tx_id: `hook_${slotId}_${Date.now()}`,
           affiliate_key: AFFILIATE_KEY,
         }),
       })
 
-      const rawBody = await checkoutResponse.text()
-      console.log(`SumUp Raw Response (Status ${checkoutResponse.status}):`, rawBody)
+      const checkoutData = await checkoutResponse.json()
+      if (checkoutResponse.status !== 201) throw new Error(checkoutData?.detail || 'Fehler.')
 
-      let checkoutData;
-      try {
-        checkoutData = JSON.parse(rawBody)
-      } catch (e) {
-        console.error('Failed to parse SumUp JSON response:', e)
-      }
-
-      if (checkoutResponse.status !== 201) {
-        // Extract specific error details from SumUp
-        const errorMsg = checkoutData?.detail ||
-                         checkoutData?.message ||
-                         checkoutData?.error?.message ||
-                         checkoutData?.error_code ||
-                         'SumUp Terminal konnte nicht aktiviert werden.';
-
-        console.error('SumUp API Error:', errorMsg)
-
-        return new Response(
-          JSON.stringify({
-            error: errorMsg,
-            raw: checkoutData
-          }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      return new Response(
-        JSON.stringify({ success: true, checkout: checkoutData }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-
-    } catch (fetchError) {
-      console.error('Fetch to SumUp failed:', fetchError)
-      return new Response(
-        JSON.stringify({ error: `Verbindung zu SumUp fehlgeschlagen: ${fetchError.message}` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify({ success: true, checkout: checkoutData }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
     }
 
+    throw new Error('Ungültige Action.')
+
   } catch (error) {
-    console.error('Internal Function Error:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
 })

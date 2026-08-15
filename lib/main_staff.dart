@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'staff_app/views/staff_view.dart';
 import 'staff_app/views/qr_display_view.dart';
+import 'staff_app/views/settings_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';
 import 'widgets/splash.dart';
@@ -80,6 +81,10 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
               secret: params.secret
             ),
           );
+        }
+
+        if (settings.name == '/settings') {
+          return MaterialPageRoute(builder: (_) => const SettingsView());
         }
         
         return MaterialPageRoute(builder: (_) => const StaffView());
