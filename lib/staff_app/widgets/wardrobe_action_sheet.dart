@@ -51,21 +51,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                   color: AppTheme.white,
                 ),
               ),
-              const SizedBox(height: 16),
-              if (slot.status == 'active' || slot.status == 'temporary' || slot.status == 'forgotten') ...[
-                Center(
-                  child: AppTheme.buildPrimaryButton(
-                    text: 'Ticket wiederherstellen',
-                    color: AppTheme.active,
-                    onTap: () {
-                      widget.onSyncMonitor(-1, 'recovery');
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               const Divider(height: 24, indent: 20, endIndent: 20, color: AppTheme.surface),
               const SizedBox(height: 8),
               if (slot.status == 'free')
@@ -111,7 +97,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Fehler: $e'), backgroundColor: AppTheme.unpaid)
+                          SnackBar(content: Text('Fehler: $e'), backgroundColor: AppTheme.unpaid, color: AppTheme.white)
                         );
                       }
                     } finally {
