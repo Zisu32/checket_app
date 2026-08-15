@@ -49,13 +49,25 @@ Deno.serve(async (req) => {
     if (action === 'list-status') {
       console.log('Action: list-status. Fetching all readers from SumUp...')
       const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
-        headers: { 'Authorization': `Bearer ${API_KEY}` }
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Accept': 'application/json'
+        }
       })
-      const readersData = await readersRes.json()
 
-      // SumUp Cloud API returns readers in an "items" array.
-      const readers = readersData.items || []
-      console.log(`Found ${readers.length} readers in SumUp account.`)
+      const rawBody = await readersRes.text()
+      console.log('SumUp List Readers Raw Response:', rawBody)
+
+      let readers = []
+      try {
+        const readersData = JSON.parse(rawBody)
+        // SumUp Cloud API returns readers in an "items" array.
+        readers = readersData.items || readersData.readers || (Array.isArray(readersData) ? readersData : [])
+      } catch (e) {
+        console.error('Failed to parse SumUp JSON response:', e)
+      }
+
+      console.log(`Parsed ${readers.length} readers.`)
 
       const { data: assignments, error: dbError } = await supabase
         .from('checket_terminal_assignments')
