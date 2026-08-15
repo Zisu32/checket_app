@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       const bodyA = await resA.text()
       console.log('SumUp List A (Merchant) Raw:', bodyA)
 
-      // Try Endpoint B: Global
+      // Try Endpoint B: Globale
       const resB = await fetch(`https://api.sumup.com/v0.1/readers`, { headers })
       const bodyB = await resB.text()
       console.log('SumUp List B (Global) Raw:', bodyB)
