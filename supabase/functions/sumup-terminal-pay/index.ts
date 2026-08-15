@@ -47,17 +47,23 @@ Deno.serve(async (req) => {
 
     // List Terminals
     if (action === 'list-status') {
+      console.log('Action: list-status. Fetching all readers from SumUp...')
       const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
         headers: { 'Authorization': `Bearer ${API_KEY}` }
       })
       const readersData = await readersRes.json()
-      const readers = readersData.readers || []
 
-      const { data: assignments } = await supabase
+      // SumUp Cloud API returns readers in an "items" array.
+      const readers = readersData.items || []
+      console.log(`Found ${readers.length} readers in SumUp account.`)
+
+      const { data: assignments, error: dbError } = await supabase
         .from('checket_terminal_assignments')
         .select('*')
 
-      return new Response(JSON.stringify({ readers, assignments }), {
+      if (dbError) console.error('Database fetch error:', dbError.message)
+
+      return new Response(JSON.stringify({ readers, assignments: assignments || [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
@@ -97,11 +103,12 @@ Deno.serve(async (req) => {
       let targetReaderId = readerId
       if (!targetReaderId) {
         // Fallback to auto-discovery
+        console.log('No readerId provided, attempting auto-discovery...')
         const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
           headers: { 'Authorization': `Bearer ${API_KEY}` }
         })
         const readersData = await readersRes.json()
-        const readers = readersData.readers || []
+        const readers = readersData.items || []
         targetReaderId = readers.find((r: any) => r.status === 'paired')?.id || readers[0]?.id
       }
 
