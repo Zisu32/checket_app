@@ -97,7 +97,8 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Fehler: $e'), backgroundColor: AppTheme.unpaid, textColor: AppTheme.white)
+                          SnackBar(content: Text ('Fehler: $e', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)),
+                              backgroundColor: AppTheme.unpaid)
                         );
                       }
                     } finally {
