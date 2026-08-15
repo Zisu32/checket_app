@@ -60,7 +60,10 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
           const SizedBox(height: 16),
           const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
           const SizedBox(height: 24),
-          if (!_showTerminalSelection) _buildNamingStep() else _buildTerminalStep(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: !_showTerminalSelection ? _buildNamingStep() : _buildTerminalStep(),
+          ),
         ],
       ),
     );
@@ -75,12 +78,13 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
               child: TextField(
                 controller: _nameController,
                 autofocus: true,
+                cursorColor: AppTheme.white,
                 style: const TextStyle(color: AppTheme.white),
                 decoration: const InputDecoration(
-                  hintText: 'Z.B. Tresen Mitte',
+                  hintText: 'z.B. Tresen Mitte',
                   hintStyle: TextStyle(color: Colors.white24),
                   enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.white)),
                 ),
               ),
             ),

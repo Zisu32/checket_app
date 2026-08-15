@@ -5,6 +5,7 @@ import 'staff_app/views/qr_display_view.dart';
 import 'staff_app/views/settings_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';
+import 'shared/theme/app_theme.dart';
 import 'widgets/splash.dart';
 import 'widgets/error.dart';
 import 'widgets/fatal_error.dart';
@@ -52,7 +53,13 @@ class _ChecketStaffAppState extends State<ChecketStaffApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Checket Staff',
-      theme: ThemeData.dark(),
+      theme: ThemeData.dark().copyWith(
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: AppTheme.white,
+          selectionColor: AppTheme.white,
+          selectionHandleColor: AppTheme.white,
+        ),
+      ),
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
         return FutureBuilder(
