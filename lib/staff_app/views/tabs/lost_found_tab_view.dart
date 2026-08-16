@@ -79,7 +79,7 @@ class LostFoundTabView extends StatelessWidget {
                         text: 'Aushändigen',
                         color: AppTheme.active,
                         onTap: () => syncService.handOverLostItem(item),
-                        width: 100,
+                        width: 150,
                       ),
                     ),
                   );

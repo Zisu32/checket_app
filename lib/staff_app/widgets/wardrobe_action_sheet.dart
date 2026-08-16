@@ -61,6 +61,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                   children: [
                     if (slot.status == 'free')
                       ListTile(
+                        contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.add_box, color: AppTheme.active),
                         title: const Text('Jacke einchecken', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)),
                         onTap: () async {
@@ -79,6 +80,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                       ),
                     if (slot.status == 'unpaid') ...[
                       ListTile(
+                        contentPadding: EdgeInsets.zero,
                         leading: _isProcessingSumUp 
                           ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.active))
                           : const Icon(Icons.contactless_outlined, color: AppTheme.active),
@@ -146,6 +148,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                         },
                       ),
                       ListTile(
+                        contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.euro, color: AppTheme.secret),
                         title: const Text('Bar bezahlen', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)),
                         onTap: () async {
@@ -159,6 +162,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                     if (slot.status == 'active' || slot.status == 'temporary') ...[
                       if (slot.status == 'active')
                         ListTile(
+                          contentPadding: EdgeInsets.zero,
                           leading: const Icon(Icons.pause, color: AppTheme.temporary),
                           title: const Text('Temporärer Ausgang', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)),
                           onTap: () async {
@@ -170,6 +174,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                         )
                       else
                         ListTile(
+                          contentPadding: EdgeInsets.zero,
                           leading: const Icon(Icons.play_arrow, color: AppTheme.active),
                           title: const Text('Wieder zurück', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)),
                           onTap: () async {
@@ -180,6 +185,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                           },
                         ),
                       ListTile(
+                        contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.logout, color: AppTheme.free),
                         title: const Text('Endgültig auschecken', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)),
                         onTap: () async {

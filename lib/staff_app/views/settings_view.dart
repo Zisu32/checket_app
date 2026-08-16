@@ -187,7 +187,7 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
                   AppTheme.buildPrimaryButton(
                     text: 'Bearbeiten',
                     color: AppTheme.active,
-                    width: null,
+                    width: 150,
                     height: 40,
                     onTap: () => _openWorkstationSheet(
                       name: asg['station_name'],
@@ -203,19 +203,49 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
                     onTap: () async {
                       final confirm = await showDialog<bool>(
                         context: context,
-                        builder: (ctx) => AlertDialog(
-                          backgroundColor: AppTheme.background,
-                          title: const Text('Arbeitsplatz löschen?', style: TextStyle(color: AppTheme.white)),
-                          content: const Text('Möchtest du diesen Arbeitsplatz wirklich entfernen?', style: TextStyle(color: AppTheme.white)),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Abbrechen')),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.unpaid),
-                              onPressed: () => Navigator.pop(ctx, true),
-                              child: const Text('Löschen'),
+                          builder: (ctx) => AlertDialog(
+                            backgroundColor: AppTheme.background,
+                            title: Row(
+                              children: [
+                                const Icon(Icons.close, color: AppTheme.white, size: AppTheme.medium),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: const Text(
+                                      'Arbeitsplatz löschen?',
+                                      style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                            content: const Text(
+                              'Möchtest du diesen Arbeitsplatz wirklich entfernen?',
+                              style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white),
+                            ),
+                            actionsAlignment: MainAxisAlignment.center,
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text(
+                                  'Abbrechen',
+                                  style: TextStyle(
+                                    color: AppTheme.free,
+                                    fontSize: AppTheme.small,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              AppTheme.buildPrimaryButton(
+                                text: 'Löschen',
+                                color: AppTheme.unpaid,
+                                onTap: () => Navigator.pop(ctx, true),
+                                width: 100,
+                              ),
+                            ],
+                          ),
                       );
                       if (confirm == true) {
                         await _sumUpService.removeAssignment(asg['reader_id']);
