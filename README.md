@@ -11,7 +11,7 @@ Checket ist ein digitales Garderoben-Management-System, das physische Garderoben
 * **Local-First Sync**: Volle Offline-Fähigkeit durch lokalen Drift-Cache; automatischer Hintergrund-Abgleich mit Supabase Realtime.
 * **Sicherheits-Check**: Integrierte Sperre am Schichtende, falls noch unbezahlte Jacken im System sind.
 * **SumUp Cloud Integration**: Direkte Ansteuerung des **SumUp Solo** Terminals über das Dashboard (Cloud API).
-* **Multi-Terminal Support**: Zuweisung spezifischer Terminals zu verschiedenen Arbeitsstationen (z.B. "Tresen Links", "Eingang") inklusive Verfügbarkeitsprüfung.
+* **Arbeitsplatz- & Terminal-Management**: Jeder Arbeistplatz kann einem SumUp-Terminal zugewiesen werden.
 * **Zur Wallet-Hinzufügen**: Webticket kann zur Wallet hinzugefügt werden, sodass eine Push-Benachrichtigung gesendet werden kann, falls der Kunde die Jacke vergisst.
 
 ---
@@ -43,9 +43,9 @@ Checket nutzt eine **Split-App-Architektur**, bei der zwei spezialisierte Flutte
 #### `widgets/` : Globale UI-Widgets, die beide Apps beim Booten teilen.
 
 #### `staff_app/` Workspace für Mitarbeiter
-*   **`views/`**: Die Hauptbildschirme.
-*   **`views/tabs/`**: Die Tab-Views der Navbar.
-*   **`widgets/`**: Spezifische Bedienelemente.
+*   **`views/`**: Die Hauptbildschirme (`staff_view.dart`, `qr_display_view.dart`, `settings_view.dart`).
+*   **`views/tabs/`**: Die Tab-Views der Navbar (`dashboard_tab_view.dart`, `lost_found_tab_view.dart`, `session_end_tab_view.dart`).
+*   **`widgets/`**: Spezifische Bedienelemente (`workstation_sheet.dart`, `top_bar.dart`, `wardrobe_action_sheet.dart`).
 
 #### `customer_app/` Gäste-Portal
 *   **`views/`**: Der Einstiegspunkt für Kunden.
@@ -99,9 +99,16 @@ Aus Sicherheitsgründen wird der Zahlbetrag für die Garderobe ausschließlich i
 
 Um den Preis zu ändern:
 1.  Öffne die Datei: `supabase/functions/sumup-terminal-pay/index.ts`.
-2.  Suche die Zeile `amount:`.
+2.  Suche die Zeile `total_amount:`.
 3.  Ändere den Wert und speichere die Datei.
-4.  Push den Code zu GitHub. Das Deployment erfolgt automatisch (siehe unten).
+4.  Push den Code zu GitHub für die Änderung.
+
+### 5. Arbeitsplätze zuweisen
+Nachdem die SumUp-Terminals gekoppelt sind, müssen in der Mitarbeiter-App die Arbeitsplätze zugewiesen werden:
+1.  Öffne das Dashboard und klicke auf das **Zahnrad-Icon**.
+2.  Erstelle einen **Neuen Arbeitsplatz** (z.B. "Tresen Rechts").
+3.  Wähle das passende SumUp-Gerät aus der Liste der verfügbaren Terminals aus.
+4.  Klicke bei der gewünschten Station auf **Aktivieren**, damit das aktuelle Tablet Zahlungen an dieses Gerät sendet.
 
 ---
 

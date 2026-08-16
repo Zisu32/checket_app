@@ -195,20 +195,9 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
                         context: context,
                           builder: (ctx) => AlertDialog(
                             backgroundColor: AppTheme.background,
-                            title: Row(
-                              children: [
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    alignment: Alignment.centerLeft,
-                                    child: const Text(
-                                      'Arbeitsplatz löschen?',
-                                      style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            title: const Text(
+                              'Arbeitsplatz löschen?',
+                              style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
                             ),
                             content: const Text(
                               'Möchtest du diesen Arbeitsplatz wirklich entfernen?',

@@ -19,7 +19,7 @@ class AppTheme {
   static const Color shadow = Color(0xff000000);
 
   // Font Sizes
-  static const double xsmall = 11.0;
+  static const double xsmall = 12.0;
   static const double small = 16.0;
   static const double medium = 25.0;
   static const double large = 32.0;
@@ -30,17 +30,14 @@ class AppTheme {
     IconData? icon,
     required Color color,
     required VoidCallback onTap,
-    double? width,
-    double height = 40,
   }) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
         foregroundColor: white,
         elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        minimumSize: Size(width ?? 0, height),
-        fixedSize: width != null ? Size(width, height) : null,
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        minimumSize: const Size(0, 40),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),

@@ -87,20 +87,9 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppTheme.background,
-        title: Row(
-          children: [
-            const SizedBox(width: 12),
-            Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Schichtende nicht möglich!',
-                  style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
-                ),
-              ),
-            ),
-          ],
+        title: const Text(
+          'Schichtende nicht möglich!',
+          style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
         ),
         content: const Text(
           'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
