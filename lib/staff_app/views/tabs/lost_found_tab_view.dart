@@ -68,18 +68,17 @@ class LostFoundTabView extends StatelessWidget {
                         child: Center(child: Text('${item.originalSlotId}',
                             style: const TextStyle(color: AppTheme.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18))),
+                                fontSize: AppTheme.small))),
                       ),
                       title: const Text('Platz', style: TextStyle(
                           color: AppTheme.white, fontSize: AppTheme.small)),
                       subtitle: Text(
                           '$tag.$monat.$jahr', style: const TextStyle(
-                          color: AppTheme.free, fontSize: AppTheme.small)),
+                          color: AppTheme.free, fontSize: AppTheme.xsmall)),
                       trailing: AppTheme.buildPrimaryButton(
                         text: 'Aushändigen',
                         color: AppTheme.active,
                         onTap: () => syncService.handOverLostItem(item),
-                        width: 150,
                       ),
                     ),
                   );

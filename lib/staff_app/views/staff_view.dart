@@ -89,14 +89,13 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
         backgroundColor: AppTheme.background,
         title: Row(
           children: [
-            const Icon(Icons.loop, color: AppTheme.white, size: AppTheme.medium),
             const SizedBox(width: 12),
             Expanded(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: const Text(
-                  'Schichtende nicht möglich',
+                  'Schichtende nicht möglich!',
                   style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
                 ),
               ),
@@ -113,7 +112,6 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
             text: 'Okay',
             color: AppTheme.active,
             onTap: () => Navigator.pop(dialogContext),
-            width: 100,
           ),
         ],
       ),

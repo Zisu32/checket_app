@@ -90,7 +90,6 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
         AppTheme.buildPrimaryButton(
           text: 'Weiter',
           color: AppTheme.active,
-          width: 100,
           onTap: () {
             if (_nameController.text.isNotEmpty) {
               FocusScope.of(context).unfocus();

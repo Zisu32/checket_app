@@ -166,39 +166,29 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
               ),
               subtitle: Text(
                 '${asg['reader_name']}',
-                style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
+                style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.xsmall),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!isCurrent)
-                    TextButton(
-                      onPressed: () {
-                        _sumUpService.setLocalStation(asg['station_name'], asg['reader_id']);
-                        setState(() {});
-                      },
-                      child: const Text('Aktivieren', style: TextStyle(color: AppTheme.active, fontWeight: FontWeight.bold)),
-                    )
-                  else
-                    const Padding(
-                      padding: EdgeInsets.only(right: 8.0),
-                      child: Icon(Icons.check_circle, color: AppTheme.active, size: 24),
-                    ),
                   AppTheme.buildPrimaryButton(
-                    text: 'Bearbeiten',
+                    text: isCurrent ? 'Bearbeiten' : 'Aktivieren',
                     color: AppTheme.active,
-                    width: 150,
-                    height: 40,
-                    onTap: () => _openWorkstationSheet(
-                      name: asg['station_name'],
-                      readerId: asg['reader_id'],
-                    ),
+                    onTap: isCurrent
+                        ? () => _openWorkstationSheet(
+                              name: asg['station_name'],
+                              readerId: asg['reader_id'],
+                            )
+                        : () {
+                            _sumUpService.setLocalStation(
+                                asg['station_name'], asg['reader_id']);
+                            setState(() {});
+                          },
                   ),
                   const SizedBox(width: 8),
                   AppTheme.buildPrimaryButton(
                     icon: Icons.close,
                     color: AppTheme.unpaid,
-                    width: 40,
                     height: 40,
                     onTap: () async {
                       final confirm = await showDialog<bool>(
@@ -207,7 +197,6 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
                             backgroundColor: AppTheme.background,
                             title: Row(
                               children: [
-                                const Icon(Icons.close, color: AppTheme.white, size: AppTheme.medium),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: FittedBox(
@@ -242,7 +231,6 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
                                 text: 'Löschen',
                                 color: AppTheme.unpaid,
                                 onTap: () => Navigator.pop(ctx, true),
-                                width: 100,
                               ),
                             ],
                           ),

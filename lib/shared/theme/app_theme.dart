@@ -30,33 +30,31 @@ class AppTheme {
     IconData? icon,
     required Color color,
     required VoidCallback onTap,
-    double? width = 220,
+    double? width,
     double height = 40,
   }) {
-    return SizedBox(
-      width: width,
-      height: height,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: white,
-          elevation: 0,
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        minimumSize: Size(width ?? 0, height),
+        fixedSize: width != null ? Size(width, height) : null,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        onPressed: onTap,
-        child: icon != null
-            ? Icon(icon, color: white, size: 20)
-            : Text(
-                text ?? '',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: small,
-                ),
-              ),
       ),
+      onPressed: onTap,
+      child: icon != null
+          ? Icon(icon, color: white, size: 20)
+          : Text(
+              text ?? '',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: small,
+              ),
+            ),
     );
   }
 }
