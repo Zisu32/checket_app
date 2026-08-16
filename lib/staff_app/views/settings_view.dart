@@ -189,7 +189,6 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
                   AppTheme.buildPrimaryButton(
                     icon: Icons.close,
                     color: AppTheme.unpaid,
-                    height: 40,
                     onTap: () async {
                       final confirm = await showDialog<bool>(
                         context: context,
