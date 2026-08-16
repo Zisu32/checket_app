@@ -48,7 +48,7 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   void _openWorkstationSheet({String? name, String? readerId}) async {
-    final success = await showModalBottomSheet<bool>(
+    await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: AppTheme.background,
       isScrollControlled: true,
@@ -59,7 +59,9 @@ class _SettingsViewState extends State<SettingsView> {
         assignments: _assignments,
       ),
     );
-    if (success == true) _loadData();
+    
+    // Always reload data after sheet closes to ensure UI matches DB state
+    await _loadData();
   }
 
   @override
@@ -168,7 +170,7 @@ class _SettingsViewState extends State<SettingsView> {
                         _sumUpService.setLocalStation(asg['station_name'], asg['reader_id']);
                         setState(() {});
                       },
-                      child: const Text('Nutzen', style: TextStyle(color: AppTheme.active, fontWeight: FontWeight.bold)),
+                      child: const Text('Aktivieren', style: TextStyle(color: AppTheme.active, fontWeight: FontWeight.bold)),
                     )
                   else
                     const Padding(

@@ -18,6 +18,8 @@ function getSecretKey(): string {
   }
   const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
   if (singleSecretKey) return singleSecretKey;
+
+  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
 }
 
 Deno.serve(async (req) => {
@@ -34,7 +36,7 @@ Deno.serve(async (req) => {
 
     // PAYLOAD
     const body = await req.json()
-    const { action = 'pay', slotId, secret, readerId, stationName, readerName } = body
+    const { action = 'pay', slotId, secret, readerId, stationName, readerName, checkoutId } = body
 
     // SUMUP CREDENTIALS
     const API_KEY = Deno.env.get('SUMUP_API_KEY')
@@ -45,23 +47,17 @@ Deno.serve(async (req) => {
       throw new Error('SumUp Konfiguration fehlt.')
     }
 
-    // List Terminals
+    // LIST STATUS OF READERS
     if (action === 'list-status') {
-          console.log('Action: list-status. Fetching all readers from SumUp...')
-          const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
-            headers: { 'Authorization': `Bearer ${API_KEY}` }
-          })
-          const readersData = await readersRes.json()
+      const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
+        headers: { 'Authorization': `Bearer ${API_KEY}` }
+      })
+      const readersData = await readersRes.json()
+      const readers = readersData.items || readersData.readers || []
 
-          // SumUp Cloud API returns readers
-          const readers = readersData.items || []
-          console.log(`Found ${readers.length} readers in SumUp account.`)
-
-      const { data: assignments, error: dbError } = await supabase
+      const { data: assignments } = await supabase
         .from('checket_terminal_assignments')
         .select('*')
-
-      if (dbError) console.error('Database fetch error:', dbError.message)
 
       return new Response(JSON.stringify({ readers, assignments: assignments || [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -69,18 +65,48 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Assign Terminals
+    // CHECK PAYMENT STATUS
+    if (action === 'check-status') {
+      if (!checkoutId) throw new Error('checkoutId fehlt.')
+
+      const statusRes = await fetch(`https://api.sumup.com/v0.1/checkouts/${checkoutId}`, {
+        headers: { 'Authorization': `Bearer ${API_KEY}` }
+      })
+
+      const statusData = await statusRes.json()
+      console.log(`Checkout Status for ${checkoutId}: ${statusData.status}`)
+
+      return new Response(JSON.stringify({ status: statusData.status }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
+    }
+
+    // ASSIGN READERS
     if (action === 'assign') {
       if (!readerId || !stationName || !readerName) throw new Error('Daten fehlen.')
-      const { error } = await supabase
-        .from('checket_terminal_assignments')
-        .upsert({ reader_id: readerId, station_name: stationName, reader_name: readerName, updated_at: new Date().toISOString() })
+      console.log(`Assigning reader ${readerId} to station ${stationName}...`)
 
-      if (error) throw error
+      const { data, error } = await supabase
+        .from('checket_terminal_assignments')
+        .upsert({
+          reader_id: readerId,
+          station_name: stationName,
+          reader_name: readerName,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+
+      if (error) {
+        console.error('Database assignment error:', error.message)
+        throw error
+      }
+
+      console.log('Assignment successful:', JSON.stringify(data))
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
-    // Remove Terminals
+    // REMOVE READERS
     if (action === 'remove') {
       if (!readerId) throw new Error('readerId fehlt.')
       const { error } = await supabase
@@ -110,16 +136,25 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          total_amount: { currency: 'EUR', minor_unit: 2, value: 100 },
+          total_amount: {
+            currency: 'EUR',
+            minor_unit: 2,
+            value: 100 // 1.00 EUR
+          },
           foreign_tx_id: `hook_${slotId}_${Date.now()}`,
           affiliate_key: AFFILIATE_KEY,
         }),
       })
 
       const checkoutData = await checkoutResponse.json()
-      if (checkoutResponse.status !== 201) throw new Error(checkoutData?.detail || 'Fehler.')
+      if (checkoutResponse.status !== 201) {
+        throw new Error(checkoutData?.detail || checkoutData?.message || 'Terminal konnte nicht aktiviert werden.')
+      }
 
-      return new Response(JSON.stringify({ success: true, checkout: checkoutData }), {
+      return new Response(JSON.stringify({
+        success: true,
+        checkoutId: checkoutData.id // Return the SumUp Checkout ID for polling
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
@@ -128,6 +163,7 @@ Deno.serve(async (req) => {
     throw new Error('Ungültige Action.')
 
   } catch (error) {
+    console.error('SumUp Function Error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

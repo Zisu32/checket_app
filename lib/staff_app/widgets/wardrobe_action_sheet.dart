@@ -24,6 +24,7 @@ class WardrobeActionSheet extends StatefulWidget {
 
 class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
   bool _isProcessingSumUp = false;
+  String _sumUpStatusText = 'Warte auf Terminal...';
 
   @override
   Widget build(BuildContext context) {
@@ -78,27 +79,61 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                     ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.active))
                     : const Icon(Icons.contactless_outlined, color: AppTheme.active),
                   title: Text(
-                    _isProcessingSumUp ? 'Warte auf Terminal...' : 'Kontaktloses bezahlen', 
+                    _isProcessingSumUp ? _sumUpStatusText : 'Kontaktloses bezahlen', 
                     style: const TextStyle(fontSize: AppTheme.small, color: AppTheme.white)
                   ),
                   onTap: _isProcessingSumUp ? null : () async {
-                    setState(() => _isProcessingSumUp = true);
+                    setState(() {
+                      _isProcessingSumUp = true;
+                      _sumUpStatusText = 'Warte auf Terminal...';
+                    });
+                    
                     try {
-                      final success = await SumUpService().triggerTerminalPayment(
+                      final checkoutId = await SumUpService().triggerTerminalPayment(
                         slotId: slot.id,
                         secret: slot.secret,
                       );
                       
-                      if (success) {
-                        final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'nfc', updatedAt: DateTime.now());
-                        await widget.syncService.updateSlot(updated);
-                        if (mounted) Navigator.pop(context);
+                      if (checkoutId != null) {
+                        // Polling loop
+                        bool isPaid = false;
+                        int attempts = 0;
+                        const maxAttempts = 90; // 3 minutes with 2s delay
+
+                        while (!isPaid && attempts < maxAttempts && mounted) {
+                          setState(() => _sumUpStatusText = 'Warte auf Zahlung...');
+                          
+                          final status = await SumUpService().checkPaymentStatus(checkoutId);
+                          
+                          if (status == 'PAID') {
+                            isPaid = true;
+                            final updated = slot.copyWith(
+                              status: 'active', 
+                              isPaid: true, 
+                              paymentMethod: 'nfc', 
+                              updatedAt: DateTime.now()
+                            );
+                            await widget.syncService.updateSlot(updated);
+                            if (mounted) Navigator.pop(context);
+                          } else if (status == 'FAILED' || status == 'CANCELLED') {
+                            throw 'Zahlung wurde abgebrochen oder ist fehlgeschlagen.';
+                          }
+                          
+                          if (!isPaid) {
+                            await Future.delayed(const Duration(seconds: 2));
+                            attempts++;
+                          }
+                        }
+
+                        if (!isPaid && mounted) throw 'Zeitüberschreitung beim Bezahlen.';
                       }
                     } catch (e) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text ('Fehler: $e', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)),
-                              backgroundColor: AppTheme.unpaid)
+                          SnackBar(
+                            content: Text ('Fehler: $e', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white)),
+                            backgroundColor: AppTheme.unpaid
+                          )
                         );
                       }
                     } finally {
@@ -112,7 +147,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                   onTap: () async {
                     final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'bar', updatedAt: DateTime.now());
                     await widget.syncService.updateSlot(updated);
-                    if (context.mounted) Navigator.pop(context);
+                    if (mounted) Navigator.pop(context);
                   },
                 ),
               ],
@@ -124,7 +159,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                     onTap: () async {
                       final updated = slot.copyWith(status: 'temporary', updatedAt: DateTime.now());
                       await widget.syncService.updateSlot(updated);
-                      if (context.mounted) Navigator.pop(context);
+                      if (mounted) Navigator.pop(context);
                     },
                   )
                 else
@@ -134,7 +169,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                     onTap: () async {
                       final updated = slot.copyWith(status: 'active', updatedAt: DateTime.now());
                       await widget.syncService.updateSlot(updated);
-                      if (context.mounted) Navigator.pop(context);
+                      if (mounted) Navigator.pop(context);
                     },
                   ),
                 ListTile(
@@ -149,7 +184,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                       updatedAt: DateTime.now(),
                     );
                     await widget.syncService.updateSlot(updated);
-                    if (context.mounted) Navigator.pop(context);
+                    if (mounted) Navigator.pop(context);
                   },
                 ),
               ],

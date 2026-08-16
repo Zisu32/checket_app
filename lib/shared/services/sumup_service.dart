@@ -10,8 +10,8 @@ class SumUpService {
   static const _stationKey = 'checket_station_name';
   static const _readerIdKey = 'checket_selected_reader_id';
 
-  /// Triggers a payment on the physical SumUp Solo terminal.
-  Future<bool> triggerTerminalPayment({
+  // Triggers a payment on the physical SumUp Solo terminal and returns the SumUp checkoutId if successful.
+  Future<String?> triggerTerminalPayment({
     required int slotId,
     required String secret,
   }) async {
@@ -25,18 +25,34 @@ class SumUpService {
           'action': 'pay',
           'slotId': slotId,
           'secret': secret,
-          'readerId': readerId, // Targeted payment
+          'readerId': readerId,
         },
       );
 
-      if (response.status == 200) return true;
-      throw response.data['error'] ?? 'Unbekannter Fehler bei SumUp.';
+      if (response.status == 200) {
+        return response.data['checkoutId'] as String?;
+      } else {
+        final errorMsg = response.data is Map ? response.data['error'] : 'Fehler beim Aufruf der Zahlungsfunktion.';
+        throw errorMsg ?? 'Unbekannter Fehler bei SumUp.';
+      }
     } catch (e) {
       rethrow;
     }
   }
 
-  /// Fetches all readers and their global assignments.
+  // Checks the current status of a specific checkout.
+  Future<String> checkPaymentStatus(String checkoutId) async {
+    final response = await Supabase.instance.client.functions.invoke(
+      'sumup-terminal-pay',
+      body: {
+        'action': 'check-status',
+        'checkoutId': checkoutId,
+      },
+    );
+    return (response.data['status'] as String?)?.toUpperCase() ?? 'UNKNOWN';
+  }
+
+  // Fetches all readers and their global assignments.
   Future<Map<String, dynamic>> getTerminalStatus() async {
     final response = await Supabase.instance.client.functions.invoke(
       'sumup-terminal-pay',
@@ -45,7 +61,7 @@ class SumUpService {
     return response.data;
   }
 
-  /// Assigns a reader to a specific station globally.
+  // Assigns a reader to a specific station globally.
   Future<void> assignTerminal(String station, String readerId, String readerName) async {
     await Supabase.instance.client.functions.invoke(
       'sumup-terminal-pay',
@@ -56,11 +72,10 @@ class SumUpService {
         'readerName': readerName,
       },
     );
-    // Also set locally for this tablet
     setLocalStation(station, readerId);
   }
 
-  /// Removes a global assignment.
+  // Removes a global assignment.
   Future<void> removeAssignment(String readerId) async {
     await Supabase.instance.client.functions.invoke(
       'sumup-terminal-pay',
@@ -71,8 +86,7 @@ class SumUpService {
     }
   }
 
-  // --- Local Persistence (Station Identity) ---
-
+  // Local Persistence of Station Identity
   String? getStationName() => _storage.getItem(_stationKey);
   String? getSelectedReaderId() => _storage.getItem(_readerIdKey);
 
