@@ -82,7 +82,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
     web.window.open(qrUrl, 'checket_monitor');
   }
 
-  void _zeigeSperrDialog() {
+  void _showLockDialog() {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -151,7 +151,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
             selectedIndex: _selectedNavIndex,
             allSlots: allSlots,
             onTabSelected: (index) => setState(() => _selectedNavIndex = index),
-            onLockedTabClick: _zeigeSperrDialog,
+            onLockedTabClick: _showLockDialog,
           ),
         );
       }
