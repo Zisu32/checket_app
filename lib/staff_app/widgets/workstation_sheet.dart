@@ -70,36 +70,33 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
   }
 
   Widget _buildNamingStep() {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _nameController,
-                autofocus: true,
-                cursorColor: AppTheme.white,
-                style: const TextStyle(color: AppTheme.white),
-                decoration: const InputDecoration(
-                  hintText: 'z.B. Tresen Mitte',
-                  hintStyle: TextStyle(color: Colors.white24),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
-                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
-                ),
-              ),
+        Expanded(
+          child: TextField(
+            controller: _nameController,
+            autofocus: true,
+            cursorColor: AppTheme.white,
+            style: const TextStyle(color: AppTheme.white),
+            decoration: const InputDecoration(
+              hintText: 'z.B. Tresen Mitte',
+              hintStyle: TextStyle(color: Colors.white24),
+              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
             ),
-            const SizedBox(width: 16),
-            AppTheme.buildPrimaryButton(
-              text: 'Weiter',
-              color: AppTheme.active,
-              width: 100,
-              onTap: () {
-                if (_nameController.text.isNotEmpty) {
-                  setState(() => _showTerminalSelection = true);
-                }
-              },
-            ),
-          ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        AppTheme.buildPrimaryButton(
+          text: 'Weiter',
+          color: AppTheme.active,
+          width: 100,
+          onTap: () {
+            if (_nameController.text.isNotEmpty) {
+              FocusScope.of(context).unfocus();
+              setState(() => _showTerminalSelection = true);
+            }
+          },
         ),
       ],
     );
@@ -115,38 +112,46 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
     if (availableReaders.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
-        child: Text('Keine freien Terminals gefunden.', style: TextStyle(color: AppTheme.white)),
+        child: Text(
+          'Keine freien Terminals gefunden.',
+          style: TextStyle(color: AppTheme.white),
+        ),
       );
     }
 
-    return Flexible(
-      child: ListView.builder(
-        shrinkWrap: true,
-        itemCount: availableReaders.length,
-        itemBuilder: (context, index) {
-          final reader = availableReaders[index];
-          final name = reader['name'] ?? 'Unbekanntes Solo';
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(), // Important for stability inside scrollable sheets
+          itemCount: availableReaders.length,
+          itemBuilder: (context, index) {
+            final reader = availableReaders[index];
+            final name = reader['name'] ?? 'Unbekanntes Solo';
 
-          return ListTile(
-            leading: const Icon(Icons.tablet_android, color: AppTheme.active),
-            title: Text(name, style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small)),
-            subtitle: Text(reader['id'], style: const TextStyle(color: AppTheme.free, fontSize: 12)),
-            trailing: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : null,
-            onTap: _isSaving ? null : () async {
-              setState(() => _isSaving = true);
-              try {
-                await SumUpService().assignTerminal(_nameController.text, reader['id'], name);
-                if (!mounted) return;
-                Navigator.pop(context, true);
-              } catch (e) {
-                _showError(e.toString());
-              } finally {
-                if (mounted) setState(() => _isSaving = false);
-              }
-            },
-          );
-        },
-      ),
+            return ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.tablet_android, color: AppTheme.active),
+              title: Text(name, style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small)),
+              subtitle: Text(reader['id'], style: const TextStyle(color: AppTheme.free, fontSize: 12)),
+              trailing: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : null,
+              onTap: _isSaving ? null : () async {
+                setState(() => _isSaving = true);
+                try {
+                  await SumUpService().assignTerminal(_nameController.text, reader['id'], name);
+                  if (!mounted) return;
+                  Navigator.pop(context, true);
+                } catch (e) {
+                  _showError(e.toString());
+                } finally {
+                  if (mounted) setState(() => _isSaving = false);
+                }
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 

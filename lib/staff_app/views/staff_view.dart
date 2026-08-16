@@ -113,6 +113,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
             text: 'Okay',
             color: AppTheme.active,
             onTap: () => Navigator.pop(dialogContext),
+            width: 100,
           ),
         ],
       ),

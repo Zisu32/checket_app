@@ -59,17 +59,6 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    if (slot.status == 'active' || slot.status == 'temporary' || slot.status == 'forgotten') ...[
-                      AppTheme.buildPrimaryButton(
-                        text: 'Ticket wiederherstellen',
-                        color: AppTheme.active,
-                        onTap: () {
-                          widget.onSyncMonitor(-1, 'recovery');
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                    ],
                     if (slot.status == 'free')
                       ListTile(
                         leading: const Icon(Icons.add_box, color: AppTheme.active),
