@@ -37,7 +37,7 @@ class AppTheme {
         foregroundColor: white,
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 15),
-        minimumSize: const Size(0, 40),
+        minimumSize: const Size(0, 50),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
