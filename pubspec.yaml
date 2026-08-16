@@ -3,12 +3,13 @@ description: Smart Wardrobe System Checket
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.1.0 <4.0.0"
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
+  flutter_svg: ^2.0.10+1
   drift: ^2.21.0
   drift_flutter: ^0.3.1
   sqlite3: ^3.0.0

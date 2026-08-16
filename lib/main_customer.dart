@@ -1,77 +1,101 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'customer_app/views/webticket_view.dart';
+import 'customer_app/views/customer_view.dart';
+import 'customer_app/widgets/no_ticket.dart';
 import 'shared/services/sync_service.dart';
-import 'package:web/web.dart' as web;
+import 'shared/services/route_service.dart';
+import 'shared/theme/app_theme.dart';
+import 'widgets/splash.dart';
+import 'widgets/error.dart';
+import 'widgets/fatal_error.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Activate Hash-Routing for GitHub Pages stability
-  usePathUrlStrategy();
 
-  // Initialize Supabase with environment variables (injected by GitHub Actions)
-  await Supabase.initialize(
-    url: const String.fromEnvironment('SUPABASE_URL'),
-    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
-  );
-
-  // Initialize Sync Service (Drift & Supabase) with unique name
-  await SyncService().init(dbName: 'checket_customer_db');
+  // Global Error Catcher for Debugging
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return FatalError(details: details, titleSuffix: 'Costumer');
+  };
 
   runApp(const ChecketCustomerWebApp());
 }
 
-class ChecketCustomerWebApp extends StatelessWidget {
+class ChecketCustomerWebApp extends StatefulWidget {
   const ChecketCustomerWebApp({super.key});
-  
+
+  @override
+  State<ChecketCustomerWebApp> createState() => _ChecketCustomerWebAppState();
+}
+
+class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
+  late Future<void> _initFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFuture = _initialize();
+  }
+
+  Future<void> _initialize() async {
+    const url = String.fromEnvironment('SUPABASE_URL');
+    const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+
+    if (url.isEmpty || publishableKey.isEmpty) {
+      throw Exception('Konfiguration fehlt (URL/KEY). Bitte GitHub Secrets prüfen.');
+    }
+
+    await Supabase.initialize(url: url, publishableKey: publishableKey);
+    await SyncService().init(dbName: 'checket_customer_db');
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Robust URL parsing for GitHub Pages
-    final fullUrl = web.window.location.href;
-    final uri = Uri.parse(fullUrl);
-    
-    // Check both standard query parameters AND hash parameters
-    Map<String, String> params = Map.from(uri.queryParameters);
-    
-    // If we are using hash routing, parameters might be in the fragment
-    if (uri.hasFragment) {
-      final fragmentUri = Uri.parse(uri.fragment);
-      params.addAll(fragmentUri.queryParameters);
-    }
-
-    String ticketId = params['id'] ?? '';
-    String secret = params['secret'] ?? '';
-
-    print('Sync: URL detected -> $fullUrl');
-    print('Sync: Extracted Params -> id: $ticketId, secret: $secret');
-
-    // Simple fallback to localStorage for PWA behavior
-    if (ticketId.isEmpty || secret.isEmpty) {
-      ticketId = web.window.localStorage.getItem('last_ticket_id') ?? '';
-      secret = web.window.localStorage.getItem('last_ticket_secret') ?? '';
-      print('Sync: Fallback to localStorage -> id: $ticketId');
-    } else {
-      web.window.localStorage.setItem('last_ticket_id', ticketId);
-      web.window.localStorage.setItem('last_ticket_secret', secret);
-    }
-
-    if (ticketId.isEmpty) {
-      return const MaterialApp(
-        home: Scaffold(body: Center(child: Text('Kein aktives Ticket gefunden.'))),
-        debugShowCheckedModeBanner: false,
-      );
-    }
-    
     return MaterialApp(
       title: 'Checket Ticket',
-      theme: ThemeData.dark(),
-      home: CustomerWebTicketView(
-        ticketId: int.parse(ticketId), 
-        secret: secret
+      theme: ThemeData.dark().copyWith(
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: AppTheme.white,
+          selectionColor: AppTheme.white,
+          selectionHandleColor: AppTheme.white,
+        ),
       ),
-      debugShowCheckedModeBanner: false
+      debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        return FutureBuilder(
+          future: _initFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Splash();
+            }
+            if (snapshot.hasError) {
+              return Error(
+                error: snapshot.error.toString(),
+                onRetry: () => setState(() { _initFuture = _initialize(); }),
+              );
+            }
+            return child ?? const SizedBox.shrink();
+          },
+        );
+      },
+      home: const _CustomerRouteHandler(),
+    );
+  }
+}
+
+class _CustomerRouteHandler extends StatelessWidget {
+  const _CustomerRouteHandler();
+
+  @override
+  Widget build(BuildContext context) {
+    final params = RouteService().parseCustomerParams();
+
+    if (params.id == null || params.secret == null) {
+      return const NoTicket();
+    }
+    
+    return CustomerView(
+      ticketId: params.id, 
+      secret: params.secret
     );
   }
 }

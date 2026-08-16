@@ -1,0 +1,26 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Runs at 00:00 every 3 days
+    - cron: '0 0 */3 * *'
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Dev
+        run: |
+          curl -X GET "${{ secrets.SUPABASE_URL_DEV }}/rest/v1/checket_garderobe?select=id&limit=1" \
+          -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}"
+
+      - name: Ping Supabase Prod
+        run: |
+          curl -X GET "${{ secrets.SUPABASE_URL_PROD }}/rest/v1/checket_garderobe?select=id&limit=1" \
+          -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}"

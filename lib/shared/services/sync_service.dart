@@ -203,11 +203,10 @@ class SyncService {
   Stream<List<LostItem>> watchLostItems() {
     return (db.select(db.lostItems)
       ..where((t) => t.isHandedOver.equals(false))
-      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
+      ..orderBy([(t) => OrderingTerm(expression: t.originalSlotId, mode: OrderingMode.asc)]))
       .watch();
   }
 
-  /// High-precision lifecycle tracking for a specific customer ticket.
   /// Identifies if a jacket is active, lost, picked up, or if the hook is just available.
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
     final controller = StreamController<WardrobeSlot?>();

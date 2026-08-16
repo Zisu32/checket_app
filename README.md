@@ -4,88 +4,143 @@ Checket ist ein digitales Garderoben-Management-System, das physische Garderoben
 
 ## Features
 
-*   **Mitarbeiter-Dashboard**: Echtzeit-Übersicht über alle Bügel, Status-Verwaltung (Check-in, Check-out, Bezahlung).
-*   **Digitales Kunden-Ticket**: Web-Ansicht für Kunden mit Live-Updates via Supabase Realtime.
-*   **Local-First Sync**: Abgleich durch Drift-Cache (SQLite); automatischer Abgleich mit der Cloud-Supabase.
-*   **Stripe Payment**: Kunden können ihre Garderobe direkt online bezahlen.
-*   **Wallet Integration**: Support für Apple und Google Wallet.
-*   **Push-Benachrichtigungen**: Kunden können sich benachrichtigen lassen, falls sie ihre Jacke vergessen haben.
+* **Mitarbeiter-App**: Echtzeit-Übersicht über alle Bügel mit modernem Swipe-Interface und Status-Verwaltung (Check-in, Bezahlung, temporärer Ausgang, Check-out).
+* **Zwei-Tab-System**: Ein separater Kunden-Tab ("Checket QR"), der live über `BroadcastChannel` aktualisiert wird. Die URL bleibt dabei sauber (`#/qr`) und verbirgt sensible Ticket-Daten.
+* **Digitales Kunden-Ticket**: Web-Ansicht für Gäste mit Live-Status (animiert) und optionaler Wallet-Integration (Apple/Google).
+* **Intelligentes Fundbüro**: Automatisierte Archivierung von Jacken am Schichtende mit einfacher Aushändigungs-Logik.
+* **Local-First Sync**: Volle Offline-Fähigkeit durch lokalen Drift-Cache; automatischer Hintergrund-Abgleich mit Supabase Realtime.
+* **Sicherheits-Check**: Integrierte Sperre am Schichtende, falls noch unbezahlte Jacken im System sind.
+* **SumUp Cloud Integration**: Direkte Ansteuerung des **SumUp Solo** Terminals über das Dashboard (Cloud API).
+* **Arbeitsplatz- & Terminal-Management**: Jeder Arbeistplatz kann einem SumUp-Terminal zugewiesen werden.
+* **Zur Wallet-Hinzufügen**: Webticket kann zur Wallet hinzugefügt werden, sodass eine Push-Benachrichtigung gesendet werden kann, falls der Kunde die Jacke vergisst.
+
+---
 
 ## Architektur & Konzept
 
-Checket nutzt ein modernes Cloud-Native-Setup:
+Checket nutzt eine **Split-App-Architektur**, bei der zwei spezialisierte Flutter-Anwendungen auf derselben Datenbasis operieren, aber für unterschiedliche Zielgruppen optimiert sind.
 
-*   **Frontend (PWA)**: Entwickelt mit Flutter Web. Gehostet auf **GitHub Pages**. Installierbar auf Android, Windows und iOS für ein natives App-Gefühl.
-*   **Data Layer (Hybrid)**:
-    *   **Drift Database**: Dient als Speicher (SQLite via WASM) im Browser und auf nativen Geräten.
-    *   **Supabase**: Agiert als "Source of Truth" und bietet Realtime-Events.
-*   **CI/CD**: Vollautomatisches Deployment über **GitHub Actions**. Jedes `git push` aktualisiert die Live-Systeme unter Verwendung von WebAssembly (WASM).
+### Die zwei Einstiegspunkte (`lib/`)
+
+*   **`main_staff.dart` (Mitarbeiter-App)**:
+    *   **Zweck**: Operative Steuerung der Garderobe.
+    *   **Funktionen**: Dashboard-Grid, Fundbüro-Verwaltung, Schicht-Reset.
+    *   **Tab-Handling**: Öffnet und steuert den QR-Monitor über einen Browser-internen Nachrichtenkanal (`BroadcastChannel`).
+*   **`main_customer.dart` (Kunden-App)**:
+    *   **Zweck**: Digitaler Beleg für den Gast.
+    *   **Funktionen**: Live-Statusanzeige der eigenen Jacke, Wallet-Integration.
+    *   **Persistence**: Nutzt `localStorage`, um das Ticket auch ohne URL-Parameter beim Neuladen (z.B. als PWA) wiederzufinden.
+
+*   **`shared/database`** : Definition des Drift-Schemas und generierter SQLite-Code.
+*   **`shared/services/`** : Plattformunabhängige Logik
+    *   `sync_service.dart`: Cloud-Synchronisation zur DB & Realtime.
+    *   `route_service.dart`: Zentrales URL-Parsing & State-Recovery.
+    *   `monitor_service.dart`: Kommunikation zwischen Dashboard und Monitor.
+    *   `sumup_service.dart`: Brücke zur SumUp Cloud API.
+    *   `platform_hints_service.dart`: Geräte-Erkennung (iOS/Android).
+*   **`shared/theme/`**: Das visuelle Herzstück. Hier liegen alle Farben, Schriftgrößen und der zentrale Button-Builder.
+
+#### `widgets/` : Globale UI-Widgets, die beide Apps beim Booten teilen.
+
+#### `staff_app/` Workspace für Mitarbeiter
+*   **`views/`**: Die Hauptbildschirme (`staff_view.dart`, `qr_display_view.dart`, `settings_view.dart`).
+*   **`views/tabs/`**: Die Tab-Views der Navbar (`dashboard_tab_view.dart`, `lost_found_tab_view.dart`, `session_end_tab_view.dart`).
+*   **`widgets/`**: Spezifische Bedienelemente (`workstation_sheet.dart`, `top_bar.dart`, `wardrobe_action_sheet.dart`).
+
+#### `customer_app/` Gäste-Portal
+*   **`views/`**: Der Einstiegspunkt für Kunden.
+*   **`widgets/`**: Ticket-spezifische UI-Komponenten.
+
+### Wie alles zusammenhängt
+
+Obwohl es zwei getrennte Anwendungen sind, bilden sie ein geschlossenes System:
+
+1.  **Gemeinsame Datenbasis**: Beide Apps sind mit demselben **Supabase-Backend** verbunden. Wenn ein Mitarbeiter im Dashboard einen Bügel als "Bezahlt" markiert, aktualisiert sich das Kundenticket in Echtzeit via Realtime-Subscription.
+2.  **Geteilte Logik (`lib/shared/`)**: Beide Apps nutzen den identischen `SyncService`, `SumUpService` und das gleiche Datenbank-Schema (Drift). Dies garantiert eine konsistente Interpretation von Statuswerten und des Bezahlstatus im gesamten System.
+3.  **Einheitliches Design**: Durch die zentrale `AppTheme` Klasse und die geteilten `widgets/` (Splash, Error-Screens) fühlen sich beide Anwendungen für den Nutzer wie eine einzige, konsistente Marke an.
+4.  **Integriertes Deployment**: GitHub Actions baut beide Apps in einem Durchgang. Die Kunden-App landet im Hauptverzeichnis (`/`), während die Mitarbeiter-App unter `/staff/` abgelegt wird.
 
 ---
 
-## Verzeichnisstruktur unter der Lupe
+## SumUp Solo Einrichtung & Cloud API
 
-### `.github/workflows/`
-Enthält die **CI/CD-Logik**. Die Datei `deploy.yml` steuert den automatischen Build-Prozess, lädt benötigte SQLite-WASM Binaries herunter und verteilt die Apps auf GitHub Pages.
+Um das physische **SumUp Solo** Terminal direkt aus dem Dashboard anzusteuern, folge dieser Anleitung:
 
-### `lib/` (Kern der Anwendung)
-*   **`main_staff.dart` & `main_customer.dart`**: Die Startpunkte für die beiden spezialisierten Apps.
-*   **`shared/database/database.dart`**: Definition der Drift-Datenbank und der Tabellen. Die zugehörigen Datenklassen (Modelle) werden automatisch in `database.g.dart` generiert.
-*   **`shared/services/sync_service.dart`**: Die Verbindung zwischen der lokalen SQLite-DB (Drift) und Supabase. Kümmert sich um den Datenabgleich und Realtime-Updates.
-*   **`staff_app/views/`**: Das UI des Garderoben-Managers.
-*   **`customer_app/views/`**: Die Ticket-Ansicht für den Endnutzer.
+### 1. Vorbereitung im SumUp Dashboard
+1.  Logge dich auf [me.sumup.com](https://me.sumup.com) ein.
+2.  **API-Key**: Gehe zu **Einstellungen > Für Entwickler** und generiere einen **Personal Access Token** (Static API Key).
+3.  **Merchant Code**: Notiere dir deine Händlernummer (zu finden unter **Profil > Profil-Details**).
+4.  **Affiliate Key**: Gehe zu **Einstellungen > Für Entwickler >** und generiere einen Affiliate Key.
 
-### `supabase/` (Backend-Infrastruktur)
-*   **`functions/`**: Edge Functions für sicherheitskritische Aufgaben wie die Stripe-Zahlungsabwicklung.
-*   **`config.toml`**: Verknüpfung des lokalen Projekts mit der Supabase-Cloud.
+### 2. Terminal koppeln (Cloud-API)
+Um das Terminal mit deinem Account zu verknüpfen, ohne manuell API-Befehle zu senden:
+1.  Melde dich im [me.sumup.com](https://me.sumup.com) an.
+2.  Gehe zu den [Geschäftseinstellungen](https://me.sumup.com/de-de/settings?tab=business).
+3.  Klicke unter **"Für Entwickler:innen"** auf den Menüpunkt **"Cloud-API"**.
+4.  Wähle **"Kartenterminal hinzufügen"**.
+5.  **Am SumUp Solo**: 
+    *   Schalte das Gerät ein. 
+    *   Melde dich ab, falls du noch mit einem Benutzerkonto eingeloggt bist (Einstellungen > Info > Abmelden).
+    *   Baue eine neue WLAN-Verbindung auf.
+    *   Wähle im Verbindungsmenü **"Cloud-API"** aus.
+    *   Gib den am Terminal angezeigten Code auf der SumUp Webseite ein.
 
-### `web/` (Web-Plattform Konfiguration)
-*   **`manifest.json`**: Die PWA-Konfiguration (Icons, Start-URL, Farben für den Homescreen).
-*   **`index.html`**: Das HTML-Grundgerüst, in dem Flutter geladen wird.
-
----
-
-## Installation & Setup
-
-1.  **Repository klonen:**
-    ```bash
-    git clone
-    cd checket_app
-    ```
-
-2.  **Abhängigkeiten installieren:**
-    ```bash
-    flutter pub get
-    ```
-
-3.  **GitHub Secrets einrichten:**
-    Hinterlege in deinem Repository unter *Settings > Secrets > Actions*:
-    *   `SUPABASE_URL_PROD` & `SUPABASE_ANON_KEY_PROD`
-    *   `SUPABASE_URL_DEV` & `SUPABASE_ANON_KEY_DEV`
-
-## Entwicklung & Deployment
-
-### Lokal Testen
-Die App nutzt lokal standardmäßig das **Checket-Dev** Projekt. Für Web-Entwicklung wird der WASM-Renderer empfohlen.
+### 3. Supabase Secrets setzen
+Hinterlege die Daten sicher in deinen Supabase-Projekten (Dev & Prod):
 ```bash
-# Mitarbeiter-App
-flutter run -d chrome -t lib/main_staff.dart --wasm
-
-# Kunden-App
-flutter run -d chrome -t lib/main_customer.dart --wasm
+supabase secrets set SUMUP_API_KEY
+supabase secrets set SUMUP_MERCHANT_CODE
+supabase secrets set SUMUP_AFFILIATE_KEY
 ```
 
-### Deployment (Automatisch)
-Das Deployment erfolgt über GitHub-Action:
+### 4. Preis anpassen
 
-*   **Entwicklung**: Push auf den Branch `dev`.
-*   **Produktion**: Pull Request auf den Branch `main`.
+Aus Sicherheitsgründen wird der Zahlbetrag für die Garderobe ausschließlich im **Backend** verwaltet. Dies verhindert, dass Nutzer den Preis im Browser manipulieren können.
+
+Um den Preis zu ändern:
+1.  Öffne die Datei: `supabase/functions/sumup-terminal-pay/index.ts`.
+2.  Suche die Zeile `total_amount:`.
+3.  Ändere den Wert und speichere die Datei.
+4.  Push den Code zu GitHub für die Änderung.
+
+### 5. Arbeitsplätze zuweisen
+Nachdem die SumUp-Terminals gekoppelt sind, müssen in der Mitarbeiter-App die Arbeitsplätze zugewiesen werden:
+1.  Öffne das Dashboard und klicke auf das **Zahnrad-Icon**.
+2.  Erstelle einen **Neuen Arbeitsplatz** (z.B. "Tresen Rechts").
+3.  Wähle das passende SumUp-Gerät aus der Liste der verfügbaren Terminals aus.
+4.  Klicke bei der gewünschten Station auf **Aktivieren**, damit das aktuelle Tablet Zahlungen an dieses Gerät sendet.
 
 ---
 
-## 🔗 Live Umgebungen (GitHub Pages)
+## Entwicklung & Maintenance
 
-*   **Produktion (Mitarbeiter):** `https://<dein-nutzer>.github.io/checket_app/staff/`
-*   **Produktion (Kunden):** `https://<dein-nutzer>.github.io/checket_app/`
-*   **Entwicklung (Mitarbeiter):** `https://<dein-nutzer>.github.io/checket_app/dev/staff/`
-*   **Entwicklung (Kunden):** `https://<dein-nutzer>.github.io/checket_app/dev/?id=5&secret=test`
+### Lokal Testen
+Die Keys müssen lokal per `--dart-define` mitgegeben werden:
+```bash
+# Mitarbeiter-App
+flutter run -d chrome -t lib/main_staff.dart \
+  --dart-define=SUPABASE_URL=<dev-url> \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=<dev-key>
+
+# Kunden-App
+flutter run -d chrome -t lib/main_customer.dart \
+  --dart-define=SUPABASE_URL=<dev-url> \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY=<dev-key>
+```
+
+### Automatisches Deployment (Edge Functions)
+Dank der nativen **Supabase-GitHub-Integration** werden die Edge Functions (`sumup-terminal-pay`, `generate-wallet-pass`, `sync-wallet-pass`) bei jedem `git push` auf den `dev` Branch automatisch aktualisiert.
+
+*   **Wichtig**: Damit neue Funktionen vom System erkannt werden, müssen sie zwingend in der Datei **`supabase/config.toml`** unter `[functions.name]` registriert sein.
+*   **Trigger**: Das Deployment startet automatisch, sobald Änderungen innerhalb des Ordners **`/supabase/functions`** erkannt werden.
+
+### Datenbank aktiv halten (Keep-Alive)
+Supabase pausiert kostenlose Projekte nach 7 Tagen Inaktivität. Checket verfügt über einen automatisierten "Herzschlag" (**`supabase_keep_alive.yml`**), der alle 3 Tage einen Ping an deine Dev- und Prod-Datenbanken sendet, um diese dauerhaft wach zu halten.️
+
+---
+
+## Live Umgebungen (Custom Domain)
+* **Produktion (Mitarbeiter-Dashboard):** `https://checket.eu/staff/`
+* **Entwicklung (Mitarbeiter-Dashboard):** `https://checket.eu/dev/staff/`
+
+---
