@@ -47,41 +47,15 @@ Deno.serve(async (req) => {
 
     // List Terminals
     if (action === 'list-status') {
-      console.log(`Action: list-status. Merchant: ${MERCHANT_CODE}`)
+          console.log('Action: list-status. Fetching all readers from SumUp...')
+          const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
+            headers: { 'Authorization': `Bearer ${API_KEY}` }
+          })
+          const readersData = await readersRes.json()
 
-      const headers = {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Accept': 'application/json'
-      }
-
-      // Try Endpoint A: Merchant-specific
-      const resA = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, { headers })
-      const bodyA = await resA.text()
-      console.log('SumUp List A (Merchant) Raw:', bodyA)
-
-      // Try Endpoint B: Globale
-      const resB = await fetch(`https://api.sumup.com/v0.1/readers`, { headers })
-      const bodyB = await resB.text()
-      console.log('SumUp List B (Global) Raw:', bodyB)
-
-      let readers = []
-      try {
-        const dataA = JSON.parse(bodyA)
-        const dataB = JSON.parse(bodyB)
-
-        const listA = dataA.items || dataA.readers || (Array.isArray(dataA) ? dataA : [])
-        const listB = dataB.items || dataB.readers || (Array.isArray(dataB) ? dataB : [])
-
-        // Merge and deduplicate by ID
-        const combined = [...listA, ...listB]
-        const unique = new Map()
-        combined.forEach(r => { if (r && r.id) unique.set(r.id, r) })
-        readers = Array.from(unique.values())
-      } catch (e) {
-        console.error('JSON Merge Error:', e)
-      }
-
-      console.log(`Final unique readers count: ${readers.length}`)
+          // SumUp Cloud API returns readers
+          const readers = readersData.items || []
+          console.log(`Found ${readers.length} readers in SumUp account.`)
 
       const { data: assignments, error: dbError } = await supabase
         .from('checket_terminal_assignments')
@@ -127,17 +101,6 @@ Deno.serve(async (req) => {
 
       // Target Reader
       let targetReaderId = readerId
-      if (!targetReaderId) {
-        // Fallback to auto-discovery
-        console.log('No readerId provided, attempting auto-discovery...')
-        const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
-          headers: { 'Authorization': `Bearer ${API_KEY}` }
-        })
-        const readersData = await readersRes.json()
-        const readers = readersData.items || []
-        targetReaderId = readers.find((r: any) => r.status === 'paired')?.id || readers[0]?.id
-      }
-
       if (!targetReaderId) throw new Error('Kein Terminal gefunden.')
 
       const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/${targetReaderId}/checkout`, {
@@ -147,7 +110,7 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          total_amount: { currency: 'EUR', minor_unit: 2, value: 250 },
+          total_amount: { currency: 'EUR', minor_unit: 2, value: 100 },
           foreign_tx_id: `hook_${slotId}_${Date.now()}`,
           affiliate_key: AFFILIATE_KEY,
         }),
