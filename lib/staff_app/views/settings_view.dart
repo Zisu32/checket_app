@@ -149,7 +149,6 @@ class _SettingsViewState extends State<SettingsView> {
             margin: const EdgeInsets.only(bottom: 8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: isCurrent ? const BorderSide(color: AppTheme.active, width: 2) : BorderSide.none,
             ),
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -158,8 +157,8 @@ class _SettingsViewState extends State<SettingsView> {
                 style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold, fontSize: AppTheme.small),
               ),
               subtitle: Text(
-                'Terminal: ${asg['reader_name']}',
-                style: const TextStyle(color: AppTheme.free, fontSize: 13),
+                '${asg['reader_name']}',
+                style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -173,10 +172,6 @@ class _SettingsViewState extends State<SettingsView> {
                       child: const Text('Aktivieren', style: TextStyle(color: AppTheme.active, fontWeight: FontWeight.bold)),
                     )
                   else
-                    const Padding(
-                      padding: EdgeInsets.only(right: 8.0),
-                      child: Icon(Icons.check_circle, color: AppTheme.active, size: 24),
-                    ),
                   AppTheme.buildPrimaryButton(
                     text: 'Bearbeiten',
                     color: AppTheme.active,
