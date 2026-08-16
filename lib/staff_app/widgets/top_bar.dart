@@ -6,11 +6,15 @@ import '../../shared/theme/app_theme.dart';
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   final SyncService syncService;
   final Animation<double> pulseAnimation;
+  final bool showSettings;
+  final Widget? leading;
 
   const TopBar({
     super.key,
     required this.syncService,
     required this.pulseAnimation,
+    this.showSettings = true,
+    this.leading,
   });
 
   @override
@@ -22,6 +26,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: AppTheme.header,
       elevation: 0,
       centerTitle: true,
+      leading: leading,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -70,13 +75,15 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
-      automaticallyImplyLeading: false,
+      automaticallyImplyLeading: leading != null,
       actions: [
-        IconButton(
-          icon: const Icon(Icons.settings_outlined, color: AppTheme.background, size: 26),
-          onPressed: () => Navigator.pushNamed(context, '/settings'),
-        ),
-        const SizedBox(width: 8),
+        if (showSettings) ...[
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: AppTheme.background, size: 26),
+            onPressed: () => Navigator.pushNamed(context, '/settings'),
+          ),
+          const SizedBox(width: 8),
+        ],
       ],
     );
   }

@@ -101,25 +101,6 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
             ),
           ],
         ),
-        if (widget.initialReaderId != null) ...[
-          const SizedBox(height: 24),
-          AppTheme.buildPrimaryButton(
-            text: 'Löschen',
-            color: AppTheme.unpaid,
-            onTap: () async {
-              setState(() => _isSaving = true);
-              try {
-                await SumUpService().removeAssignment(widget.initialReaderId!);
-                if (!mounted) return;
-                Navigator.pop(context, true);
-              } catch (e) {
-                _showError(e.toString());
-              } finally {
-                if (mounted) setState(() => _isSaving = false);
-              }
-            },
-          ),
-        ],
       ],
     );
   }

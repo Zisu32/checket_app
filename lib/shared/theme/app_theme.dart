@@ -26,7 +26,8 @@ class AppTheme {
 
   // Generic Button Builders
   static Widget buildPrimaryButton({
-    required String text,
+    String? text,
+    IconData? icon,
     required Color color,
     required VoidCallback onTap,
     double? width = 220,
@@ -40,18 +41,21 @@ class AppTheme {
           backgroundColor: color,
           foregroundColor: white,
           elevation: 0,
+          padding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
         onPressed: onTap,
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: small,
-          ),
-        ),
+        child: icon != null
+            ? Icon(icon, color: white, size: 20)
+            : Text(
+                text ?? '',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: small,
+                ),
+              ),
       ),
     );
   }

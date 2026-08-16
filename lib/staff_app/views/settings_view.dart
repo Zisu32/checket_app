@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/services/sumup_service.dart';
+import '../../shared/services/sync_service.dart';
 import '../widgets/workstation_sheet.dart';
+import '../widgets/top_bar.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -11,16 +12,35 @@ class SettingsView extends StatefulWidget {
   State<SettingsView> createState() => _SettingsViewState();
 }
 
-class _SettingsViewState extends State<SettingsView> {
+class _SettingsViewState extends State<SettingsView> with SingleTickerProviderStateMixin {
   final _sumUpService = SumUpService();
+  final _syncService = SyncService();
   bool _isLoading = true;
   List<dynamic> _readers = [];
   List<dynamic> _assignments = [];
+
+  late AnimationController _animationController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -70,7 +90,15 @@ class _SettingsViewState extends State<SettingsView> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: _buildAppBar(),
+      appBar: TopBar(
+        syncService: _syncService,
+        pulseAnimation: _pulseAnimation,
+        showSettings: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppTheme.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: Column(
         children: [
           _buildHeader(),
@@ -81,26 +109,6 @@ class _SettingsViewState extends State<SettingsView> {
                 : _buildContent(localReaderId),
           ),
         ],
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppTheme.header,
-      elevation: 0,
-      centerTitle: true,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: AppTheme.white),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: SvgPicture.asset(
-        'assets/images/full-icon.svg',
-        height: 28,
-        placeholderBuilder: (_) => const Text(
-          'CHECKET',
-          style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.white, fontSize: AppTheme.small),
-        ),
       ),
     );
   }
@@ -138,7 +146,7 @@ class _SettingsViewState extends State<SettingsView> {
     return RefreshIndicator(
       onRefresh: _loadData,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         itemCount: _assignments.length,
         itemBuilder: (context, index) {
           final asg = _assignments[index];
@@ -172,6 +180,10 @@ class _SettingsViewState extends State<SettingsView> {
                       child: const Text('Aktivieren', style: TextStyle(color: AppTheme.active, fontWeight: FontWeight.bold)),
                     )
                   else
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8.0),
+                      child: Icon(Icons.check_circle, color: AppTheme.active, size: 24),
+                    ),
                   AppTheme.buildPrimaryButton(
                     text: 'Bearbeiten',
                     color: AppTheme.active,
@@ -181,6 +193,35 @@ class _SettingsViewState extends State<SettingsView> {
                       name: asg['station_name'],
                       readerId: asg['reader_id'],
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  AppTheme.buildPrimaryButton(
+                    icon: Icons.close,
+                    color: AppTheme.unpaid,
+                    width: 40,
+                    height: 40,
+                    onTap: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor: AppTheme.background,
+                          title: const Text('Arbeitsplatz löschen?', style: TextStyle(color: AppTheme.white)),
+                          content: const Text('Möchtest du diesen Arbeitsplatz wirklich entfernen?', style: TextStyle(color: AppTheme.white)),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Abbrechen')),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.unpaid),
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Löschen'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirm == true) {
+                        await _sumUpService.removeAssignment(asg['reader_id']);
+                        _loadData();
+                      }
+                    },
                   ),
                 ],
               ),

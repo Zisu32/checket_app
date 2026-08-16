@@ -49,7 +49,7 @@ class LostFoundTabView extends StatelessWidget {
 
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 8),
+                    horizontal: 20, vertical: 8),
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
