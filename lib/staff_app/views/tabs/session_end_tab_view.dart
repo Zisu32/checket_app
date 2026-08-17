@@ -29,7 +29,7 @@ class SessionEndTabView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
               children: const [
-                Icon(Icons.loop, color: AppTheme.white, size: 28),
+                Icon(Icons.swap_horiz_rounded, color: AppTheme.white, size: 28),
               ],
             ),
           ),

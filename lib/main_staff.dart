@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:web/web.dart' as web;
 import 'staff_app/views/staff_view.dart';
 import 'staff_app/views/qr_display_view.dart';
 import 'staff_app/views/settings_view.dart';
 import 'staff_app/views/login_view.dart';
+import 'staff_app/views/admin_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';
+import 'shared/theme/app_theme.dart';
 import 'widgets/splash.dart';
 import 'widgets/error.dart';
 import 'widgets/fatal_error.dart';
@@ -37,15 +40,22 @@ void main() async {
 class ChecketStaffApp extends StatelessWidget {
   const ChecketStaffApp({super.key});
 
+  bool _isAdminPath() {
+    final path = web.window.location.pathname;
+    return path.endsWith('/admin') || path.endsWith('/admin/');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isAdminMode = _isAdminPath();
+
     return MaterialApp(
-      title: 'Checket Staff',
+      title: isAdminMode ? 'Checket Admin' : 'Checket Staff',
       theme: ThemeData.dark().copyWith(
         textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: AppTheme.white,
-          selectionColor: AppTheme.white,
-          selectionHandleColor: AppTheme.white,
+          cursorColor: Colors.white,
+          selectionColor: Colors.white24,
+          selectionHandleColor: Colors.white,
         ),
       ),
       debugShowCheckedModeBanner: false,
@@ -55,10 +65,10 @@ class ChecketStaffApp extends StatelessWidget {
           final session = Supabase.instance.client.auth.currentSession;
           
           if (session == null) {
-            return const LoginView();
+            return LoginView(isAdminMode: isAdminMode);
           }
 
-          return const _AuthenticatedApp();
+          return _AuthenticatedApp(isAdminMode: isAdminMode);
         },
       ),
       onGenerateRoute: (settings) {
@@ -72,7 +82,8 @@ class ChecketStaffApp extends StatelessWidget {
 }
 
 class _AuthenticatedApp extends StatefulWidget {
-  const _AuthenticatedApp();
+  final bool isAdminMode;
+  const _AuthenticatedApp({required this.isAdminMode});
 
   @override
   State<_AuthenticatedApp> createState() => _AuthenticatedAppState();
@@ -108,6 +119,10 @@ class _AuthenticatedAppState extends State<_AuthenticatedApp> {
               onRetry: () => setState(() { _initFuture = _initialize(); }),
             ),
           );
+        }
+
+        if (widget.isAdminMode) {
+          return const AdminView();
         }
 
         return Navigator(

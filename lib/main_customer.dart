@@ -4,6 +4,7 @@ import 'customer_app/views/customer_view.dart';
 import 'customer_app/widgets/no_ticket.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';
+import 'shared/theme/app_theme.dart';
 import 'widgets/splash.dart';
 import 'widgets/error.dart';
 import 'widgets/fatal_error.dart';
@@ -38,9 +39,9 @@ class ChecketCustomerWebApp extends StatelessWidget {
       title: 'Checket Ticket',
       theme: ThemeData.dark().copyWith(
         textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: AppTheme.white,
-          selectionColor: AppTheme.white,
-          selectionHandleColor: AppTheme.white,
+          cursorColor: Colors.white,
+          selectionColor: Colors.white24,
+          selectionHandleColor: Colors.white,
         ),
       ),
       debugShowCheckedModeBanner: false,

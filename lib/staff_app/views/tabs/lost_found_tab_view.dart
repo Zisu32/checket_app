@@ -3,6 +3,8 @@ import '../../../shared/database/database.dart';
 import '../../../shared/services/sync_service.dart';
 import '../../../shared/theme/app_theme.dart';
 
+import '../widgets/lost_found_action_sheet.dart';
+
 class LostFoundTabView extends StatelessWidget {
   final SyncService syncService;
   final Function(int, String) onSyncMonitor;
@@ -75,10 +77,19 @@ class LostFoundTabView extends StatelessWidget {
                       subtitle: Text(
                           '$tag.$monat.$jahr', style: const TextStyle(
                           color: AppTheme.free, fontSize: AppTheme.xsmall)),
-                      trailing: AppTheme.buildPrimaryButton(
-                        text: 'Aushändigen',
-                        color: AppTheme.active,
-                        onTap: () => syncService.handOverLostItem(item),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.more_horiz, color: AppTheme.white),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            backgroundColor: AppTheme.background,
+                            isScrollControlled: true,
+                            builder: (_) => LostFoundActionSheet(
+                              item: item,
+                              syncService: syncService,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   );

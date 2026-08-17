@@ -29,7 +29,7 @@ class Navbar extends StatelessWidget {
         children: [
           _buildItem(0, Icons.inventory_2_outlined, 'Fundbüro'),
           _buildItem(1, Icons.grid_view_rounded, 'Dashboard'),
-          _buildItem(2, Icons.loop, 'Schichtende'),
+          _buildItem(2, Icons.swap_horiz_rounded, 'Schichtende'),
         ],
       ),
     );

@@ -6,64 +6,58 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// SECRET HANDLING
 function getSecretKey(): string {
-  const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
-  if (envSecretKeys) {
+  const envKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
+  if (envKeys) {
     try {
-      const parsed = JSON.parse(envSecretKeys);
+      const parsed = JSON.parse(envKeys);
       if (parsed?.default) return parsed.default;
     } catch {
-      return envSecretKeys;
+      return envKeys;
     }
   }
-  const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
-  if (singleSecretKey) return singleSecretKey;
-  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
+  return Deno.env.get('SUPABASE_SECRET_KEY') || '';
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    // SUPABASE CLIENT
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
-
-    const supabase = createClient(supabaseUrl, getSecretKey(), {
-      auth: { autoRefreshToken: false, persistSession: false }
-    })
-
-    //PAYLOAD VERARBEITUNG
     const payload = await req.json()
-    const { record, old_record } = payload
+    // Supabase Webhooks include 'schema', 'table', 'record', 'old_record'
+    const { schema, record, old_record } = payload
 
-    console.log(`--- SYNC REQUEST START ---`)
-    console.log(`Update on ticket ID: ${record.id}`)
+    console.log(`--- SYNC WEBHOOK START ---`)
+    console.log(`Schema: ${schema}, Ticket ID: ${record.id}`)
 
+    // Only proceed if status has changed
     if (record.status === old_record?.status) {
-      console.log('No status change, skipping update.')
-      return new Response(JSON.stringify({ message: 'No status change' }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      return new Response(JSON.stringify({ message: 'No status change' }), { status: 200 })
     }
 
-    const ISSUER_ID = Deno.env.get('GOOGLE_ISSUER_ID')
-    const CLIENT_EMAIL = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')
+    const ISSUER_ID = Deno.env.get('GOOGLE_ISSUER_ID')?.trim()
+    const CLIENT_EMAIL = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')?.trim()
     const PRIVATE_KEY = Deno.env.get('GOOGLE_PRIVATE_KEY')?.replace(/\\n/g, '\n')
 
     if (!ISSUER_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
-      throw new Error('Google Wallet Konfiguration fehlt.')
+      throw new Error('Google Wallet configuration missing in secrets.')
     }
 
+    // 1. Authenticate with Google
     const auth = new google.auth.GoogleAuth({
-      credentials: { client_email: CLIENT_EMAIL, private_key: PRIVATE_KEY },
+      credentials: {
+        client_email: CLIENT_EMAIL,
+        private_key: PRIVATE_KEY,
+      },
       scopes: ['https://www.googleapis.com/auth/wallet_object.issuer'],
     })
 
-    const walletobjects = google.walletobjects({ version: 'v1', auth: auth })
+    const walletobjects = google.walletobjects({
+      version: 'v1',
+      auth: auth,
+    })
 
+    // 2. Map Status to Pass UI
     const statusMap: Record<string, { color: string, text: string }> = {
       'unpaid': { color: '#B71C1C', text: 'Zahlung ausstehend' },
       'active': { color: '#00B58B', text: 'Jacke auf Platz aktiv' },
@@ -73,8 +67,10 @@ Deno.serve(async (req) => {
     }
     const currentStatus = statusMap[record.status] || { color: '#232F39', text: 'Status aktualisiert' }
 
+    // 3. Update the Object in Google Wallet
+    // Pass ID: issuerId.checket_ticketId_secret
     const resourceId = `${ISSUER_ID}.checket_${record.id}_${record.secret}`
-    console.log(`Patching pass: ${resourceId} with color ${currentStatus.color}`)
+    console.log(`Patching pass for tenant ${schema}: ${resourceId}`)
 
     await walletobjects.genericObject.patch({
       resourceId: resourceId,
@@ -86,15 +82,13 @@ Deno.serve(async (req) => {
       },
     })
 
-    console.log(`Successfully updated pass for ticket ${record.id}`)
-
-    return new Response(JSON.stringify({ success: true, updatedId: resourceId }), {
+    return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
 
   } catch (error) {
-    console.error('Wallet Sync Error:', error.message)
+    console.error('Wallet Sync Webhook Error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

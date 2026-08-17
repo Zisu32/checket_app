@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/services/sumup_service.dart';
 import '../../shared/services/sync_service.dart';
 import '../widgets/workstation_sheet.dart';
 import '../widgets/top_bar.dart';
+import '../widgets/workstation_action_sheet.dart';
+import 'admin_view.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -80,7 +83,6 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
       ),
     );
     
-    // Always reload data after sheet closes to ensure UI matches DB state
     await _loadData();
   }
 
@@ -98,6 +100,13 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
           icon: const Icon(Icons.arrow_back, color: AppTheme.white),
           onPressed: () => Navigator.pop(context),
         ),
+        trailing: IconButton(
+          icon: const Icon(Icons.logout_rounded, color: AppTheme.white, size: 24),
+          onPressed: () async {
+            await Supabase.instance.client.auth.signOut();
+            if (mounted) Navigator.pop(context);
+          },
+        ),
       ),
       body: Column(
         children: [
@@ -114,6 +123,9 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
   }
 
   Widget _buildHeader() {
+    final user = Supabase.instance.client.auth.currentUser;
+    final isAdmin = user?.appMetadata['role'] == 'admin';
+
     return SizedBox(
       height: 80,
       child: Padding(
@@ -122,10 +134,22 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Icon(Icons.settings_outlined, color: AppTheme.white, size: 28),
-            AppTheme.buildPrimaryButton(
-              text: 'Neuer Arbeitsplatz',
-              color: AppTheme.active,
-              onTap: () => _openWorkstationSheet(),
+            Row(
+              children: [
+                if (isAdmin) ...[
+                  AppTheme.buildPrimaryButton(
+                    text: 'Plattform-Verwaltung',
+                    color: AppTheme.secret.withValues(alpha: 0.8),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminView())),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                AppTheme.buildPrimaryButton(
+                  text: 'Neuer Arbeitsplatz',
+                  color: AppTheme.active,
+                  onTap: () => _openWorkstationSheet(),
+                ),
+              ],
             ),
           ],
         ),
@@ -145,95 +169,58 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      child: ListView.builder(
+      child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        itemCount: _assignments.length,
-        itemBuilder: (context, index) {
-          final asg = _assignments[index];
-          final isCurrent = asg['reader_id'] == localReaderId;
-
-          return Card(
-            color: AppTheme.surface,
-            margin: const EdgeInsets.only(bottom: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              title: Text(
-                asg['station_name'],
-                style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold, fontSize: AppTheme.small),
+        children: [
+          ..._assignments.map((asg) {
+            final isCurrent = asg['reader_id'] == localReaderId;
+            return Card(
+              color: AppTheme.surface,
+              margin: const EdgeInsets.only(bottom: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: isCurrent ? const BorderSide(color: AppTheme.active, width: 2) : BorderSide.none,
               ),
-              subtitle: Text(
-                '${asg['reader_name']}',
-                style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.xsmall),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                title: Text(
+                  asg['station_name'],
+                  style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold, fontSize: AppTheme.small),
+                ),
+                subtitle: Text(
+                  '${asg['reader_name']}',
+                  style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.xsmall),
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.more_horiz, color: AppTheme.white),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: AppTheme.background,
+                      isScrollControlled: true,
+                      builder: (_) => WorkstationActionSheet(
+                        assignment: asg,
+                        isCurrent: isCurrent,
+                        onActivate: () {
+                          _sumUpService.setLocalStation(asg['station_name'], asg['reader_id']);
+                          setState(() {});
+                        },
+                        onEdit: () => _openWorkstationSheet(
+                          name: asg['station_name'],
+                          readerId: asg['reader_id'],
+                        ),
+                        onDelete: () async {
+                          await _sumUpService.removeAssignment(asg['reader_id']);
+                          _loadData();
+                        },
+                      ),
+                    );
+                  },
+                ),
               ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AppTheme.buildPrimaryButton(
-                    text: isCurrent ? 'Bearbeiten' : 'Aktivieren',
-                    color: AppTheme.active,
-                    onTap: isCurrent
-                        ? () => _openWorkstationSheet(
-                              name: asg['station_name'],
-                              readerId: asg['reader_id'],
-                            )
-                        : () {
-                            _sumUpService.setLocalStation(
-                                asg['station_name'], asg['reader_id']);
-                            setState(() {});
-                          },
-                  ),
-                  const SizedBox(width: 8),
-                  AppTheme.buildPrimaryButton(
-                    icon: Icons.close,
-                    color: AppTheme.unpaid,
-                    onTap: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                          builder: (ctx) => AlertDialog(
-                            backgroundColor: AppTheme.background,
-                            title: const Text(
-                              'Arbeitsplatz löschen?',
-                              style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
-                            ),
-                            content: const Text(
-                              'Möchtest du diesen Arbeitsplatz wirklich entfernen?',
-                              style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white),
-                            ),
-                            actionsAlignment: MainAxisAlignment.center,
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text(
-                                  'Abbrechen',
-                                  style: TextStyle(
-                                    color: AppTheme.free,
-                                    fontSize: AppTheme.small,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              AppTheme.buildPrimaryButton(
-                                text: 'Löschen',
-                                color: AppTheme.unpaid,
-                                onTap: () => Navigator.pop(ctx, true),
-                              ),
-                            ],
-                          ),
-                      );
-                      if (confirm == true) {
-                        await _sumUpService.removeAssignment(asg['reader_id']);
-                        _loadData();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+            );
+          }),
+        ],
       ),
     );
   }

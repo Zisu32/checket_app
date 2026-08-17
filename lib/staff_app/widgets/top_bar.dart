@@ -8,6 +8,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   final Animation<double> pulseAnimation;
   final bool showSettings;
   final Widget? leading;
+  final Widget? trailing;
 
   const TopBar({
     super.key,
@@ -15,6 +16,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
     required this.pulseAnimation,
     this.showSettings = true,
     this.leading,
+    this.trailing,
   });
 
   @override
@@ -77,7 +79,10 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       automaticallyImplyLeading: leading != null,
       actions: [
-        if (showSettings) ...[
+        if (trailing != null) ...[
+          trailing!,
+          const SizedBox(width: 8),
+        ] else if (showSettings) ...[
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: AppTheme.background, size: 26),
             onPressed: () => Navigator.pushNamed(context, '/settings'),
