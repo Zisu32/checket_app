@@ -14,48 +14,53 @@ class SyncService {
   late AppDatabase db;
   final supabase = Supabase.instance.client;
   
+  String _schemaName = 'public';
+  String get schemaName => _schemaName;
+  
   final ValueNotifier<List<WardrobeSlot>> slotsNotifier = ValueNotifier<List<WardrobeSlot>>([]);
   final ValueNotifier<String?> errorNotifier = ValueNotifier<String?>(null);
   final ValueNotifier<bool> isInitialized = ValueNotifier<bool>(false);
   final ValueNotifier<SyncStatus> statusNotifier = ValueNotifier<SyncStatus>(SyncStatus.syncing);
 
-  Future<void> init({String dbName = 'checket_db'}) async {
-    print('Sync: Initializing Database ($dbName)...');
+  Future<void> init({String dbName = 'checket_db', String? schema}) async {
     statusNotifier.value = SyncStatus.syncing;
     
     try {
       db = AppDatabase(name: dbName);
       
-      // Perform initial pulls in background
-      Future.wait([
+      // Determine schema
+      if (schema != null) {
+        _schemaName = schema;
+      } else {
+        final user = supabase.auth.currentUser;
+        _schemaName = user?.appMetadata['schema_name'] as String? ?? 'public';
+      }
+
+      // Perform initial pulls
+      await Future.wait([
         pullFromSupabase(),
         pullLostItemsFromSupabase(),
-      ]).then((_) {
-        print('Sync: Initial background pulls completed');
-        isInitialized.value = true;
-        statusNotifier.value = SyncStatus.online;
-      }).catchError((e) {
-        print('Sync: Background pull failed: $e');
-        errorNotifier.value = 'Datenabgleich fehlgeschlagen.';
-        statusNotifier.value = SyncStatus.offline;
-      });
+      ]);
+      
+      isInitialized.value = true;
+      statusNotifier.value = SyncStatus.online;
 
       _setupRealtime();
       _setupLostFoundRealtime();
       
     } catch (e) {
-      print('Sync CRITICAL ERROR during init: $e');
       errorNotifier.value = 'Datenbank-Fehler: $e';
       statusNotifier.value = SyncStatus.offline;
     }
   }
 
+  // Helper to get scoped query
+  SupabaseQueryBuilder _from(String table) => supabase.schema(_schemaName).from(table);
+
   Future<void> pullFromSupabase() async {
-    print('Sync: Fetching Garderobe data...');
     statusNotifier.value = SyncStatus.syncing;
-    
     try {
-      final data = await supabase.from('checket_garderobe').select().order('id', ascending: true);
+      final data = await _from('checket_garderobe').select().order('id', ascending: true);
       final entries = (data as List).map((json) => db.companionFromJson(json)).toList();
 
       await db.batch((batch) {
@@ -64,29 +69,22 @@ class SyncService {
       
       final slots = await db.select(db.wardrobeSlots).get();
       slotsNotifier.value = slots;
-      print('Sync: Garderobe cache updated');
       statusNotifier.value = SyncStatus.online;
     } catch (e) {
-      print('Sync Error (Pull Garderobe): $e');
       statusNotifier.value = SyncStatus.offline;
-      if (e.toString().contains('NoModificationAllowedError')) {
-        errorNotifier.value = 'Datenbank-Sperre erkannt. Bitte andere Tabs schließen.';
-      }
       rethrow;
     }
   }
 
   Future<void> pullLostItemsFromSupabase() async {
-    print('Sync: Fetching Lost & Found data...');
     try {
-      final data = await supabase.from('checket_lost_found').select().eq('is_handed_over', false);
+      final data = await _from('checket_lost_found').select().eq('is_handed_over', false);
       final entries = (data as List).map((json) => db.lostItemCompanionFromJson(json)).toList();
 
       await db.batch((batch) {
         batch.deleteWhere(db.lostItems, (t) => const Constant(true));
         batch.insertAll(db.lostItems, entries, mode: InsertMode.insertOrReplace);
       });
-      print('Sync: Lost & Found cache updated');
     } catch (e) {
       print('Sync Error (Pull Lost): $e');
     }
@@ -95,10 +93,9 @@ class SyncService {
   void _setupRealtime() {
     supabase.channel('public:checket_garderobe').onPostgresChanges(
       event: PostgresChangeEvent.all,
-      schema: 'public',
+      schema: _schemaName,
       table: 'checket_garderobe',
       callback: (payload) async {
-        print('Sync: Realtime change in Garderobe');
         await pullFromSupabase();
       },
     ).subscribe((status, [error]) {
@@ -111,20 +108,17 @@ class SyncService {
   void _setupLostFoundRealtime() {
     supabase.channel('public:checket_lost_found').onPostgresChanges(
       event: PostgresChangeEvent.all,
-      schema: 'public',
+      schema: _schemaName,
       table: 'checket_lost_found',
       callback: (payload) async {
-        print('Sync: Realtime change in Lost & Found');
         await pullLostItemsFromSupabase();
       },
     ).subscribe();
   }
 
   Future<void> archiveAndResetShift() async {
-    print('Sync: Starting Shift Reset...');
     statusNotifier.value = SyncStatus.syncing;
     try {
-      // 1. Only archive 'active' or 'unpaid' jackets. Ignore 'temporary'.
       final archiveQuery = db.select(db.wardrobeSlots)
         ..where((t) => t.status.equals('active') | t.status.equals('unpaid'));
       final toArchive = await archiveQuery.get();
@@ -137,11 +131,10 @@ class SyncService {
           'created_at': DateTime.now().toIso8601String(),
         }).toList();
         
-        await supabase.from('checket_lost_found').insert(lostEntries);
+        await _from('checket_lost_found').insert(lostEntries);
       }
 
-      // 2. Reset ALL slots in Cloud to free
-      await supabase.from('checket_garderobe').update({
+      await _from('checket_garderobe').update({
         'status': 'free',
         'is_paid': false,
         'payment_method': 'none',
@@ -154,10 +147,8 @@ class SyncService {
         pullFromSupabase(),
       ]);
       
-      print('Sync: Shift reset complete');
       statusNotifier.value = SyncStatus.online;
     } catch (e) {
-      print('Sync Error (Reset): $e');
       statusNotifier.value = SyncStatus.offline;
       rethrow;
     }
@@ -169,12 +160,9 @@ class SyncService {
       await (db.update(db.lostItems)..where((t) => t.id.equals(item.id)))
           .write(const LostItemsCompanion(isHandedOver: Value(true)));
 
-      await supabase.from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
-          
-      print('Sync: Lost item handed over');
+      await _from('checket_lost_found').update({'is_handed_over': true}).eq('id', item.id);
       statusNotifier.value = SyncStatus.online;
     } catch (e) {
-      print('Sync Error (Handover): $e');
       statusNotifier.value = SyncStatus.offline;
       await pullLostItemsFromSupabase();
     }
@@ -187,10 +175,9 @@ class SyncService {
     slotsNotifier.value = slots;
 
     try {
-      await supabase.from('checket_garderobe').update(db.toJson(slot)).eq('id', slot.id);
+      await _from('checket_garderobe').update(db.toJson(slot)).eq('id', slot.id);
       statusNotifier.value = SyncStatus.online;
     } catch (e) {
-      print('Sync Error (Push): $e');
       statusNotifier.value = SyncStatus.offline;
       await pullFromSupabase();
     }
@@ -207,30 +194,21 @@ class SyncService {
       .watch();
   }
 
-  /// Identifies if a jacket is active, lost, picked up, or if the hook is just available.
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
     final controller = StreamController<WardrobeSlot?>();
-
     Future<void> update() async {
       if (controller.isClosed) return;
-
-      // 1. Check Active Grid for the unique secret
       final activeBySecret = await (db.select(db.wardrobeSlots)
             ..where((t) => t.id.equals(id) & t.secret.equals(secret)))
           .getSingleOrNull();
-
       if (activeBySecret != null && activeBySecret.status != 'free') {
         controller.add(activeBySecret);
         return;
       }
-
-      // 2. Check Lost & Found for the unique secret (including handed over ones)
       final lostBySecret = await (db.select(db.lostItems)
             ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret)))
           .getSingleOrNull();
-
       if (lostBySecret != null) {
-        // Found our specific jacket in the archives
         controller.add(WardrobeSlot(
           id: lostBySecret.originalSlotId,
           status: lostBySecret.isHandedOver ? 'picked_up' : 'forgotten',
@@ -241,36 +219,25 @@ class SyncService {
         ));
         return;
       }
-      
-      // 3. Secret not found -> Determine if hook is free or occupied by someone else
       final hookInGrid = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
-      
       if (hookInGrid != null) {
         if (hookInGrid.status == 'free') {
-          // No active guest on this hook -> "Bügel frei"
           controller.add(hookInGrid);
         } else {
-          // Hook is occupied by someone else -> "Already picked up" or "Invalid"
-          // Since the current guest's secret wasn't found in active OR lost,
-          // it likely means their transaction is complete and a new one started.
           controller.add(hookInGrid.copyWith(status: 'picked_up'));
         }
       } else {
         controller.add(null);
       }
     }
-
     final sub1 = db.wardrobeSlots.all().watch().listen((_) => update());
     final sub2 = db.lostItems.all().watch().listen((_) => update());
-    
     update();
-
     controller.onCancel = () {
       sub1.cancel();
       sub2.cancel();
       controller.close();
     };
-
     return controller.stream;
   }
 }

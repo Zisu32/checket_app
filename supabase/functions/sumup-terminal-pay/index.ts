@@ -5,55 +5,73 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// SECRET HANDLING
+// STANDARD KEY HELPERS
 function getSecretKey(): string {
-  const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
-  if (envSecretKeys) {
+  const envKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
+  if (envKeys) {
     try {
-      const parsed = JSON.parse(envSecretKeys);
+      const parsed = JSON.parse(envKeys);
       if (parsed?.default) return parsed.default;
     } catch {
-      return envSecretKeys;
+      return envKeys;
     }
   }
-  const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
-  if (singleSecretKey) return singleSecretKey;
-
-  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
+  return Deno.env.get('SUPABASE_SECRET_KEY') || '';
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader) return new Response(JSON.stringify({ error: 'Missing Auth Header' }), { status: 401 })
+
   try {
-    // SUPABASE CLIENT
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
-    
+    // 1. Initialize Admin Client (Bypasses RLS to fetch tenant secrets)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseAdmin = createClient(supabaseUrl, getSecretKey())
+
+    // 2. Identify the User and their Schema
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''))
+    if (authError || !user) throw new Error('Unauthorized')
+
+    const schemaName = user.app_metadata?.schema_name
+    if (!schemaName) throw new Error('No tenant schema assigned to this user.')
+
+    // 3. Set Context (Search Path) for this session
+    // We execute this on a new client instance for this specific request
     const supabase = createClient(supabaseUrl, getSecretKey(), {
-      auth: { autoRefreshToken: false, persistSession: false }
+      db: { schema: schemaName }
     })
 
-    // PAYLOAD
+    // 4. PAYLOAD
     const body = await req.json()
-    const { action = 'pay', slotId, secret, readerId, stationName, readerName, checkoutId } = body
+    const { action = 'pay', slotId, readerId, stationName, readerName, checkoutId } = body
 
-    // SUMUP CREDENTIALS
-    const API_KEY = Deno.env.get('SUMUP_API_KEY')
-    const MERCHANT_CODE = Deno.env.get('SUMUP_MERCHANT_CODE')
-    const AFFILIATE_KEY = Deno.env.get('SUMUP_AFFILIATE_KEY')
-
-    if (!API_KEY || !MERCHANT_CODE || !AFFILIATE_KEY) {
-      throw new Error('SumUp Konfiguration fehlt.')
+    // 5. FETCH TENANT SECRETS FROM VAULT
+    const fetchSecret = async (name: string) => {
+      const { data, error } = await supabaseAdmin.rpc('get_decrypted_tenant_secret', {
+        p_schema: schemaName,
+        p_key_name: name
+      })
+      if (error || !data || data.length === 0) return null
+      return data[0].decrypted_value
     }
 
-    // LIST STATUS OF READERS
+    const API_KEY = await fetchSecret('SUMUP_API_KEY')
+    const MERCHANT_CODE = await fetchSecret('SUMUP_MERCHANT_CODE')
+    const AFFILIATE_KEY = await fetchSecret('SUMUP_AFFILIATE_KEY')
+
+    if (!API_KEY || !MERCHANT_CODE || !AFFILIATE_KEY) {
+      throw new Error(`SumUp configuration missing for tenant ${schemaName}.`)
+    }
+
+    // --- ACTION: LIST STATUS ---
     if (action === 'list-status') {
       const readersRes = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers`, {
         headers: { 'Authorization': `Bearer ${API_KEY}` }
       })
       const readersData = await readersRes.json()
-      const readers = readersData.items || readersData.readers || []
+      const readers = readersData.items || []
 
       const { data: assignments } = await supabase
         .from('checket_terminal_assignments')
@@ -65,105 +83,67 @@ Deno.serve(async (req) => {
       })
     }
 
-    // CHECK PAYMENT STATUS
+    // --- ACTION: CHECK PAYMENT STATUS ---
     if (action === 'check-status') {
-      if (!checkoutId) throw new Error('checkoutId fehlt.')
-
+      if (!checkoutId) throw new Error('checkoutId missing.')
       const statusRes = await fetch(`https://api.sumup.com/v0.1/checkouts/${checkoutId}`, {
         headers: { 'Authorization': `Bearer ${API_KEY}` }
       })
-
       const statusData = await statusRes.json()
-      console.log(`Checkout Status for ${checkoutId}: ${statusData.status}`)
-
       return new Response(JSON.stringify({ status: statusData.status }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
-    // ASSIGN READERS
+    // --- ACTION: ASSIGN ---
     if (action === 'assign') {
-      if (!readerId || !stationName || !readerName) throw new Error('Daten fehlen.')
-      console.log(`Assigning reader ${readerId} to station ${stationName}...`)
-
-      const { data, error } = await supabase
-        .from('checket_terminal_assignments')
-        .upsert({
-          reader_id: readerId,
-          station_name: stationName,
-          reader_name: readerName,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-
-      if (error) {
-        console.error('Database assignment error:', error.message)
-        throw error
-      }
-
-      console.log('Assignment successful:', JSON.stringify(data))
-      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
-    }
-
-    // REMOVE READERS
-    if (action === 'remove') {
-      if (!readerId) throw new Error('readerId fehlt.')
       const { error } = await supabase
         .from('checket_terminal_assignments')
-        .delete()
-        .eq('reader_id', readerId)
-
+        .upsert({ reader_id: readerId, station_name: stationName, reader_name: readerName, updated_at: new Date().toISOString() })
       if (error) throw error
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
-    // PAY
+    // --- ACTION: REMOVE ---
+    if (action === 'remove') {
+      const { error } = await supabase.from('checket_terminal_assignments').delete().eq('reader_id', readerId)
+      if (error) throw error
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
+    }
+
+    // --- ACTION: PAY ---
     if (action === 'pay') {
-      // Validation
       const sid = Number(slotId)
       const { data: slot } = await supabase.from('checket_garderobe').select('status').eq('id', sid).single()
-      if (slot?.status === 'active') throw new Error('Bereits bezahlt.')
+      if (slot?.status === 'active') throw new Error('Already paid.')
 
-      // Target Reader
-      let targetReaderId = readerId
-      if (!targetReaderId) throw new Error('Kein Terminal gefunden.')
-
-      const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/${targetReaderId}/checkout`, {
+      const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/${readerId}/checkout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          total_amount: {
-            currency: 'EUR',
-            minor_unit: 2,
-            value: 100 // 1.00 EUR
-          },
+          total_amount: { currency: 'EUR', minor_unit: 2, value: 100 },
           foreign_tx_id: `hook_${slotId}_${Date.now()}`,
           affiliate_key: AFFILIATE_KEY,
         }),
       })
 
       const checkoutData = await checkoutResponse.json()
-      if (checkoutResponse.status !== 201) {
-        throw new Error(checkoutData?.detail || checkoutData?.message || 'Terminal konnte nicht aktiviert werden.')
-      }
+      if (checkoutResponse.status !== 201) throw new Error(checkoutData?.detail || 'SumUp Error.')
 
-      return new Response(JSON.stringify({
-        success: true,
-        checkoutId: checkoutData.id // Return the SumUp Checkout ID for polling
-      }), {
+      return new Response(JSON.stringify({ success: true, checkoutId: checkoutData.id }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
-    throw new Error('Ungültige Action.')
+    throw new Error('Invalid Action.')
 
   } catch (error) {
-    console.error('SumUp Function Error:', error.message)
+    console.error('Multi-Tenant Error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

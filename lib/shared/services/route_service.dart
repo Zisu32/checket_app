@@ -5,7 +5,7 @@ class RouteService {
   factory RouteService() => _instance;
   RouteService._internal();
 
-  ({int? id, String? secret}) parseCustomerParams() {
+  ({int? id, String? secret, String? tenant}) parseCustomerParams() {
     final fullUrl = web.window.location.href;
     final uri = Uri.parse(fullUrl);
     
@@ -21,6 +21,7 @@ class RouteService {
 
     String ticketIdStr = params['id'] ?? '';
     String secret = params['secret'] ?? '';
+    String tenant = params['tenant'] ?? '';
 
     final storage = web.window.localStorage;
 
@@ -28,14 +29,17 @@ class RouteService {
     if (ticketIdStr.isNotEmpty && secret.isNotEmpty) {
       storage.setItem('last_ticket_id', ticketIdStr);
       storage.setItem('last_ticket_secret', secret);
+      if (tenant.isNotEmpty) storage.setItem('last_tenant', tenant);
     } else {
       ticketIdStr = storage.getItem('last_ticket_id') ?? '';
       secret = storage.getItem('last_ticket_secret') ?? '';
+      tenant = storage.getItem('last_tenant') ?? '';
     }
 
     return (
       id: int.tryParse(ticketIdStr),
       secret: secret.isNotEmpty ? secret : null,
+      tenant: tenant.isNotEmpty ? tenant : null,
     );
   }
 

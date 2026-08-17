@@ -218,6 +218,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
       // Send the current origin so the backend can generate correct links for dev/prod
       final origin = web.window.location.origin;
       final path = web.window.location.pathname;
+      final tenant = _syncService.schemaName;
 
       final response = await supabase.functions.invoke(
         'generate-wallet-pass',
@@ -226,6 +227,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
           'secret': _activeSecret,
           'platform': PlatformHintsService.isIOS ? 'apple' : 'google',
           'origin': '$origin$path',
+          'tenant': tenant,
         },
       );
 

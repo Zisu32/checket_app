@@ -6,60 +6,48 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// SECRET HANDLING
 function getSecretKey(): string {
-  const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
-  if (envSecretKeys) {
+  const envKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
+  if (envKeys) {
     try {
-      const parsed = JSON.parse(envSecretKeys);
+      const parsed = JSON.parse(envKeys);
       if (parsed?.default) return parsed.default;
     } catch {
-      return envSecretKeys;
+      return envKeys;
     }
   }
-  const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
-  if (singleSecretKey) return singleSecretKey;
-  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
+  return Deno.env.get('SUPABASE_SECRET_KEY') || '';
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    // SUPABASE CLIENT
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
+    const { ticketId, secret, platform, origin, tenant } = await req.json()
+    console.log(`--- WALLET REQUEST START ---`)
+    console.log(`Ticket ID: ${ticketId}, Tenant: ${tenant}`)
 
-    const supabase = createClient(supabaseUrl, getSecretKey(), {
-      auth: { autoRefreshToken: false, persistSession: false }
+    // 1. Initialize Supabase Admin
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseAdmin = createClient(supabaseUrl, getSecretKey())
+
+    // 2. Validate Ticket using the Public Fetcher RPC
+    // Guests are anonymous, so we use the RPC to reach into the isolated schema
+    const { data: slots, error: slotError } = await supabaseAdmin.rpc('fetch_guest_ticket', {
+      p_schema: tenant || 'public',
+      p_id: Number(ticketId),
+      p_secret: secret
     })
 
-    // PAYLOAD VERARBEITUNG
-    const { ticketId, secret, platform, origin } = await req.json()
-    console.log(`Ticket ID: ${ticketId}, Platform: ${platform}`)
-
-    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
-    const tid = Number(ticketId)
-
-    const { data: slot, error: slotError } = await supabase
-      .from('checket_garderobe')
-      .select('id, status, secret')
-      .eq('id', tid)
-      .eq('secret', secret)
-      .single()
-
-    if (slotError) {
-      console.error(`Database Query Error for ID ${tid}:`, slotError.message)
-      throw new Error(`Ticket-Abfrage fehlgeschlagen: ${slotError.message}`)
-    }
-
-    if (!slot) {
-      console.error(`No slot found for ID ${tid} with provided secret.`)
+    if (slotError || !slots || slots.length === 0) {
+      console.error(`Validation failed for ticket ${ticketId} in tenant ${tenant}:`, slotError)
       throw new Error('Ticket ungültig oder nicht gefunden.')
     }
 
-    console.log(`Validation Success: Slot ${slot.id} is in status ${slot.status}`)
+    const slot = slots[0]
+    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
 
+    // Helper for Status Coloring & Text
     const statusMap: Record<string, { color: string, text: string }> = {
       'unpaid': { color: '#B71C1C', text: 'Zahlung ausstehend' },
       'active': { color: '#00B58B', text: 'Jacke auf Platz aktiv' },
@@ -70,12 +58,12 @@ Deno.serve(async (req) => {
     const currentStatus = statusMap[slot.status] || { color: '#232F39', text: 'Status unbekannt' }
 
     if (platform === 'google') {
-      const ISSUER_ID = Deno.env.get('GOOGLE_ISSUER_ID')
-      const CLIENT_EMAIL = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')
+      const ISSUER_ID = Deno.env.get('GOOGLE_ISSUER_ID')?.trim()
+      const CLIENT_EMAIL = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')?.trim()
       const PRIVATE_KEY = Deno.env.get('GOOGLE_PRIVATE_KEY')?.replace(/\\n/g, '\n')
 
       if (!ISSUER_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
-        throw new Error('Google Wallet Konfiguration fehlt in den Supabase Secrets.')
+        throw new Error('Google Wallet configuration missing.')
       }
 
       const genericObject = {
@@ -110,12 +98,11 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ error: 'Apple Wallet erfordert Zertifikat-Signierung (PKPass).' }),
+      JSON.stringify({ error: 'Apple Wallet noch nicht unterstützt.' }),
       { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error(`Wallet Error:`, error.message)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

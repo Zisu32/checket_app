@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/theme/app_theme.dart';
 
@@ -32,11 +33,14 @@ class QrDisplay extends StatelessWidget {
       path += '/';
     }
 
+    final user = Supabase.instance.client.auth.currentUser;
+    final tenant = user?.appMetadata['schema_name'] as String? ?? 'public';
+
     String qrData;
     if (isRecovery) {
-      qrData = '$origin$path'; // Base website
+      qrData = '$origin$path?tenant=$tenant'; // Base website with tenant
     } else {
-      qrData = '$origin$path?id=$ticketId&secret=$secret';
+      qrData = '$origin$path?id=$ticketId&secret=$secret&tenant=$tenant';
     }
 
     return Column(

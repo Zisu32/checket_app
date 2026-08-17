@@ -4,49 +4,33 @@ import 'customer_app/views/customer_view.dart';
 import 'customer_app/widgets/no_ticket.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';
-import 'shared/theme/app_theme.dart';
 import 'widgets/splash.dart';
 import 'widgets/error.dart';
 import 'widgets/fatal_error.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Global Error Catcher for Debugging
   ErrorWidget.builder = (FlutterErrorDetails details) {
-    return FatalError(details: details, titleSuffix: 'Costumer');
+    return FatalError(details: details, titleSuffix: 'Customer');
   };
 
+  const url = String.fromEnvironment('SUPABASE_URL');
+  const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+
+  if (url.isEmpty || publishableKey.isEmpty) {
+    runApp(MaterialApp(home: Error(error: 'Konfiguration fehlt.', onRetry: () {})));
+    return;
+  }
+
+  await Supabase.initialize(url: url, publishableKey: publishableKey);
+  
   runApp(const ChecketCustomerWebApp());
 }
 
-class ChecketCustomerWebApp extends StatefulWidget {
+class ChecketCustomerWebApp extends StatelessWidget {
   const ChecketCustomerWebApp({super.key});
-
-  @override
-  State<ChecketCustomerWebApp> createState() => _ChecketCustomerWebAppState();
-}
-
-class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
-  late Future<void> _initFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _initFuture = _initialize();
-  }
-
-  Future<void> _initialize() async {
-    const url = String.fromEnvironment('SUPABASE_URL');
-    const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
-
-    if (url.isEmpty || publishableKey.isEmpty) {
-      throw Exception('Konfiguration fehlt (URL/KEY). Bitte GitHub Secrets prüfen.');
-    }
-
-    await Supabase.initialize(url: url, publishableKey: publishableKey);
-    await SyncService().init(dbName: 'checket_customer_db');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,42 +44,79 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        return FutureBuilder(
-          future: _initFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const Splash();
-            }
-            if (snapshot.hasError) {
-              return Error(
-                error: snapshot.error.toString(),
-                onRetry: () => setState(() { _initFuture = _initialize(); }),
-              );
-            }
-            return child ?? const SizedBox.shrink();
-          },
-        );
-      },
-      home: const _CustomerRouteHandler(),
+      home: const _Router(),
     );
   }
 }
 
-class _CustomerRouteHandler extends StatelessWidget {
-  const _CustomerRouteHandler();
+class _Router extends StatelessWidget {
+  const _Router();
 
   @override
   Widget build(BuildContext context) {
     final params = RouteService().parseCustomerParams();
+    return _AuthenticatedApp(
+      ticketId: params.id,
+      secret: params.secret,
+      tenant: params.tenant,
+    );
+  }
+}
 
-    if (params.id == null || params.secret == null) {
-      return const NoTicket();
-    }
-    
-    return CustomerView(
-      ticketId: params.id, 
-      secret: params.secret
+class _AuthenticatedApp extends StatefulWidget {
+  final int? ticketId;
+  final String? secret;
+  final String? tenant;
+
+  const _AuthenticatedApp({this.ticketId, this.secret, this.tenant});
+
+  @override
+  State<_AuthenticatedApp> createState() => _AuthenticatedAppState();
+}
+
+class _AuthenticatedAppState extends State<_AuthenticatedApp> {
+  late Future<void> _initFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initFuture = _initialize();
+  }
+
+  Future<void> _initialize() async {
+    // Guest app needs to know which schema to sync with
+    await SyncService().init(
+      dbName: 'checket_customer_${widget.tenant ?? "public"}',
+      schema: widget.tenant,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _initFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Splash();
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Error(
+              error: snapshot.error.toString(),
+              onRetry: () => setState(() { _initFuture = _initialize(); }),
+            ),
+          );
+        }
+
+        if (widget.ticketId == null || widget.secret == null) {
+          return const NoTicket();
+        }
+
+        return CustomerView(
+          ticketId: widget.ticketId,
+          secret: widget.secret,
+        );
+      },
     );
   }
 }
