@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:web/web.dart' as web;
 import '../../shared/theme/app_theme.dart';
 
 class LoginView extends StatefulWidget {
@@ -21,13 +20,6 @@ class _LoginViewState extends State<LoginView> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _showErrors = false;
-
-  void _navigateToAdmin() {
-    final origin = web.window.location.origin;
-    final path = web.window.location.pathname;
-    final cleanPath = path.endsWith('/') ? path : '$path/';
-    web.window.location.href = '$origin$cleanPath#/admin';
-  }
 
   Future<void> _handleLogin() async {
     setState(() => _showErrors = true);
@@ -124,13 +116,12 @@ class _LoginViewState extends State<LoginView> {
               const SizedBox(height: 32),
               if (_isLoading)
                 const CircularProgressIndicator(color: AppTheme.active)
-              else ...[
+              else 
                 AppTheme.buildPrimaryButton(
                   text: 'Anmelden',
                   color: AppTheme.active,
                   onTap: _handleLogin,
                 ),
-              ],
             ],
           ),
         ),

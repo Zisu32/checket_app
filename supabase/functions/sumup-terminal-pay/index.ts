@@ -5,18 +5,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// STANDARD KEY HELPERS
+// STANDARD KEY HELPERS (Strict Multi-Tenant Standard)
 function getSecretKey(): string {
   const envKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
   if (envKeys) {
     try {
-      const parsed = JSON.parse(envKeys);
-      if (parsed?.default) return parsed.default;
+      return JSON.parse(envKeys)?.default || envKeys;
     } catch {
       return envKeys;
     }
   }
-  return Deno.env.get('SUPABASE_SECRET_KEY') || '';
+  return Deno.env.get('SUPABASE_SECRET_KEY') ?? '';
 }
 
 Deno.serve(async (req) => {

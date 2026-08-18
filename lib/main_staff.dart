@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:web/web.dart' as web;
 import 'staff_app/views/staff_view.dart';
 import 'staff_app/views/qr_display_view.dart';
-import 'staff_app/views/settings_view.dart';
 import 'staff_app/views/login_view.dart';
 import 'staff_app/views/admin_view.dart';
 import 'shared/services/sync_service.dart';
@@ -40,17 +39,12 @@ void main() async {
 class ChecketStaffApp extends StatelessWidget {
   const ChecketStaffApp({super.key});
 
-  bool _isAdminPath() {
-    // Exclusively check hash for admin route to avoid 404s on static hosts
-    return web.window.location.hash.contains('/admin');
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isAdminMode = _isAdminPath();
+    final String initialRoute = web.window.location.hash.contains('/admin') ? '/admin' : '/';
 
     return MaterialApp(
-      title: isAdminMode ? 'Checket Admin' : 'Checket Staff',
+      title: 'Checket Staff',
       theme: ThemeData.dark().copyWith(
         textSelectionTheme: TextSelectionThemeData(
           cursorColor: AppTheme.white,
@@ -59,23 +53,25 @@ class ChecketStaffApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: StreamBuilder<AuthState>(
-        stream: Supabase.instance.client.auth.onAuthStateChange,
-        builder: (context, snapshot) {
-          final session = Supabase.instance.client.auth.currentSession;
-          
-          if (session == null) {
-            return LoginView(isAdminMode: isAdminMode);
-          }
-
-          return _AuthenticatedApp(isAdminMode: isAdminMode);
-        },
-      ),
+      initialRoute: initialRoute,
       onGenerateRoute: (settings) {
-        if (settings.name == '/settings') {
-          return MaterialPageRoute(builder: (_) => const SettingsView());
-        }
-        return null;
+        final bool isAdmin = settings.name == '/admin';
+        
+        return MaterialPageRoute(
+          settings: settings, // Important so the URL remains in the address bar
+          builder: (context) => StreamBuilder<AuthState>(
+            stream: Supabase.instance.client.auth.onAuthStateChange,
+            builder: (context, snapshot) {
+              final session = Supabase.instance.client.auth.currentSession;
+              
+              if (session == null) {
+                return LoginView(isAdminMode: isAdmin);
+              }
+
+              return _AuthenticatedApp(isAdminMode: isAdmin);
+            },
+          ),
+        );
       },
     );
   }
