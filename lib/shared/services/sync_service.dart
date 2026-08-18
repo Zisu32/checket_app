@@ -24,6 +24,7 @@ class SyncService {
 
   Future<void> init({String dbName = 'checket_db', String? schema}) async {
     statusNotifier.value = SyncStatus.syncing;
+    errorNotifier.value = null;
     
     try {
       db = AppDatabase(name: dbName);
@@ -36,11 +37,9 @@ class SyncService {
         _schemaName = user?.appMetadata['schema_name'] as String? ?? 'public';
       }
 
-      // Perform initial pulls
-      await Future.wait([
-        pullFromSupabase(),
-        pullLostItemsFromSupabase(),
-      ]);
+      // Perform initial pulls and wait for them
+      await pullFromSupabase();
+      await pullLostItemsFromSupabase();
       
       isInitialized.value = true;
       statusNotifier.value = SyncStatus.online;
@@ -49,8 +48,13 @@ class SyncService {
       _setupLostFoundRealtime();
       
     } catch (e) {
-      errorNotifier.value = 'Datenbank-Fehler: $e';
+      print('Sync Error during init: $e');
+      final msg = e.toString().contains('403') 
+        ? 'Zugriff verweigert (403). Bitte Admin-Rechte prüfen.' 
+        : 'Initialisierung fehlgeschlagen: $e';
+      errorNotifier.value = msg;
       statusNotifier.value = SyncStatus.offline;
+      rethrow; // Rethrow so FutureBuilder in UI catches it
     }
   }
 

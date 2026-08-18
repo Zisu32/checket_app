@@ -114,45 +114,51 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
       builder: (context, snapshot) {
         final allSlots = snapshot.data ?? [];
         
-        if (allSlots.isEmpty) {
-          return LoadingScreen(
-            showTimeoutMessage: _showTimeoutMessage,
-            onManualReload: () => _syncService.pullFromSupabase(),
-          );
-        }
+        return ValueListenableBuilder<String?>(
+          valueListenable: _syncService.errorNotifier,
+          builder: (context, error, _) {
+            if (allSlots.isEmpty || error != null) {
+              return LoadingScreen(
+                showTimeoutMessage: _showTimeoutMessage,
+                onManualReload: () => _syncService.pullFromSupabase(),
+                error: error,
+              );
+            }
 
-        return Scaffold(
-          backgroundColor: AppTheme.background,
-          appBar: TopBar(
-            syncService: _syncService,
-            pulseAnimation: _pulseAnimation,
-          ),
-          body: Column(
-            children: [
-              Expanded(
-                child: _buildBody(allSlots),
+            return Scaffold(
+              backgroundColor: AppTheme.background,
+              appBar: TopBar(
+                syncService: _syncService,
+                pulseAnimation: _pulseAnimation,
               ),
-              if (_selectedNavIndex == 1)
-                PageIndicator(
-                  totalSlots: allSlots.length,
-                  itemsPerPage: _itemsPerPage,
-                  currentPage: _currentPage,
-                  onPageSelected: (page) {
-                    _pageController.animateToPage(
-                      page,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                ),
-            ],
-          ),
-          bottomNavigationBar: Navbar(
-            selectedIndex: _selectedNavIndex,
-            allSlots: allSlots,
-            onTabSelected: (index) => setState(() => _selectedNavIndex = index),
-            onLockedTabClick: _showLockDialog,
-          ),
+              body: Column(
+                children: [
+                  Expanded(
+                    child: _buildBody(allSlots),
+                  ),
+                  if (_selectedNavIndex == 1)
+                    PageIndicator(
+                      totalSlots: allSlots.length,
+                      itemsPerPage: _itemsPerPage,
+                      currentPage: _currentPage,
+                      onPageSelected: (page) {
+                        _pageController.animateToPage(
+                          page,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                    ),
+                ],
+              ),
+              bottomNavigationBar: Navbar(
+                selectedIndex: _selectedNavIndex,
+                allSlots: allSlots,
+                onTabSelected: (index) => setState(() => _selectedNavIndex = index),
+                onLockedTabClick: _showLockDialog,
+              ),
+            );
+          }
         );
       }
     );

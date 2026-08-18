@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../shared/theme/app_theme.dart';
 
 class Error extends StatelessWidget {
@@ -25,7 +26,7 @@ class Error extends StatelessWidget {
               const SizedBox(height: 24),
               const Text(
                 'Initialisierungsfehler',
-                style: TextStyle(fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: AppTheme.medium, fontWeight: FontWeight.bold, color: AppTheme.white),
               ),
               const SizedBox(height: 12),
               Text(
@@ -33,11 +34,18 @@ class Error extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
               ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: onRetry,
-                child: const Text('Erneut versuchen', style: TextStyle(fontSize: AppTheme.small)),
-              )
+              const SizedBox(height: 48),
+              AppTheme.buildPrimaryButton(
+                text: 'Erneut versuchen',
+                color: AppTheme.active,
+                onTap: onRetry,
+              ),
+              const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: () => Supabase.instance.client.auth.signOut(),
+                icon: const Icon(Icons.logout_rounded, color: AppTheme.free),
+                label: const Text('Abmelden', style: TextStyle(color: AppTheme.free)),
+              ),
             ],
           ),
         ),
