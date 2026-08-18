@@ -51883,7 +51883,7 @@ ak(){var s=$.aE()
 return new A.LO(new A.l9(B.cE,s),new A.l9(B.cE,s))}}
 A.LO.prototype={
 aq0(){var s=v.G,r=s.window.location.origin,q=s.window.location.pathname,p=B.c.eG(q,"/")?q:q+"/"
-s.window.location.href=r+p+"admin"},
+s.window.location.href=r+p+"#/admin"},
 BC(){var s=0,r=A.t(t.H),q,p=2,o=[],n=[],m=this,l,k,j,i,h,g
 var $async$BC=A.u(function(a,b){if(a===1){o.push(b)
 s=p}for(;;)switch(s){case 0:h=m.d
@@ -53079,7 +53079,7 @@ var $async$ib=A.u(function(b,c){if(b===1)return A.p(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.vl(new A.pq(1787046237,p.b),t.hU).b5(new A.aIg(),t.y):o
+q=o==null?p.d=n.a.vl(new A.pq(1787047257,p.b),t.hU).b5(new A.aIg(),t.y):o
 s=1
 break
 case 1:return A.q(q,r)}})
@@ -54089,7 +54089,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.anU?2:4
 break
-case 2:p=1787046237
+case 2:p=1787047257
 s=3
 break
 case 4:s=n instanceof A.NA?5:7
@@ -54102,10 +54102,10 @@ break
 case 7:throw A.e(A.dy("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.m(a.a1W(new A.a_i(q,new A.u8()),new A.Gr(p,1787046237)),$async$tJ)
-case 9:s=n instanceof A.NA&&p!==1787046237?10:11
+return A.m(a.a1W(new A.a_i(q,new A.u8()),new A.Gr(p,1787047257)),$async$tJ)
+case 9:s=n instanceof A.NA&&p!==1787047257?10:11
 break
-case 10:n.a.a3Q("PRAGMA user_version = 1787046237;")
+case 10:n.a.a3Q("PRAGMA user_version = 1787047257;")
 s=12
 return A.m(A.cN(null,t.H),$async$tJ)
 case 12:case 11:return A.q(null,r)}})
