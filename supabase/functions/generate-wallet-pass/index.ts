@@ -31,7 +31,6 @@ Deno.serve(async (req) => {
     const supabaseAdmin = createClient(supabaseUrl, getSecretKey())
 
     // 2. Validate Ticket using the Public Fetcher RPC
-    // Guests are anonymous, so we use the RPC to reach into the isolated schema
     const { data: slots, error: slotError } = await supabaseAdmin.rpc('fetch_guest_ticket', {
       p_schema: tenant || 'public',
       p_id: Number(ticketId),
@@ -65,8 +64,11 @@ Deno.serve(async (req) => {
         throw new Error('Google Wallet configuration missing.')
       }
 
+      // Unique resourceId per tenant: issuerId.checket_tenant_ticketId_secret
+      const resourceId = `${ISSUER_ID}.checket_${tenant}_${ticketId}_${secret}`
+
       const genericObject = {
-        id: `${ISSUER_ID}.checket_${ticketId}_${secret}`,
+        id: resourceId,
         classId: `${ISSUER_ID}.checket_ticket_v1`,
         genericType: "GENERIC_TYPE_UNSPECIFIED",
         hexBackgroundColor: currentStatus.color,
@@ -102,6 +104,7 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
+    console.error(`Wallet Error:`, error.message)
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

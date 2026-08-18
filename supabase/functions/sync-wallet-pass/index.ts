@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const { schema, record, old_record } = payload
 
     console.log(`--- SYNC WEBHOOK START ---`)
-    console.log(`Schema: ${schema}, Ticket ID: ${record.id}`)
+    console.log(`Tenant: ${schema}, Ticket ID: ${record.id}`)
 
     // Only proceed if status has changed
     if (record.status === old_record?.status) {
@@ -67,8 +67,8 @@ Deno.serve(async (req) => {
     const currentStatus = statusMap[record.status] || { color: '#232F39', text: 'Status aktualisiert' }
 
     // 3. Update the Object in Google Wallet
-    // Pass ID: issuerId.checket_ticketId_secret
-    const resourceId = `${ISSUER_ID}.checket_${record.id}_${record.secret}`
+    // Unique resourceId per tenant: issuerId.checket_tenant_ticketId_secret
+    const resourceId = `${ISSUER_ID}.checket_${schema}_${record.id}_${record.secret}`
     console.log(`Patching pass for tenant ${schema}: ${resourceId}`)
 
     await walletobjects.genericObject.patch({

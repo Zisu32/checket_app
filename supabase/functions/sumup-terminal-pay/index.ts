@@ -37,7 +37,6 @@ Deno.serve(async (req) => {
     if (!schemaName) throw new Error('No tenant schema assigned to this user.')
 
     // 3. Set Context (Search Path) for this session
-    // We execute this on a new client instance for this specific request
     const supabase = createClient(supabaseUrl, getSecretKey(), {
       db: { schema: schemaName }
     })
