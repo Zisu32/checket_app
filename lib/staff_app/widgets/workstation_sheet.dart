@@ -133,7 +133,7 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
             title: Text(name, style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small)),
             subtitle: Text(reader['id'], style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.xsmall)),
             trailing: _isSaving 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.active)) 
                 : null,
             onTap: _isSaving ? null : () async {
               setState(() => _isSaving = true);
