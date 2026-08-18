@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/theme/app_theme.dart';
@@ -19,16 +20,18 @@ class _LoginViewState extends State<LoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _showErrors = false;
 
   void _navigateToAdmin() {
     final origin = web.window.location.origin;
     final path = web.window.location.pathname;
-    // Use hash to avoid 404 on static hosting platforms like GitHub Pages
     final cleanPath = path.endsWith('/') ? path : '$path/';
-    web.window.location.href = '$origin${cleanPath}#/admin';
+    web.window.location.href = '$origin$cleanPath#/admin';
   }
 
   Future<void> _handleLogin() async {
+    setState(() => _showErrors = true);
+    
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) return;
 
     setState(() => _isLoading = true);
@@ -56,6 +59,9 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
+    final emailEmpty = _showErrors && _emailController.text.isEmpty;
+    final passwordEmpty = _showErrors && _passwordController.text.isEmpty;
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: Center(
@@ -65,26 +71,37 @@ class _LoginViewState extends State<LoginView> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                widget.isAdminMode ? 'ADMIN' : 'CHECKET STAFF',
-                style: const TextStyle(
-                  fontSize: AppTheme.medium,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.white,
-                  letterSpacing: 2,
-                ),
+              SvgPicture.asset(
+                'assets/images/full-icon.svg',
+                height: 48,
               ),
+              if (widget.isAdminMode) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'ADMIN',
+                  style: TextStyle(
+                    fontSize: AppTheme.small,
+                    color: AppTheme.white,
+                    letterSpacing: 4,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
               const SizedBox(height: 48),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 style: const TextStyle(color: AppTheme.white),
                 cursorColor: AppTheme.white,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'E-Mail',
-                  labelStyle: TextStyle(color: AppTheme.free),
-                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                  labelStyle: TextStyle(color: emailEmpty ? AppTheme.unpaid : AppTheme.free),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: emailEmpty ? AppTheme.unpaid : AppTheme.surface),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: emailEmpty ? AppTheme.unpaid : AppTheme.active),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -93,11 +110,15 @@ class _LoginViewState extends State<LoginView> {
                 obscureText: true,
                 style: const TextStyle(color: AppTheme.white),
                 cursorColor: AppTheme.white,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Passwort',
-                  labelStyle: TextStyle(color: AppTheme.free),
-                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                  labelStyle: TextStyle(color: passwordEmpty ? AppTheme.unpaid : AppTheme.free),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: passwordEmpty ? AppTheme.unpaid : AppTheme.surface),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: passwordEmpty ? AppTheme.unpaid : AppTheme.active),
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
