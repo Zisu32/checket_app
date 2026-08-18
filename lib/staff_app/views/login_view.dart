@@ -130,16 +130,6 @@ class _LoginViewState extends State<LoginView> {
                   color: AppTheme.active,
                   onTap: _handleLogin,
                 ),
-                if (!widget.isAdminMode) ...[
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: _navigateToAdmin,
-                    child: const Text(
-                      'Admin-Plattformverwaltung',
-                      style: TextStyle(color: AppTheme.free),
-                    ),
-                  ),
-                ],
               ],
             ],
           ),

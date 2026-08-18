@@ -41,10 +41,8 @@ class ChecketStaffApp extends StatelessWidget {
   const ChecketStaffApp({super.key});
 
   bool _isAdminPath() {
-    // Check both pathname (for local dev) and hash (for GitHub Pages)
-    final path = web.window.location.pathname;
-    final hash = web.window.location.hash;
-    return path.endsWith('/admin') || path.endsWith('/admin/') || hash.contains('/admin');
+    // Exclusively check hash for admin route to avoid 404s on static hosts
+    return web.window.location.hash.contains('/admin');
   }
 
   @override
