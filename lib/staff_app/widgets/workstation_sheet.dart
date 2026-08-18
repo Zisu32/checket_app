@@ -62,96 +62,95 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
           const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: !_showTerminalSelection ? _buildNamingStep() : _buildTerminalStep(),
+            child: _buildCurrentStep(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNamingStep() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _nameController,
-            autofocus: true,
-            cursorColor: AppTheme.white,
-            style: const TextStyle(color: AppTheme.white),
-            decoration: const InputDecoration(
-              hintText: 'z.B. Tresen Mitte',
-              hintStyle: TextStyle(color: Colors.white24),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
+  Widget _buildCurrentStep() {
+    if (!_showTerminalSelection) {
+      return Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _nameController,
+              autofocus: true,
+              cursorColor: AppTheme.white,
+              style: const TextStyle(color: AppTheme.white),
+              decoration: const InputDecoration(
+                hintText: 'z.B. Tresen Mitte',
+                hintStyle: TextStyle(color: Colors.white24),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
+                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 16),
-        AppTheme.buildPrimaryButton(
-          text: 'Weiter',
-          color: AppTheme.active,
-          onTap: () {
-            if (_nameController.text.isNotEmpty) {
-              FocusScope.of(context).unfocus();
-              setState(() => _showTerminalSelection = true);
-            }
-          },
-        ),
-      ],
-    );
-  }
+          const SizedBox(width: 16),
+          AppTheme.buildPrimaryButton(
+            text: 'Weiter',
+            color: AppTheme.active,
+            onTap: () {
+              if (_nameController.text.isNotEmpty) {
+                FocusScope.of(context).unfocus();
+                setState(() => _showTerminalSelection = true);
+              }
+            },
+          ),
+        ],
+      );
+    } else {
+      // Step 2: Terminal Selection
+      final assignedIds = widget.assignments
+          .map((a) => a is Map ? a['reader_id'] : null)
+          .whereType<String>()
+          .toSet();
 
-  Widget _buildTerminalStep() {
-    final assignedIds = widget.assignments.map((a) => a['reader_id']).toSet();
-    final availableReaders = widget.allReaders.where((r) {
-      if (widget.initialReaderId != null && r['id'] == widget.initialReaderId) return true;
-      return !assignedIds.contains(r['id']);
-    }).toList();
+      final availableReaders = widget.allReaders.where((r) {
+        if (r is! Map) return false;
+        if (widget.initialReaderId != null && r['id'] == widget.initialReaderId) return true;
+        return !assignedIds.contains(r['id']);
+      }).toList();
 
-    if (availableReaders.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Text(
-          'Keine freien Terminals gefunden.',
-          style: TextStyle(color: AppTheme.white),
-        ),
+      if (availableReaders.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Text(
+            'Keine freien Terminals gefunden.',
+            style: TextStyle(color: AppTheme.white),
+          ),
+        );
+      }
+
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: availableReaders.map((reader) {
+          final name = reader['name'] ?? 'Unbekanntes Solo';
+          return ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.tablet_android, color: AppTheme.active),
+            title: Text(name, style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small)),
+            subtitle: Text(reader['id'], style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.xsmall)),
+            trailing: _isSaving 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                : null,
+            onTap: _isSaving ? null : () async {
+              setState(() => _isSaving = true);
+              try {
+                await SumUpService().assignTerminal(_nameController.text, reader['id'], name);
+                if (!mounted) return;
+                Navigator.pop(context, true);
+              } catch (e) {
+                _showError(e.toString());
+              } finally {
+                if (mounted) setState(() => _isSaving = false);
+              }
+            },
+          );
+        }).toList(),
       );
     }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(), // Important for stability inside scrollable sheets
-          itemCount: availableReaders.length,
-          itemBuilder: (context, index) {
-            final reader = availableReaders[index];
-            final name = reader['name'] ?? 'Unbekanntes Solo';
-
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.tablet_android, color: AppTheme.active),
-              title: Text(name, style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small)),
-              subtitle: Text(reader['id'], style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.xsmall)),
-              trailing: _isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : null,
-              onTap: _isSaving ? null : () async {
-                setState(() => _isSaving = true);
-                try {
-                  await SumUpService().assignTerminal(_nameController.text, reader['id'], name);
-                  if (!mounted) return;
-                  Navigator.pop(context, true);
-                } catch (e) {
-                  _showError(e.toString());
-                } finally {
-                  if (mounted) setState(() => _isSaving = false);
-                }
-              },
-            );
-          },
-        ),
-      ],
-    );
   }
 
   void _showError(String msg) {

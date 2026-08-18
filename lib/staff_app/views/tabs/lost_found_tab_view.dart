@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../shared/database/database.dart';
 import '../../../shared/services/sync_service.dart';
 import '../../../shared/theme/app_theme.dart';
-
-import '../widgets/lost_found_action_sheet.dart';
+import '../../widgets/lost_found_action_sheet.dart';
 
 class LostFoundTabView extends StatelessWidget {
   final SyncService syncService;

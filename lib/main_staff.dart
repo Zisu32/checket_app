@@ -52,10 +52,10 @@ class ChecketStaffApp extends StatelessWidget {
     return MaterialApp(
       title: isAdminMode ? 'Checket Admin' : 'Checket Staff',
       theme: ThemeData.dark().copyWith(
-        textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: Colors.white,
-          selectionColor: Colors.white24,
-          selectionHandleColor: Colors.white,
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: AppTheme.white,
+          selectionColor: AppTheme.white.withValues(alpha: 0.24),
+          selectionHandleColor: AppTheme.white,
         ),
       ),
       debugShowCheckedModeBanner: false,

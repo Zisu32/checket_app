@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../shared/theme/app_theme.dart';
-import '../../shared/services/sumup_service.dart';
 
 class WorkstationActionSheet extends StatelessWidget {
   final dynamic assignment;
