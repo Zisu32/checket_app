@@ -52589,7 +52589,7 @@ var $async$i4=A.u(function(b,c){if(b===1)return A.p(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.vf(new A.pi(1787051301,p.b),t.hU).b7(new A.aHI(),t.y):o
+q=o==null?p.d=n.a.vf(new A.pi(1787054080,p.b),t.hU).b7(new A.aHI(),t.y):o
 s=1
 break
 case 1:return A.q(q,r)}})
@@ -53599,7 +53599,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.anx?2:4
 break
-case 2:p=1787051301
+case 2:p=1787054080
 s=3
 break
 case 4:s=n instanceof A.Ni?5:7
@@ -53612,10 +53612,10 @@ break
 case 7:throw A.e(A.dt("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.m(a.a1E(new A.a__(q,new A.tV()),new A.Ge(p,1787051301)),$async$tD)
-case 9:s=n instanceof A.Ni&&p!==1787051301?10:11
+return A.m(a.a1E(new A.a__(q,new A.tV()),new A.Ge(p,1787054080)),$async$tD)
+case 9:s=n instanceof A.Ni&&p!==1787054080?10:11
 break
-case 10:n.a.a3y("PRAGMA user_version = 1787051301;")
+case 10:n.a.a3y("PRAGMA user_version = 1787054080;")
 s=12
 return A.m(A.cT(null,t.H),$async$tD)
 case 12:case 11:return A.q(null,r)}})
