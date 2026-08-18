@@ -23,9 +23,9 @@ class _LoginViewState extends State<LoginView> {
   void _navigateToAdmin() {
     final origin = web.window.location.origin;
     final path = web.window.location.pathname;
-    // Append /admin to the path, ensuring it doesn't double-slash
+    // Use hash to avoid 404 on static hosting platforms like GitHub Pages
     final cleanPath = path.endsWith('/') ? path : '$path/';
-    web.window.location.href = '$origin${cleanPath}admin';
+    web.window.location.href = '$origin${cleanPath}#/admin';
   }
 
   Future<void> _handleLogin() async {
