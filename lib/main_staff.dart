@@ -4,7 +4,6 @@ import 'package:web/web.dart' as web;
 import 'admin_app/views/admin_view.dart';
 import 'staff_app/views/staff_view.dart';
 import 'staff_app/views/qr_display_view.dart';
-import 'staff_app/views/settings_view.dart';
 import 'staff_app/views/login_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';

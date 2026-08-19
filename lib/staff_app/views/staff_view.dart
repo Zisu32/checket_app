@@ -82,6 +82,79 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
     web.window.open(qrUrl, 'checket_monitor');
   }
 
+  void _showSettingsAuth() {
+    final email = _syncService.supabase.auth.currentUser?.email ?? "";
+    final passwordController = TextEditingController();
+    bool isAuthenticating = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppTheme.background,
+          title: const Text(
+            'Zugriff geschützt',
+            style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Anmeldung erforderlich für: \n$email', style: const TextStyle(color: AppTheme.white)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                autofocus: true,
+                style: const TextStyle(color: AppTheme.white),
+                cursorColor: AppTheme.white,
+                decoration: const InputDecoration(
+                  labelText: 'Passwort eingeben',
+                  labelStyle: TextStyle(color: AppTheme.free),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Abbrechen', style: TextStyle(color: AppTheme.free)),
+            ),
+            isAuthenticating
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.active)),
+                  )
+                : AppTheme.buildPrimaryButton(
+                    text: 'Bestätigen',
+                    color: AppTheme.active,
+                    onTap: () async {
+                      setDialogState(() => isAuthenticating = true);
+                      final success = await _syncService.reauthenticate(passwordController.text);
+                      if (success) {
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/settings');
+                        }
+                      } else {
+                        setDialogState(() => isAuthenticating = false);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Passwort falsch'), backgroundColor: AppTheme.unpaid),
+                          );
+                        }
+                      }
+                    },
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showLockDialog() {
     showDialog(
       context: context,
