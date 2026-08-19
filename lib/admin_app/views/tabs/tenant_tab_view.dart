@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../shared/theme/app_theme.dart';
-import '../widgets/top_bar.dart';
-import '../../shared/services/sync_service.dart';
-import '../widgets/tenant_action_sheet.dart';
+import '../../../shared/theme/app_theme.dart';
+import '../../widgets/tenant_action_sheet.dart';
 
-class AdminView extends StatefulWidget {
-  const AdminView({super.key});
+class TenantTabView extends StatefulWidget {
+  const TenantTabView({super.key});
 
   @override
-  State<AdminView> createState() => _AdminViewState();
+  State<TenantTabView> createState() => _TenantTabViewState();
 }
 
-class _AdminViewState extends State<AdminView> {
+class _TenantTabViewState extends State<TenantTabView> {
   final _supabase = Supabase.instance.client;
   bool _isLoading = true;
   List<dynamic> _tenants = [];
@@ -57,31 +55,16 @@ class _AdminViewState extends State<AdminView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: TopBar(
-        syncService: SyncService(),
-        pulseAnimation: const AlwaysStoppedAnimation(1.0),
-        showSettings: false,
-        leading: const SizedBox.shrink(), // No back button for admin main
-        trailing: IconButton(
-          icon: const Icon(Icons.logout_rounded, color: AppTheme.white, size: 24),
-          onPressed: () async {
-            await Supabase.instance.client.auth.signOut();
-          },
+    return Column(
+      children: [
+        _buildHeader(),
+        const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
+        Expanded(
+          child: _isLoading 
+            ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
+            : _buildList(),
         ),
-      ),
-      body: Column(
-        children: [
-          _buildHeader(),
-          const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
-          Expanded(
-            child: _isLoading 
-              ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
-              : _buildList(),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -93,7 +76,7 @@ class _AdminViewState extends State<AdminView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Icon(Icons.menu_open_rounded, color: AppTheme.white, size: 28),
+            const Icon(Icons.business_center_rounded, color: AppTheme.white, size: 28),
             AppTheme.buildPrimaryButton(
               text: 'Neuer Mandant',
               color: AppTheme.active,

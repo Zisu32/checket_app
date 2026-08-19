@@ -421,3 +421,6 @@ verify_jwt = false
 
 [functions.sync-wallet-pass]
 verify_jwt = false
+
+[functions.manage-users]
+verify_jwt = true

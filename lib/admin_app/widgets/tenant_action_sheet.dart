@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../shared/theme/app_theme.dart';
+import '../../../shared/theme/app_theme.dart';
 
 class TenantActionSheet extends StatefulWidget {
   final dynamic tenant; // null for new tenant
