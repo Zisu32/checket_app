@@ -187,6 +187,39 @@ class SyncService {
     }
   }
 
+  Future<void> updateTicketPrice(String readerId, double newPrice) async {
+    try {
+      await _from('checket_terminal_assignments')
+          .update({'ticket_price': newPrice}).eq('reader_id', readerId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<double> getTicketPrice(String readerId) async {
+    try {
+      final res = await _from('checket_terminal_assignments')
+          .select('ticket_price')
+          .eq('reader_id', readerId)
+          .single();
+      return (res['ticket_price'] as num).toDouble();
+    } catch (e) {
+      return 2.50;
+    }
+  }
+
+  Future<bool> reauthenticate(String password) async {
+    try {
+      final email = supabase.auth.currentUser?.email;
+      if (email == null) return false;
+
+      await supabase.auth.signInWithPassword(email: email, password: password);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Stream<List<WardrobeSlot>> watchSlots() {
     return (db.select(db.wardrobeSlots)..orderBy([(t) => OrderingTerm(expression: t.id)])).watch();
   }

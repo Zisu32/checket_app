@@ -22,6 +22,79 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(50);
 
+  void _showSettingsAuth(BuildContext context) {
+    final email = syncService.supabase.auth.currentUser?.email ?? "";
+    final passwordController = TextEditingController();
+    bool isAuthenticating = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppTheme.background,
+          title: const Text(
+            'Zugriff geschützt',
+            style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Anmeldung erforderlich für: \n$email', style: const TextStyle(color: AppTheme.free)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                autofocus: true,
+                style: const TextStyle(color: AppTheme.white),
+                cursorColor: AppTheme.white,
+                decoration: const InputDecoration(
+                  labelText: 'Passwort eingeben',
+                  labelStyle: TextStyle(color: AppTheme.free),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Abbrechen', style: TextStyle(color: AppTheme.free)),
+            ),
+            isAuthenticating
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.active)),
+                  )
+                : AppTheme.buildPrimaryButton(
+                    text: 'Bestätigen',
+                    color: AppTheme.active,
+                    onTap: () async {
+                      setDialogState(() => isAuthenticating = true);
+                      final success = await syncService.reauthenticate(passwordController.text);
+                      if (success) {
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/settings');
+                        }
+                      } else {
+                        setDialogState(() => isAuthenticating = false);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Passwort falsch'), backgroundColor: AppTheme.unpaid),
+                          );
+                        }
+                      }
+                    },
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -85,7 +158,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
         ] else if (showSettings) ...[
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: AppTheme.background, size: 26),
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
+            onPressed: () => _showSettingsAuth(context),
           ),
           const SizedBox(width: 8),
         ],

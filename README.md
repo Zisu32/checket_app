@@ -11,6 +11,7 @@ Checket ist ein digitales Garderoben-Management-System, das physische Garderoben
 * **Local-First Sync**: Volle Offline-Fähigkeit durch lokalen Drift-Cache; automatischer Hintergrund-Abgleich mit Supabase Realtime.
 * **Sicherheits-Check**: Integrierte Sperre am Schichtende, falls noch unbezahlte Jacken im System sind.
 * **SumUp Cloud Integration**: Direkte Ansteuerung des **SumUp Solo** Terminals über das Dashboard (Cloud API).
+* **Setting-Page**: Es gibt eine Username und Passwortgeschützen Bereich in der PWA, über die sensible Daten wie Arbeitsplätze und Ticketpreise bestimmt werden können.  
 * **Arbeitsplatz- & Terminal-Management**: Jeder Arbeistplatz kann einem SumUp-Terminal zugewiesen werden.
 * **Zur Wallet-Hinzufügen**: Webticket kann zur Wallet hinzugefügt werden, sodass eine Push-Benachrichtigung gesendet werden kann, falls der Kunde die Jacke vergisst.
 
@@ -85,23 +86,8 @@ Um das Terminal mit deinem Account zu verknüpfen, ohne manuell API-Befehle zu s
     *   Wähle im Verbindungsmenü **"Cloud-API"** aus.
     *   Gib den am Terminal angezeigten Code auf der SumUp Webseite ein.
 
-### 3. Supabase Secrets setzen
-Hinterlege die Daten sicher in deinen Supabase-Projekten (Dev & Prod):
-```bash
-supabase secrets set SUMUP_API_KEY
-supabase secrets set SUMUP_MERCHANT_CODE
-supabase secrets set SUMUP_AFFILIATE_KEY
-```
-
 ### 4. Preis anpassen
-
-Aus Sicherheitsgründen wird der Zahlbetrag für die Garderobe ausschließlich im **Backend** verwaltet. Dies verhindert, dass Nutzer den Preis im Browser manipulieren können.
-
-Um den Preis zu ändern:
-1.  Öffne die Datei: `supabase/functions/sumup-terminal-pay/index.ts`.
-2.  Suche die Zeile `total_amount:`.
-3.  Ändere den Wert und speichere die Datei.
-4.  Push den Code zu GitHub für die Änderung.
+Im Bereich Settings gibt es ein Inputfeld namens Preis, über dass der Ticketpreis festgelegt werden kann. 
 
 ### 5. Arbeitsplätze zuweisen
 Nachdem die SumUp-Terminals gekoppelt sind, müssen in der Mitarbeiter-App die Arbeitsplätze zugewiesen werden:
