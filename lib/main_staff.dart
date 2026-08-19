@@ -39,18 +39,21 @@ void main() async {
 class ChecketStaffApp extends StatelessWidget {
   const ChecketStaffApp({super.key});
 
-  bool _isAdminPath() {
-    // Exclusively check hash for admin route to avoid 404s on static hosts
-    return web.window.location.hash.contains('/admin');
+  String _getInitialRoute() {
+    String hash = web.window.location.hash;
+    if (hash.startsWith('#')) {
+      hash = hash.substring(1);
+    }
+    return hash.isEmpty ? '/' : hash;
   }
 
   @override
   Widget build(BuildContext context) {
-    final isAdminMode = _isAdminPath();
-    final String initialRoute = isAdminMode ? '/admin' : '/';
+    final String initialRoute = _getInitialRoute();
+    final bool isAdminMode = initialRoute.startsWith('/admin');
 
     return MaterialApp(
-      title: 'Checket Staff',
+      title: isAdminMode ? 'Checket Admin' : 'Checket Staff',
       theme: ThemeData.dark().copyWith(
         textSelectionTheme: TextSelectionThemeData(
           cursorColor: AppTheme.white,
@@ -61,20 +64,24 @@ class ChecketStaffApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: initialRoute,
       onGenerateRoute: (settings) {
-        final bool isAdmin = settings.name == '/admin';
+        final name = settings.name ?? '/';
+        final bool isCurrentlyAdmin = name.startsWith('/admin');
         
         return MaterialPageRoute(
-          settings: settings, // Important so the URL remains in the address bar
+          settings: settings,
           builder: (context) => StreamBuilder<AuthState>(
             stream: Supabase.instance.client.auth.onAuthStateChange,
             builder: (context, snapshot) {
               final session = Supabase.instance.client.auth.currentSession;
               
               if (session == null) {
-                return LoginView(isAdminMode: isAdmin);
+                return LoginView(isAdminMode: isCurrentlyAdmin);
               }
 
-              return _AuthenticatedApp(isAdminMode: isAdmin);
+              return _AuthenticatedApp(
+                isAdminMode: isCurrentlyAdmin,
+                initialRoute: name,
+              );
             },
           ),
         );
@@ -85,7 +92,8 @@ class ChecketStaffApp extends StatelessWidget {
 
 class _AuthenticatedApp extends StatefulWidget {
   final bool isAdminMode;
-  const _AuthenticatedApp({required this.isAdminMode});
+  final String initialRoute;
+  const _AuthenticatedApp({required this.isAdminMode, required this.initialRoute});
 
   @override
   State<_AuthenticatedApp> createState() => _AuthenticatedAppState();
@@ -128,6 +136,7 @@ class _AuthenticatedAppState extends State<_AuthenticatedApp> {
         }
 
         return Navigator(
+          initialRoute: widget.initialRoute,
           onGenerateRoute: (settings) {
              final params = RouteService().parseStaffParams(settings.name);
              if (params.isQrRoute) {
