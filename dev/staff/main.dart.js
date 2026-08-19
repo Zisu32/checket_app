@@ -50967,7 +50967,7 @@ A.Ct.prototype={
 ah(){return new A.ZU()}}
 A.ZU.prototype={
 K(a){var s=null,r=$.a9q(),q=A.b([A.yb(s,s,B.O4,s,s,new A.aAO(),s,s,s)],t.p),p=this.d
-return A.qA(new A.CO(r,B.Fb,B.aq,q,s),B.b3,A.aXh(B.cS,B.RQ,p),new A.CN(p,A.b([new A.q0(B.rj,"Tenant",s),new A.q0(B.rh,"User",s)],t.wV),new A.aAP(this),s))}}
+return A.qA(new A.CO(r,B.Fb,B.aq,q,s),B.b3,A.aXh(B.cS,B.RQ,p),new A.CN(p,A.b([new A.q0(B.rj,"Tenant",s),new A.q0(B.rh,"Users",s)],t.wV),new A.aAP(this),s))}}
 A.aAO.prototype={
 $0(){var s=0,r=A.t(t.H),q
 var $async$$0=A.u(function(a,b){if(a===1)return A.p(b,r)
@@ -52664,7 +52664,7 @@ return s.geU().lR(B.ng,B.eL)},
 $S:0}
 A.yy.prototype={
 K(a){var s=null,r=A.bF(a,s,t.w).w
-return A.eL(A.e4(A.b([A.ce("B\xfcgel "+this.c.b+" bearbeiten",s,s,s,B.c4,s,s),B.co,B.fv,B.c0,new A.bK(B.ls,A.kR(B.ac,B.Oc,new A.akE(this,a),s,B.a7S,s),s)],t.p),B.J,s,B.a1,B.aO),B.u,s,s,s,s,s,new A.aA(24,24,24,r.f.d+24),s)}}
+return A.eL(A.e4(A.b([A.ce("Platz "+this.c.b+" bearbeiten",s,s,s,B.c4,s,s),B.co,B.fv,B.c0,new A.bK(B.ls,A.kR(B.ac,B.Oc,new A.akE(this,a),s,B.a7S,s),s)],t.p),B.J,s,B.a1,B.aO),B.u,s,s,s,s,s,new A.aA(24,24,24,r.f.d+24),s)}}
 A.akE.prototype={
 $0(){var s=0,r=A.t(t.H),q=this,p
 var $async$$0=A.u(function(a,b){if(a===1)return A.p(b,r)
@@ -53261,7 +53261,7 @@ var $async$i9=A.u(function(b,c){if(b===1)return A.p(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.vk(new A.pr(1787166114,p.b),t.hU).b6(new A.aIh(),t.y):o
+q=o==null?p.d=n.a.vk(new A.pr(1787167260,p.b),t.hU).b6(new A.aIh(),t.y):o
 s=1
 break
 case 1:return A.q(q,r)}})
@@ -54271,7 +54271,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.ao5?2:4
 break
-case 2:p=1787166114
+case 2:p=1787167260
 s=3
 break
 case 4:s=n instanceof A.NE?5:7
@@ -54284,10 +54284,10 @@ break
 case 7:throw A.e(A.dy("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.m(a.a2_(new A.a_s(q,new A.u7()),new A.Gw(p,1787166114)),$async$tI)
-case 9:s=n instanceof A.NE&&p!==1787166114?10:11
+return A.m(a.a2_(new A.a_s(q,new A.u7()),new A.Gw(p,1787167260)),$async$tI)
+case 9:s=n instanceof A.NE&&p!==1787167260?10:11
 break
-case 10:n.a.a3U("PRAGMA user_version = 1787166114;")
+case 10:n.a.a3U("PRAGMA user_version = 1787167260;")
 s=12
 return A.m(A.cO(null,t.H),$async$tI)
 case 12:case 11:return A.q(null,r)}})
