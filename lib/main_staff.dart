@@ -39,9 +39,15 @@ void main() async {
 class ChecketStaffApp extends StatelessWidget {
   const ChecketStaffApp({super.key});
 
+  bool _isAdminPath() {
+    // Exclusively check hash for admin route to avoid 404s on static hosts
+    return web.window.location.hash.contains('/admin');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final String initialRoute = web.window.location.hash.contains('/admin') ? '/admin' : '/';
+    final isAdminMode = _isAdminPath();
+    final String initialRoute = isAdminMode ? '/admin' : '/';
 
     return MaterialApp(
       title: 'Checket Staff',
