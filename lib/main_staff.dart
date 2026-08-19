@@ -4,6 +4,7 @@ import 'package:web/web.dart' as web;
 import 'admin_app/views/admin_view.dart';
 import 'staff_app/views/staff_view.dart';
 import 'staff_app/views/qr_display_view.dart';
+import 'staff_app/views/settings_view.dart';
 import 'staff_app/views/login_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';
@@ -50,7 +51,7 @@ class ChecketStaffApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String initialRoute = _getInitialRoute();
-    final bool isAdminMode = initialRoute.startsWith('/admin');
+    final bool isAdminMode = initialRoute == '/admin';
 
     return MaterialApp(
       title: isAdminMode ? 'Checket Admin' : 'Checket Staff',
@@ -65,7 +66,8 @@ class ChecketStaffApp extends StatelessWidget {
       initialRoute: initialRoute,
       onGenerateRoute: (settings) {
         final name = settings.name ?? '/';
-        final bool isCurrentlyAdmin = name.startsWith('/admin');
+        // Check if we are in admin mode based on the route name
+        final bool isCurrentlyAdmin = name == '/admin';
         
         return MaterialPageRoute(
           settings: settings,
@@ -122,29 +124,35 @@ class _AuthenticatedAppState extends State<_AuthenticatedApp> {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Splash();
         }
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: Error(
-              error: snapshot.error.toString(),
-              onRetry: () => setState(() { _initFuture = _initialize(); }),
-            ),
-          );
-        }
+        
+        return ValueListenableBuilder<String?>(
+          valueListenable: SyncService().errorNotifier,
+          builder: (context, error, _) {
+            if (error != null) {
+              return Scaffold(
+                body: Error(
+                  error: error,
+                  onRetry: () => setState(() { _initFuture = _initialize(); }),
+                ),
+              );
+            }
 
-        if (widget.isAdminMode) {
-          return const AdminView();
-        }
+            if (widget.isAdminMode) {
+              return const AdminView();
+            }
 
-        return Navigator(
-          initialRoute: widget.initialRoute,
-          onGenerateRoute: (settings) {
-             final params = RouteService().parseStaffParams(settings.name);
-             if (params.isQrRoute) {
-               return MaterialPageRoute(
-                 builder: (_) => QrDisplayView(ticketId: params.id, secret: params.secret),
-               );
-             }
-             return MaterialPageRoute(builder: (_) => const StaffView());
+            return Navigator(
+              initialRoute: widget.initialRoute,
+              onGenerateRoute: (settings) {
+                final params = RouteService().parseStaffParams(settings.name);
+                if (params.isQrRoute) {
+                  return MaterialPageRoute(
+                    builder: (_) => QrDisplayView(ticketId: params.id, secret: params.secret),
+                  );
+                }
+                return MaterialPageRoute(builder: (_) => const StaffView());
+              },
+            );
           },
         );
       },

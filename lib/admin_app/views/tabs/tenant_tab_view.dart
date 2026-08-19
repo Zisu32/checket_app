@@ -76,9 +76,9 @@ class _TenantTabViewState extends State<TenantTabView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Icon(Icons.business_center_rounded, color: AppTheme.white, size: 28),
+            const Icon(Icons.warehouse_rounded, color: AppTheme.white, size: 28),
             AppTheme.buildPrimaryButton(
-              text: 'Neuer Mandant',
+              text: 'Neuer Tenant',
               color: AppTheme.active,
               onTap: () => _showTenantSheet(),
             ),

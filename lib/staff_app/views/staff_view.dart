@@ -9,11 +9,11 @@ import '../../shared/services/monitor_service.dart';
 import 'tabs/lost_found_tab_view.dart';
 import 'tabs/session_end_tab_view.dart';
 import 'tabs/dashboard_tab_view.dart';
-import '../widgets/navbar.dart';
-import '../widgets/top_bar.dart';
 import '../widgets/loading_screen.dart';
 import '../widgets/page_indicator.dart';
 import '../widgets/wardrobe_action_sheet.dart';
+import '../../shared/widgets/app_navbar.dart';
+import '../../shared/widgets/app_top_bar.dart';
 
 class StaffView extends StatefulWidget {
   const StaffView({super.key});
@@ -127,9 +127,15 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
 
             return Scaffold(
               backgroundColor: AppTheme.background,
-              appBar: TopBar(
+              appBar: AppTopBar(
                 syncService: _syncService,
                 pulseAnimation: _pulseAnimation,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.settings_outlined, size: 26),
+                    onPressed: _showSettingsAuth,
+                  ),
+                ],
               ),
               body: Column(
                 children: [
@@ -151,11 +157,25 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                     ),
                 ],
               ),
-              bottomNavigationBar: Navbar(
+              bottomNavigationBar: AppNavbar(
                 selectedIndex: _selectedNavIndex,
-                allSlots: allSlots,
                 onTabSelected: (index) => setState(() => _selectedNavIndex = index),
-                onLockedTabClick: _showLockDialog,
+                items: [
+                  NavbarItem(icon: Icons.inventory_2_outlined, label: 'Fundbüro'),
+                  NavbarItem(icon: Icons.grid_view_rounded, label: 'Dashboard'),
+                  NavbarItem(
+                    icon: Icons.swap_horiz_rounded, 
+                    label: 'Schichtende',
+                    onBeforeTap: () async {
+                      final unpaidCount = allSlots.where((s) => s.status == 'unpaid').length;
+                      if (unpaidCount > 0) {
+                        _showLockDialog();
+                        return false;
+                      }
+                      return true;
+                    }
+                  ),
+                ],
               ),
             );
           }

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/services/sync_service.dart';
-import '../../staff_app/widgets/top_bar.dart';
+import '../../shared/widgets/app_navbar.dart';
+import '../../shared/widgets/app_top_bar.dart';
 import 'tabs/tenant_tab_view.dart';
 import 'tabs/user_tab_view.dart';
 
@@ -20,17 +21,18 @@ class _AdminViewState extends State<AdminView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: TopBar(
+      appBar: AppTopBar(
         syncService: SyncService(),
         pulseAnimation: const AlwaysStoppedAnimation(1.0),
-        showSettings: false,
         leading: const SizedBox.shrink(),
-        trailing: IconButton(
-          icon: const Icon(Icons.logout_rounded, color: AppTheme.white, size: 24),
-          onPressed: () async {
-            await Supabase.instance.client.auth.signOut();
-          },
-        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, size: 24),
+            onPressed: () async {
+              await Supabase.instance.client.auth.signOut();
+            },
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _currentIndex,
@@ -39,24 +41,12 @@ class _AdminViewState extends State<AdminView> {
           UserTabView(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: AppTheme.header,
-        selectedItemColor: AppTheme.active,
-        unselectedItemColor: AppTheme.free,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business_center_rounded),
-            label: 'Tenant',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_alt_rounded),
-            label: 'User',
-          ),
+      bottomNavigationBar: AppNavbar(
+        selectedIndex: _currentIndex,
+        onTabSelected: (index) => setState(() => _currentIndex = index),
+        items: [
+          NavbarItem(icon: Icons.warehouse_rounded, label: 'Tenant'),
+          NavbarItem(icon: Icons.people_alt_rounded, label: 'User'),
         ],
       ),
     );

@@ -48,16 +48,18 @@ class RouteService {
   ({int? id, String? secret, bool isQrRoute}) parseStaffParams(String? routeName) {
     if (routeName == null) return (id: null, secret: null, isQrRoute: false);
 
-    // Standardize route name to ensure it starts with / and contains qr
+    // Standardize route name to ensure it starts with /
     final path = routeName.startsWith('/') ? routeName : '/$routeName';
-    final isQr = path.contains('/qr');
+    
+    // Parse the path to handle query parameters
+    final uri = Uri.parse(path);
+    final isQr = uri.path == '/qr';
 
     if (!isQr) {
       return (id: null, secret: null, isQrRoute: false);
     }
 
-    // Extract query parameters if present (for backward compatibility or direct links)
-    final uri = Uri.parse(path);
+    // Extract query parameters
     final idStr = uri.queryParameters['id'] ?? '';
     final secret = uri.queryParameters['secret'];
 

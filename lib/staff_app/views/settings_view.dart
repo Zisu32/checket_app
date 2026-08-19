@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/services/sync_service.dart';
-import '../widgets/top_bar.dart';
+import '../../shared/widgets/app_navbar.dart';
+import '../../shared/widgets/app_top_bar.dart';
 import 'tabs/ticket_settings_tab_view.dart';
 import 'tabs/workstation_settings_tab_view.dart';
 import 'tabs/profile_settings_tab_view.dart';
@@ -44,21 +45,22 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: TopBar(
+      appBar: AppTopBar(
         syncService: _syncService,
         pulseAnimation: _pulseAnimation,
-        showSettings: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.white),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.logout_rounded, color: AppTheme.white, size: 24),
-          onPressed: () async {
-            await Supabase.instance.client.auth.signOut();
-            if (mounted) Navigator.pop(context);
-          },
-        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, size: 24),
+            onPressed: () async {
+              await Supabase.instance.client.auth.signOut();
+              if (mounted) Navigator.pop(context);
+            },
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _currentIndex,
@@ -68,28 +70,13 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
           ProfileSettingsTabView(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: AppTheme.header,
-        selectedItemColor: AppTheme.active,
-        unselectedItemColor: AppTheme.free,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.confirmation_number),
-            label: 'Ticket',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.tablet_android),
-            label: 'Arbeitsplatz',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_rounded),
-            label: 'Profil',
-          ),
+      bottomNavigationBar: AppNavbar(
+        selectedIndex: _currentIndex,
+        onTabSelected: (index) => setState(() => _currentIndex = index),
+        items: [
+          NavbarItem(icon: Icons.confirmation_number, label: 'Ticket'),
+          NavbarItem(icon: Icons.tablet_android, label: 'Arbeitsplatz'),
+          NavbarItem(icon: Icons.person_rounded, label: 'Profil'),
         ],
       ),
     );
