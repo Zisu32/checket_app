@@ -26,7 +26,7 @@ class LostFoundActionSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Platz ${item.originalSlotId} bearbeiten',
+            'Platz ${item.originalSlotId}',
             style: const TextStyle(
               fontSize: AppTheme.medium,
               fontWeight: FontWeight.bold,

@@ -168,22 +168,21 @@ class _UserTabViewState extends State<UserTabView> {
     return RefreshIndicator(
       onRefresh: _loadData,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         itemCount: filteredUsers.length,
         itemBuilder: (context, index) {
           final user = filteredUsers[index];
           return Card(
             color: AppTheme.surface,
-            margin: const EdgeInsets.only(bottom: 8),
+            margin: const EdgeInsets.only(bottom: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               title: Text(user['email'] ?? 'Keine E-Mail', style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
               subtitle: Text('${user['tenantName']} • ${user['role']}', style: const TextStyle(color: AppTheme.free)),
               trailing: IconButton(
                 icon: const Icon(Icons.more_horiz, color: AppTheme.white),
-                onPressed: () {
-                  _showUserActions(user);
-                },
+                onPressed: () => _showUserActions(user),
               ),
             ),
           );

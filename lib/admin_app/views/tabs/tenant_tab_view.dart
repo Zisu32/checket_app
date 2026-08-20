@@ -101,24 +101,56 @@ class _TenantTabViewState extends State<TenantTabView> {
     return RefreshIndicator(
       onRefresh: _loadTenants,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         itemCount: _tenants.length,
         itemBuilder: (context, index) {
           final t = _tenants[index];
           return Card(
             color: AppTheme.surface,
-            margin: const EdgeInsets.only(bottom: 8),
+            margin: const EdgeInsets.only(bottom: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               title: Text(t['name'], style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
               subtitle: Text(t['schema_name'], style: const TextStyle(color: AppTheme.free)),
               trailing: IconButton(
                 icon: const Icon(Icons.more_horiz, color: AppTheme.white),
-                onPressed: () => _showTenantSheet(t),
+                onPressed: () => _showTenantActions(t),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showTenantActions(dynamic tenant) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.background,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit, color: AppTheme.active),
+              title: const Text('Bearbeiten', style: TextStyle(color: AppTheme.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showTenantSheet(tenant);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_forever, color: AppTheme.unpaid),
+              title: const Text('Löschen', style: TextStyle(color: AppTheme.white)),
+              onTap: () async {
+                Navigator.pop(ctx);
+                // Implementation of delete logic could be added here
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

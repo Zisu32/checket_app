@@ -38,9 +38,11 @@ Deno.serve(async (req) => {
     const { action, email, password, role, schemaName, userId } = body
 
     if (action === 'list') {
-      // List users by joining auth.users with public.users_tenants_mapping
-      // Note: We need a clever way to do this since we can't easily join across schemas in a single JS call
-      // Best way is to fetch all from mapping and then fetch specific users from auth
+      // Fetch all users from auth.users (requires admin privileges)
+      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+      if (listError) throw listError
+
+      // Fetch all mappings
       const { data: mappings, error: mapError } = await supabaseAdmin
         .from('users_tenants_mapping')
         .select(`
@@ -54,17 +56,16 @@ Deno.serve(async (req) => {
 
       if (mapError) throw mapError
 
-      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
-      if (listError) throw listError
-
-      const enrichedUsers = mappings.map(m => {
-        const authUser = users.find(u => u.id === m.user_id)
+      // Enrich users with mapping data.
+      // If a user has a mapping, include it. If not (like the main admin), still list them if possible.
+      const enrichedUsers = users.map(authUser => {
+        const mapping = mappings.find(m => m.user_id === authUser.id)
         return {
-          id: m.user_id,
-          email: authUser?.email,
-          role: m.role,
-          tenantName: m.tenant.name,
-          tenantSchema: m.tenant.schema_name
+          id: authUser.id,
+          email: authUser.email,
+          role: mapping?.role || authUser.app_metadata?.role || 'staff',
+          tenantName: mapping?.tenant?.name || 'Keine Zuweisung',
+          tenantSchema: mapping?.tenant?.schema_name || authUser.app_metadata?.schema_name
         }
       })
 
@@ -111,10 +112,32 @@ Deno.serve(async (req) => {
       })
     }
 
+    if (action === 'update') {
+       if (!userId || !role || !schemaName) throw new Error('Missing parameters')
+
+       // Update metadata in Auth
+       const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+         app_metadata: { role, schema_name: schemaName }
+       })
+       if (updateAuthError) throw updateAuthError
+
+       // Update mapping table
+       const { data: tenant } = await supabaseAdmin.from('tenants').select('id').eq('schema_name', schemaName).single()
+       if (!tenant) throw new Error('Tenant not found')
+
+       const { error: updateMapError } = await supabaseAdmin.from('users_tenants_mapping').upsert({
+         user_id: userId,
+         tenant_id: tenant.id,
+         role: role
+       })
+       if (updateMapError) throw updateMapError
+
+       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
+    }
+
     if (action === 'delete') {
       if (!userId) throw new Error('Missing userId')
 
-      // Delete from auth (will cascade or we handle manually)
       const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
       if (deleteError) throw deleteError
 
