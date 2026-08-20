@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_action_sheet.dart';
 import '../../shared/widgets/app_primary_button.dart';
 
 class WorkstationActionSheet extends StatelessWidget {
@@ -20,110 +21,55 @@ class WorkstationActionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Bearbeiten',
-            style: TextStyle(
-              fontSize: AppTheme.medium,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    isCurrent ? Icons.create_rounded : Icons.check,
-                    color: AppTheme.active,
-                  ),
-                  title: Text(
-                    isCurrent ? 'Bearbeiten' : 'Aktivieren',
-                    style: const TextStyle(fontSize: AppTheme.small, color: AppTheme.white),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    if (isCurrent) {
-                      onEdit();
-                    } else {
-                      onActivate();
-                    }
-                  },
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.close, color: AppTheme.unpaid),
-                  title: const Text(
-                    'Löschen',
-                    style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showConfirmDelete(context);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return AppActionSheet(
+      title: assignment['station_name'],
+      subtitle: 'Arbeitsplatz verwalten',
+      actions: [
+        SheetAction(
+          icon: isCurrent ? Icons.create_rounded : Icons.check,
+          label: isCurrent ? 'Bearbeiten' : 'Aktivieren',
+          color: AppTheme.active,
+          onTap: () {
+            Navigator.pop(context);
+            if (isCurrent) {
+              onEdit();
+            } else {
+              onActivate();
+            }
+          },
+        ),
+        SheetAction(
+          icon: Icons.close,
+          label: 'Löschen',
+          color: AppTheme.unpaid,
+          onTap: () {
+            Navigator.pop(context);
+            _showConfirmDelete(context);
+          },
+        ),
+      ],
     );
   }
 
   void _showConfirmDelete(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.background,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Wirklich löschen?',
-              style: TextStyle(
-                fontSize: AppTheme.medium,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.white,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: AppPrimaryButton(
-                icon: Icons.close,
-                text: 'Ja, löschen',
-                color: AppTheme.unpaid,
-                onTap: () {
-                  Navigator.pop(ctx);
-                  onDelete();
-                },
-              ),
-            ),
-          ],
-        ),
+      builder: (ctx) => AppActionSheet(
+        title: 'Wirklich löschen?',
+        subtitle: 'Der Arbeitsplatz wird dauerhaft entfernt.',
+        actions: [
+          SheetAction(
+            icon: Icons.close,
+            label: 'Ja, löschen',
+            color: AppTheme.unpaid,
+            onTap: () {
+              Navigator.pop(ctx);
+              onDelete();
+            },
+          ),
+        ],
       ),
     );
   }

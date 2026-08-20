@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_primary_button.dart';
+import '../../../shared/widgets/app_action_sheet.dart';
 import '../../widgets/user_action_sheet.dart';
 
 class UserTabView extends StatefulWidget {
@@ -194,30 +195,30 @@ class _UserTabViewState extends State<UserTabView> {
   void _showUserActions(dynamic user) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.background,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit, color: AppTheme.active),
-              title: const Text('Bearbeiten', style: TextStyle(color: AppTheme.white)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _showUserSheet(user);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_forever, color: AppTheme.unpaid),
-              title: const Text('Löschen', style: TextStyle(color: AppTheme.white)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _deleteUser(user['id']);
-              },
-            ),
-          ],
-        ),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => AppActionSheet(
+        title: user['email'] ?? 'Benutzer',
+        subtitle: 'Mitarbeiter verwalten',
+        actions: [
+          SheetAction(
+            icon: Icons.edit,
+            label: 'Bearbeiten',
+            color: AppTheme.active,
+            onTap: () {
+              Navigator.pop(ctx);
+              _showUserSheet(user);
+            },
+          ),
+          SheetAction(
+            icon: Icons.delete_forever,
+            label: 'Löschen',
+            color: AppTheme.unpaid,
+            onTap: () {
+              Navigator.pop(ctx);
+              _deleteUser(user['id']);
+            },
+          ),
+        ],
       ),
     );
   }
