@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_primary_button.dart';
 import '../../shared/services/sumup_service.dart';
 
 class WorkstationSheet extends StatefulWidget {
@@ -88,7 +89,7 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
             ),
           ),
           const SizedBox(width: 16),
-          AppTheme.buildPrimaryButton(
+          AppPrimaryButton(
             text: 'Weiter',
             color: AppTheme.active,
             onTap: () {

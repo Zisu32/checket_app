@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../shared/database/database.dart';
 import '../../../shared/services/sync_service.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_primary_button.dart';
 import '../../widgets/lost_found_action_sheet.dart';
 
 class LostFoundTabView extends StatelessWidget {
@@ -27,7 +28,7 @@ class LostFoundTabView extends StatelessWidget {
               children: [
                 const Icon(Icons.inventory_2_outlined, color: AppTheme.white,
                     size: 28),
-                AppTheme.buildPrimaryButton(
+                AppPrimaryButton(
                   text: 'Ticket wiederherstellen',
                   color: AppTheme.active,
                   onTap: () => onSyncMonitor(-1, 'recovery'),

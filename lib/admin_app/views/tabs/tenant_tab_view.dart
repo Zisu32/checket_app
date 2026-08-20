@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_primary_button.dart';
 import '../../widgets/tenant_action_sheet.dart';
 
 class TenantTabView extends StatefulWidget {
@@ -41,6 +42,24 @@ class _TenantTabViewState extends State<TenantTabView> {
     }
   }
 
+  Future<void> _deleteTenant(String schemaName) async {
+    setState(() => _isLoading = true);
+    try {
+      await _supabase.functions.invoke('manage-users', body: {
+        'action': 'delete-tenant',
+        'schemaName': schemaName
+      });
+      await _loadTenants();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Löschen: $e'), backgroundColor: AppTheme.unpaid)
+        );
+      }
+      setState(() => _isLoading = false);
+    }
+  }
+
   void _showTenantSheet([dynamic tenant]) {
     showModalBottomSheet(
       context: context,
@@ -77,7 +96,7 @@ class _TenantTabViewState extends State<TenantTabView> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Icon(Icons.warehouse_rounded, color: AppTheme.white, size: 28),
-            AppTheme.buildPrimaryButton(
+            AppPrimaryButton(
               text: 'Neuer Tenant',
               color: AppTheme.active,
               onTap: () => _showTenantSheet(),
@@ -144,9 +163,9 @@ class _TenantTabViewState extends State<TenantTabView> {
             ListTile(
               leading: const Icon(Icons.delete_forever, color: AppTheme.unpaid),
               title: const Text('Löschen', style: TextStyle(color: AppTheme.white)),
-              onTap: () async {
+              onTap: () {
                 Navigator.pop(ctx);
-                // Implementation of delete logic could be added here
+                _deleteTenant(tenant['schema_name']);
               },
             ),
           ],

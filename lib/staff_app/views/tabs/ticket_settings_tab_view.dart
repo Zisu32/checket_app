@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/theme/app_theme.dart';
+import '../../../../shared/widgets/app_primary_button.dart';
 import '../../../../shared/services/sync_service.dart';
 import '../../../../shared/services/sumup_service.dart';
 
@@ -106,7 +107,7 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
           Center(
             child: _isLoading 
               ? const CircularProgressIndicator(color: AppTheme.active)
-              : AppTheme.buildPrimaryButton(
+              : AppPrimaryButton(
                   text: 'Preis speichern',
                   color: AppTheme.active,
                   onTap: _savePrice,

@@ -4,7 +4,8 @@ import 'package:web/web.dart' as web;
 import 'admin_app/views/admin_view.dart';
 import 'staff_app/views/staff_view.dart';
 import 'staff_app/views/qr_display_view.dart';
-import 'staff_app/views/login_view.dart';
+import 'staff_app/views/settings_view.dart';
+import 'shared/views/login_view.dart';
 import 'shared/services/sync_service.dart';
 import 'shared/services/route_service.dart';
 import 'shared/theme/app_theme.dart';
@@ -50,10 +51,10 @@ class ChecketStaffApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String initialRoute = _getInitialRoute();
-    final bool isAdminMode = initialRoute == '/admin';
+    final bool isAdminRoute = initialRoute == '/admin';
 
     return MaterialApp(
-      title: isAdminMode ? 'Checket Admin' : 'Checket Staff',
+      title: isAdminRoute ? 'Checket Admin' : 'Checket Staff',
       theme: ThemeData.dark().copyWith(
         textSelectionTheme: TextSelectionThemeData(
           cursorColor: AppTheme.white,
@@ -65,7 +66,6 @@ class ChecketStaffApp extends StatelessWidget {
       initialRoute: initialRoute,
       onGenerateRoute: (settings) {
         final name = settings.name ?? '/';
-        // Check if we are in admin mode based on the route name
         final bool isCurrentlyAdmin = name == '/admin';
         
         return MaterialPageRoute(
@@ -149,6 +149,11 @@ class _AuthenticatedAppState extends State<_AuthenticatedApp> {
                     builder: (_) => QrDisplayView(ticketId: params.id, secret: params.secret),
                   );
                 }
+                
+                if (settings.name == '/staff/settings') {
+                  return MaterialPageRoute(builder: (_) => const SettingsView());
+                }
+                
                 return MaterialPageRoute(builder: (_) => const StaffView());
               },
             );

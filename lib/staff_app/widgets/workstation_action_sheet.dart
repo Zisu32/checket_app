@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_primary_button.dart';
 
 class WorkstationActionSheet extends StatelessWidget {
   final dynamic assignment;
@@ -111,7 +112,7 @@ class WorkstationActionSheet extends StatelessWidget {
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: AppTheme.buildPrimaryButton(
+              child: AppPrimaryButton(
                 icon: Icons.close,
                 text: 'Ja, löschen',
                 color: AppTheme.unpaid,

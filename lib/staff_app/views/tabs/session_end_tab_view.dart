@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../shared/database/database.dart';
 import '../../../shared/services/sync_service.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_primary_button.dart';
 
 class SessionEndTabView extends StatelessWidget {
   final List<WardrobeSlot> allSlots;
@@ -56,7 +57,7 @@ class SessionEndTabView extends StatelessWidget {
                         color: AppTheme.white, fontSize: AppTheme.small),
                   ),
                   const SizedBox(height: 40),
-                  AppTheme.buildPrimaryButton(
+                  AppPrimaryButton(
                     text: 'Ja, Schicht beenden',
                     color: AppTheme.unpaid,
                     onTap: () async {

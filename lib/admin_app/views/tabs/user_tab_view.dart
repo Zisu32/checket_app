@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_primary_button.dart';
 import '../../widgets/user_action_sheet.dart';
 
 class UserTabView extends StatefulWidget {
@@ -27,10 +28,7 @@ class _UserTabViewState extends State<UserTabView> {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      // 1. Load Tenants for filtering and assignment
       final tenantData = await _supabase.from('tenants').select().order('name');
-      
-      // 2. Load Users via Edge Function
       final response = await _supabase.functions.invoke('manage-users', body: {'action': 'list'});
       
       if (!mounted) return;
@@ -58,9 +56,11 @@ class _UserTabViewState extends State<UserTabView> {
       });
       await _loadData();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Löschen: $e'), backgroundColor: AppTheme.unpaid)
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler beim Löschen: $e'), backgroundColor: AppTheme.unpaid)
+        );
+      }
       setState(() => _isLoading = false);
     }
   }
@@ -103,7 +103,7 @@ class _UserTabViewState extends State<UserTabView> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Icon(Icons.people_alt_rounded, color: AppTheme.white, size: 28),
-            AppTheme.buildPrimaryButton(
+            AppPrimaryButton(
               text: 'Neuer User',
               color: AppTheme.active,
               onTap: () => _showUserSheet(),

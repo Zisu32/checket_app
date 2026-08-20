@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../shared/theme/app_theme.dart';
+import '../../../../shared/widgets/app_primary_button.dart';
 
 class ProfileSettingsTabView extends StatefulWidget {
   const ProfileSettingsTabView({super.key});
@@ -101,7 +102,7 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
           Center(
             child: _isLoading 
               ? const CircularProgressIndicator(color: AppTheme.active)
-              : AppTheme.buildPrimaryButton(
+              : AppPrimaryButton(
                   text: 'Passwort aktualisieren',
                   color: AppTheme.active,
                   onTap: _updatePassword,

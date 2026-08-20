@@ -14,6 +14,8 @@ import '../widgets/page_indicator.dart';
 import '../widgets/wardrobe_action_sheet.dart';
 import '../../shared/widgets/app_navbar.dart';
 import '../../shared/widgets/app_top_bar.dart';
+import '../../shared/widgets/app_dialog.dart';
+import '../../shared/widgets/app_primary_button.dart';
 
 class StaffView extends StatefulWidget {
   const StaffView({super.key});
@@ -91,44 +93,32 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
       context: context,
       barrierDismissible: false,
       builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: AppTheme.background,
-          title: const Text(
-            'Zugriff geschützt',
-            style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Anmeldung erforderlich für: \n$email', style: const TextStyle(color: AppTheme.white)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                autofocus: true,
-                style: const TextStyle(color: AppTheme.white),
-                cursorColor: AppTheme.white,
-                decoration: const InputDecoration(
-                  labelText: 'Passwort eingeben',
-                  labelStyle: TextStyle(color: AppTheme.free),
-                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
-                ),
-              ),
-            ],
+        builder: (context, setDialogState) => AppDialog(
+          title: 'Zugriff geschützt',
+          subtitle: 'Anmeldung erforderlich für: \n$email',
+          body: TextField(
+            controller: passwordController,
+            obscureText: true,
+            autofocus: true,
+            style: const TextStyle(color: AppTheme.white),
+            cursorColor: AppTheme.white,
+            decoration: const InputDecoration(
+              labelText: 'Passwort eingeben',
+              labelStyle: TextStyle(color: AppTheme.free),
+              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+            ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Abbrechen', style: TextStyle(color: AppTheme.free)),
-            ),
             isAuthenticating
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.active)),
+                ? const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.active),
+                    ),
                   )
-                : AppTheme.buildPrimaryButton(
+                : AppPrimaryButton(
                     text: 'Bestätigen',
                     color: AppTheme.active,
                     onTap: () async {
@@ -149,6 +139,10 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                       }
                     },
                   ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Abbrechen', style: TextStyle(color: AppTheme.free)),
+            ),
           ],
         ),
       ),
@@ -158,19 +152,11 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
   void _showLockDialog() {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppTheme.background,
-        title: const Text(
-          'Schichtende nicht möglich!',
-          style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
-        ),
-        content: const Text(
-          'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
-          style: TextStyle(fontSize: AppTheme.small, color: AppTheme.white),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
+      builder: (dialogContext) => AppDialog(
+        title: 'Schichtende nicht möglich!',
+        subtitle: 'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
         actions: [
-          AppTheme.buildPrimaryButton(
+          AppPrimaryButton(
             text: 'Okay',
             color: AppTheme.active,
             onTap: () => Navigator.pop(dialogContext),

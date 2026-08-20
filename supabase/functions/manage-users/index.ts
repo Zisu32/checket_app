@@ -57,7 +57,6 @@ Deno.serve(async (req) => {
       if (mapError) throw mapError
 
       // Enrich users with mapping data.
-      // If a user has a mapping, include it. If not (like the main admin), still list them if possible.
       const enrichedUsers = users.map(authUser => {
         const mapping = mappings.find(m => m.user_id === authUser.id)
         return {
@@ -106,10 +105,7 @@ Deno.serve(async (req) => {
 
       if (linkError) throw linkError
 
-      return new Response(JSON.stringify({ success: true, user: newUser.user }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
     if (action === 'update') {
@@ -137,20 +133,21 @@ Deno.serve(async (req) => {
 
     if (action === 'delete') {
       if (!userId) throw new Error('Missing userId')
-
       const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
       if (deleteError) throw deleteError
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
+    }
 
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
+    if (action === 'delete-tenant') {
+       if (!schemaName) throw new Error('Missing schemaName')
+       const { error: delError } = await supabaseAdmin.from('tenants').delete().eq('schema_name', schemaName)
+       if (delError) throw delError
+       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
     throw new Error('Invalid Action')
 
   } catch (error) {
-    console.error('User Management Error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

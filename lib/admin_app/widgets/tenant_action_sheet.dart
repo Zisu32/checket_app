@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_primary_button.dart';
 
 class TenantActionSheet extends StatefulWidget {
   final dynamic tenant; // null for new tenant
@@ -128,7 +129,7 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
         const SizedBox(height: 24),
         _isLoading 
           ? const CircularProgressIndicator(color: AppTheme.active)
-          : AppTheme.buildPrimaryButton(
+          : AppPrimaryButton(
               text: 'Speichern & Weiter',
               color: AppTheme.active,
               onTap: _saveTenant,
@@ -155,7 +156,7 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
         const SizedBox(height: 24),
         _isLoading 
           ? const CircularProgressIndicator(color: AppTheme.active)
-          : AppTheme.buildPrimaryButton(
+          : AppPrimaryButton(
               text: 'Abschließen',
               color: AppTheme.active,
               onTap: _saveSecrets,

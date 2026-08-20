@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_primary_button.dart';
 
 class UserActionSheet extends StatefulWidget {
   final dynamic user; // null for new user
@@ -118,7 +119,7 @@ class _UserActionSheetState extends State<UserActionSheet> {
         _buildInput(widget.user == null ? 'Passwort' : 'Neues Passwort (optional)', _passwordController, obscure: true),
         _buildRoleDropdown(),
         const SizedBox(height: 24),
-        AppTheme.buildPrimaryButton(
+        AppPrimaryButton(
           text: 'Weiter',
           color: AppTheme.active,
           onTap: _nextStep,
@@ -143,7 +144,7 @@ class _UserActionSheetState extends State<UserActionSheet> {
         const SizedBox(height: 24),
         _isLoading 
           ? const CircularProgressIndicator(color: AppTheme.active)
-          : AppTheme.buildPrimaryButton(
+          : AppPrimaryButton(
               text: 'Speichern',
               color: AppTheme.active,
               onTap: _saveUser,

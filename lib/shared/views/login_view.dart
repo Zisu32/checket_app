@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_primary_button.dart';
 
 class LoginView extends StatefulWidget {
   final bool isAdminMode;
@@ -117,7 +118,7 @@ class _LoginViewState extends State<LoginView> {
               if (_isLoading)
                 const CircularProgressIndicator(color: AppTheme.active)
               else 
-                AppTheme.buildPrimaryButton(
+                AppPrimaryButton(
                   text: 'Anmelden',
                   color: AppTheme.active,
                   onTap: _handleLogin,

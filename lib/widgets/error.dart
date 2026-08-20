@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../shared/theme/app_theme.dart';
+import '../shared/widgets/app_primary_button.dart';
 
 class Error extends StatelessWidget {
   final String error;
@@ -35,7 +36,7 @@ class Error extends StatelessWidget {
                 style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
               ),
               const SizedBox(height: 48),
-              AppTheme.buildPrimaryButton(
+              AppPrimaryButton(
                 text: 'Erneut versuchen',
                 color: AppTheme.active,
                 onTap: onRetry,

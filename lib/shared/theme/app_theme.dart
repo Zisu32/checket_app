@@ -23,35 +23,4 @@ class AppTheme {
   static const double small = 16.0;
   static const double medium = 25.0;
   static const double large = 32.0;
-
-  // Generic Button Builders
-  static Widget buildPrimaryButton({
-    String? text,
-    IconData? icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: white,
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        minimumSize: const Size(0, 50),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      onPressed: onTap,
-      child: icon != null
-          ? Icon(icon, color: white, size: 20)
-          : Text(
-              text ?? '',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: small,
-              ),
-            ),
-    );
-  }
 }
