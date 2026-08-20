@@ -28683,7 +28683,7 @@ $iMp:1}
 A.avB.prototype={
 $1(a){var s=A.cQ().b
 s=s==null?null:s.canvasKitBaseUrl
-return(s==null?"https://www.gstatic.com/flutter-canvaskit/5f77625673248ee5846fbcaf5d3e1a3878386fd7/":s)+a},
+return(s==null?"https://www.gstatic.com/flutter-canvaskit/5d531788691ec3404cac0cee66ead4007b177363/":s)+a},
 $S:25}
 A.MI.prototype={
 gp(a){var s=this.a
@@ -46325,7 +46325,7 @@ var $async$fl=A.v(function(b,c){if(b===1)return A.q(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.qy(new A.mX(1787167260,p.b),t.hU).av(new A.asC(),t.y):o
+q=o==null?p.d=n.a.qy(new A.mX(1787219318,p.b),t.hU).av(new A.asC(),t.y):o
 s=1
 break
 case 1:return A.r(q,r)}})
@@ -47320,7 +47320,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.ac2?2:4
 break
-case 2:p=1787167260
+case 2:p=1787219318
 s=3
 break
 case 4:s=n instanceof A.H4?5:7
@@ -47333,10 +47333,10 @@ break
 case 7:throw A.e(A.cN("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.k(a.Tz(new A.Sc(q,new A.qc()),new A.BB(p,1787167260)),$async$pa)
-case 9:s=n instanceof A.H4&&p!==1787167260?10:11
+return A.k(a.Tz(new A.Sc(q,new A.qc()),new A.BB(p,1787219318)),$async$pa)
+case 9:s=n instanceof A.H4&&p!==1787219318?10:11
 break
-case 10:n.a.V1("PRAGMA user_version = 1787167260;")
+case 10:n.a.V1("PRAGMA user_version = 1787219318;")
 s=12
 return A.k(A.dG(null,t.H),$async$pa)
 case 12:case 11:return A.r(null,r)}})
