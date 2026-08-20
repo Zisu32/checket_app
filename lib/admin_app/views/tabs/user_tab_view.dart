@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_primary_button.dart';
 import '../../../shared/widgets/app_action_sheet.dart';
+import '../../../shared/widgets/app_list_view.dart';
 import '../../widgets/user_action_sheet.dart';
 
 class UserTabView extends StatefulWidget {
@@ -40,9 +41,7 @@ class _UserTabViewState extends State<UserTabView> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Laden: $e'), backgroundColor: AppTheme.unpaid)
-        );
+        AppTheme.showSnackBar(context, 'Fehler beim Laden: $e');
         setState(() => _isLoading = false);
       }
     }
@@ -58,9 +57,7 @@ class _UserTabViewState extends State<UserTabView> {
       await _loadData();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Löschen: $e'), backgroundColor: AppTheme.unpaid)
-        );
+        AppTheme.showSnackBar(context, 'Fehler beim Löschen: $e');
       }
       setState(() => _isLoading = false);
     }
@@ -81,6 +78,10 @@ class _UserTabViewState extends State<UserTabView> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredUsers = _filterTenant == null 
+        ? _users 
+        : _users.where((u) => u['tenantSchema'] == _filterTenant).toList();
+
     return Column(
       children: [
         _buildHeader(),
@@ -89,7 +90,17 @@ class _UserTabViewState extends State<UserTabView> {
         Expanded(
           child: _isLoading 
             ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
-            : _buildList(),
+            : AppListView<dynamic>(
+                items: filteredUsers,
+                onRefresh: _loadData,
+                emptyMessage: 'Keine Benutzer gefunden',
+                titleBuilder: (u) => Text(u['email'] ?? 'Keine E-Mail', style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
+                subtitleBuilder: (u) => Text('${u['tenantName']} • ${u['role']}', style: const TextStyle(color: AppTheme.free)),
+                trailingBuilder: (u) => IconButton(
+                  icon: const Icon(Icons.more_horiz, color: AppTheme.white),
+                  onPressed: () => _showUserActions(u),
+                ),
+              ),
         ),
       ],
     );
@@ -148,46 +159,6 @@ class _UserTabViewState extends State<UserTabView> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildList() {
-    final filteredUsers = _filterTenant == null 
-        ? _users 
-        : _users.where((u) => u['tenantSchema'] == _filterTenant).toList();
-
-    if (filteredUsers.isEmpty) {
-      return const Center(
-        child: Text(
-          'Keine Benutzer gefunden',
-          style: TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        itemCount: filteredUsers.length,
-        itemBuilder: (context, index) {
-          final user = filteredUsers[index];
-          return Card(
-            color: AppTheme.surface,
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              title: Text(user['email'] ?? 'Keine E-Mail', style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
-              subtitle: Text('${user['tenantName']} • ${user['role']}', style: const TextStyle(color: AppTheme.free)),
-              trailing: IconButton(
-                icon: const Icon(Icons.more_horiz, color: AppTheme.white),
-                onPressed: () => _showUserActions(user),
-              ),
-            ),
-          );
-        },
       ),
     );
   }

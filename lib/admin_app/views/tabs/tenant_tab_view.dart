@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_primary_button.dart';
 import '../../../shared/widgets/app_action_sheet.dart';
+import '../../../shared/widgets/app_list_view.dart';
 import '../../widgets/tenant_action_sheet.dart';
 
 class TenantTabView extends StatefulWidget {
@@ -35,9 +36,7 @@ class _TenantTabViewState extends State<TenantTabView> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Laden: $e'), backgroundColor: AppTheme.unpaid)
-        );
+        AppTheme.showSnackBar(context, 'Fehler beim Laden: $e');
         setState(() => _isLoading = false);
       }
     }
@@ -53,9 +52,7 @@ class _TenantTabViewState extends State<TenantTabView> {
       await _loadTenants();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Löschen: $e'), backgroundColor: AppTheme.unpaid)
-        );
+        AppTheme.showSnackBar(context, 'Fehler beim Löschen: $e');
       }
       setState(() => _isLoading = false);
     }
@@ -82,7 +79,17 @@ class _TenantTabViewState extends State<TenantTabView> {
         Expanded(
           child: _isLoading 
             ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
-            : _buildList(),
+            : AppListView<dynamic>(
+                items: _tenants,
+                onRefresh: _loadTenants,
+                emptyMessage: 'Keine Tenants gefunden',
+                titleBuilder: (t) => Text(t['name'], style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
+                subtitleBuilder: (t) => Text(t['schema_name'], style: const TextStyle(color: AppTheme.free)),
+                trailingBuilder: (t) => IconButton(
+                  icon: const Icon(Icons.more_horiz, color: AppTheme.white),
+                  onPressed: () => _showTenantActions(t),
+                ),
+              ),
         ),
       ],
     );
@@ -104,42 +111,6 @@ class _TenantTabViewState extends State<TenantTabView> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildList() {
-    if (_tenants.isEmpty) {
-      return const Center(
-        child: Text(
-          'Keine Tenants gefunden',
-          style: TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadTenants,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        itemCount: _tenants.length,
-        itemBuilder: (context, index) {
-          final t = _tenants[index];
-          return Card(
-            color: AppTheme.surface,
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              title: Text(t['name'], style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
-              subtitle: Text(t['schema_name'], style: const TextStyle(color: AppTheme.free)),
-              trailing: IconButton(
-                icon: const Icon(Icons.more_horiz, color: AppTheme.white),
-                onPressed: () => _showTenantActions(t),
-              ),
-            ),
-          );
-        },
       ),
     );
   }
