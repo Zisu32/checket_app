@@ -6,6 +6,7 @@ class AppDialog extends StatelessWidget {
   final String? subtitle;
   final Widget? body;
   final List<Widget> actions;
+  final MainAxisAlignment actionsAlignment;
 
   const AppDialog({
     super.key,
@@ -13,6 +14,7 @@ class AppDialog extends StatelessWidget {
     this.subtitle,
     this.body,
     required this.actions,
+    this.actionsAlignment = MainAxisAlignment.center,
   });
 
   @override
@@ -51,10 +53,12 @@ class AppDialog extends StatelessWidget {
               body!,
             ],
             const SizedBox(height: 32),
-            ...actions.map((a) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: SizedBox(width: double.infinity, child: a),
-                )),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 12,
+              runSpacing: 12,
+              children: actions,
+            ),
           ],
         ),
       ),

@@ -95,7 +95,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AppDialog(
           title: 'Zugriff geschützt',
-          subtitle: 'Anmeldung erforderlich für: \n$email',
+          subtitle: 'Anmeldung erforderlich',
           body: TextField(
             controller: passwordController,
             obscureText: true,

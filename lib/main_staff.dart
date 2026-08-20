@@ -51,7 +51,8 @@ class ChecketStaffApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String initialRoute = _getInitialRoute();
-    final bool isAdminRoute = initialRoute == '/admin';
+    final bool isAdminRoute = initialRoute.startsWith('/admin');
+    final bool isStaffRoute = initialRoute.startsWith('/staff');
 
     return MaterialApp(
       title: isAdminRoute ? 'Checket Admin' : 'Checket Staff',
@@ -66,7 +67,8 @@ class ChecketStaffApp extends StatelessWidget {
       initialRoute: initialRoute,
       onGenerateRoute: (settings) {
         final name = settings.name ?? '/';
-        final bool isCurrentlyAdmin = name == '/admin';
+        final bool isCurrentlyAdmin = name.startsWith('/admin');
+        final bool isCurrentlyStaff = name.startsWith('/staff');
         
         return MaterialPageRoute(
           settings: settings,
@@ -81,6 +83,7 @@ class ChecketStaffApp extends StatelessWidget {
 
               return _AuthenticatedApp(
                 isAdminMode: isCurrentlyAdmin,
+                isStaffMode: isCurrentlyStaff,
                 initialRoute: name,
               );
             },
@@ -93,8 +96,13 @@ class ChecketStaffApp extends StatelessWidget {
 
 class _AuthenticatedApp extends StatefulWidget {
   final bool isAdminMode;
+  final bool isStaffMode;
   final String initialRoute;
-  const _AuthenticatedApp({required this.isAdminMode, required this.initialRoute});
+  const _AuthenticatedApp({
+    required this.isAdminMode, 
+    required this.isStaffMode,
+    required this.initialRoute
+  });
 
   @override
   State<_AuthenticatedApp> createState() => _AuthenticatedAppState();
