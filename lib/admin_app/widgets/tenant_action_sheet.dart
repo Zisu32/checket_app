@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_primary_button.dart';
+import '../../../shared/widgets/app_action_sheet.dart';
 
 class TenantActionSheet extends StatefulWidget {
   final dynamic tenant; // null for new tenant
@@ -98,70 +99,54 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _step == 1 ? _buildStep1() : _buildStep2(),
-      ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: _step == 1 ? _buildStep1() : _buildStep2(),
     );
   }
 
   Widget _buildStep1() {
-    return Column(
+    return AppActionSheet(
       key: const ValueKey(1),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          widget.tenant == null ? 'Neuen Mandanten anlegen' : 'Mandanten bearbeiten',
-          style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        const Divider(height: 1, color: AppTheme.surface),
-        const SizedBox(height: 24),
-        _buildInput('Anzeigename (z.B. Club Saphir)', _nameController),
-        _buildInput('Schema-Name (z.B. tenant_saphir)', _schemaController, enabled: widget.tenant == null),
-        const SizedBox(height: 24),
-        _isLoading 
-          ? const CircularProgressIndicator(color: AppTheme.active)
-          : AppPrimaryButton(
-              text: 'Speichern & Weiter',
-              color: AppTheme.active,
-              onTap: _saveTenant,
-            ),
-      ],
+      title: widget.tenant == null ? 'Neuer Tenant' : widget.tenant['name'],
+      subtitle: widget.tenant == null ? 'Tenant anlegen' : 'Tenant bearbeiten',
+      body: Column(
+        children: [
+          _buildInput('Anzeigename (z.B. Club Saphir)', _nameController),
+          _buildInput('Schema-Name (z.B. tenant_saphir)', _schemaController, enabled: widget.tenant == null),
+          const SizedBox(height: 24),
+          _isLoading 
+            ? const CircularProgressIndicator(color: AppTheme.active)
+            : AppPrimaryButton(
+                text: 'Speichern & Weiter',
+                color: AppTheme.active,
+                onTap: _saveTenant,
+              ),
+        ],
+      ),
     );
   }
 
   Widget _buildStep2() {
-    return Column(
+    return AppActionSheet(
       key: const ValueKey(2),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text(
-          'SumUp Secrets',
-          style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        const Divider(height: 1, color: AppTheme.surface),
-        const SizedBox(height: 24),
-        _buildInput('SumUp API Key (sk_live...)', _sumupKeyController, obscure: true),
-        _buildInput('Merchant Code', _merchantCodeController),
-        _buildInput('Affiliate Key', _affiliateKeyController),
-        const SizedBox(height: 24),
-        _isLoading 
-          ? const CircularProgressIndicator(color: AppTheme.active)
-          : AppPrimaryButton(
-              text: 'Abschließen',
-              color: AppTheme.active,
-              onTap: _saveSecrets,
-            ),
-      ],
+      title: 'SumUp Secrets',
+      subtitle: 'Konfiguration für ${_nameController.text}',
+      body: Column(
+        children: [
+          _buildInput('SumUp API Key (sk_live...)', _sumupKeyController, obscure: true),
+          _buildInput('Merchant Code', _merchantCodeController),
+          _buildInput('Affiliate Key', _affiliateKeyController),
+          const SizedBox(height: 24),
+          _isLoading 
+            ? const CircularProgressIndicator(color: AppTheme.active)
+            : AppPrimaryButton(
+                text: 'Abschließen',
+                color: AppTheme.active,
+                onTap: _saveSecrets,
+              ),
+        ],
+      ),
     );
   }
 

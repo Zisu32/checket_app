@@ -63,14 +63,17 @@ class AppActionSheet extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 16),
-          const Divider(height: 1, color: AppTheme.surface),
+          const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
           const SizedBox(height: 16),
           if (body != null) body!,
           if (actions != null)
             ...actions!.map((action) => ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   leading: action.leading ?? (action.icon != null ? Icon(action.icon, color: action.color) : null),
-                  title: Text(action.label, style: TextStyle(color: action.color, fontSize: AppTheme.small)),
+                  title: Text(
+                    action.label, 
+                    style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small)
+                  ),
                   onTap: action.onTap,
                 )),
         ],

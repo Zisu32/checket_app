@@ -112,7 +112,7 @@ class _TenantTabViewState extends State<TenantTabView> {
     if (_tenants.isEmpty) {
       return const Center(
         child: Text(
-          'Keine Mandanten gefunden',
+          'Keine Tenants gefunden',
           style: TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
         ),
       );
@@ -150,7 +150,7 @@ class _TenantTabViewState extends State<TenantTabView> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => AppActionSheet(
         title: tenant['name'],
-        subtitle: 'Mandant verwalten',
+        subtitle: 'Tenant verwalten',
         actions: [
           SheetAction(
             icon: Icons.edit,
@@ -162,7 +162,7 @@ class _TenantTabViewState extends State<TenantTabView> {
             },
           ),
           SheetAction(
-            icon: Icons.delete_forever,
+            icon: Icons.close,
             label: 'Löschen',
             color: AppTheme.unpaid,
             onTap: () {

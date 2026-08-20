@@ -110,6 +110,10 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
             ),
           ),
           actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Abbrechen', style: TextStyle(color: AppTheme.free)),
+            ),
             isAuthenticating
                 ? const Center(
                     child: SizedBox(
@@ -127,7 +131,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                       if (success) {
                         if (context.mounted) {
                           Navigator.pop(context);
-                          Navigator.pushNamed(context, '/settings');
+                          Navigator.pushNamed(context, '/staff/settings');
                         }
                       } else {
                         setDialogState(() => isAuthenticating = false);
@@ -139,10 +143,6 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                       }
                     },
                   ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Abbrechen', style: TextStyle(color: AppTheme.free)),
-            ),
           ],
         ),
       ),
@@ -154,7 +154,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
       context: context,
       builder: (dialogContext) => AppDialog(
         title: 'Schichtende nicht möglich!',
-        subtitle: 'Es sind noch nicht bezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
+        subtitle: 'Es sind noch unbezahlte Jacken im System. Diese müssen zuerst bezahlt werden, bevor die Schicht beendet werden kann.',
         actions: [
           AppPrimaryButton(
             text: 'Okay',

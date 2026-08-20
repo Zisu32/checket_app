@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_primary_button.dart';
+import '../../../shared/widgets/app_action_sheet.dart';
 
 class UserActionSheet extends StatefulWidget {
   final dynamic user; // null for new user
@@ -53,14 +54,12 @@ class _UserActionSheetState extends State<UserActionSheet> {
 
   Future<void> _saveUser() async {
     if (_selectedSchema == null) {
-      _showError('Bitte einen Mandanten auswählen');
+      _showError('Bitte einen Tenant auswählen');
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      // In a real app, you would call the manage-users edge function here
-      // For now, let's assume we use an edge function named 'manage-users'
       final response = await _supabase.functions.invoke('manage-users', body: {
         'action': widget.user == null ? 'create' : 'update',
         'email': _emailController.text.trim(),
@@ -89,67 +88,51 @@ class _UserActionSheetState extends State<UserActionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _step == 1 ? _buildStep1() : _buildStep2(),
-      ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: _step == 1 ? _buildStep1() : _buildStep2(),
     );
   }
 
   Widget _buildStep1() {
-    return Column(
+    return AppActionSheet(
       key: const ValueKey(1),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          widget.user == null ? 'Neuen User anlegen' : 'User bearbeiten',
-          style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        const Divider(height: 1, color: AppTheme.surface),
-        const SizedBox(height: 24),
-        _buildInput('E-Mail Adresse', _emailController, enabled: widget.user == null),
-        _buildInput(widget.user == null ? 'Passwort' : 'Neues Passwort (optional)', _passwordController, obscure: true),
-        _buildRoleDropdown(),
-        const SizedBox(height: 24),
-        AppPrimaryButton(
-          text: 'Weiter',
-          color: AppTheme.active,
-          onTap: _nextStep,
-        ),
-      ],
+      title: widget.user == null ? 'Neuer User' : widget.user['email'],
+      subtitle: widget.user == null ? 'User anlegen' : 'User bearbeiten',
+      body: Column(
+        children: [
+          _buildInput('E-Mail', _emailController, enabled: widget.user == null),
+          _buildInput(widget.user == null ? 'Passwort' : 'Neues Passwort (optional)', _passwordController, obscure: true),
+          _buildRoleDropdown(),
+          const SizedBox(height: 24),
+          AppPrimaryButton(
+            text: 'Weiter',
+            color: AppTheme.active,
+            onTap: _nextStep,
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildStep2() {
-    return Column(
+    return AppActionSheet(
       key: const ValueKey(2),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text(
-          'Mandanten-Zuweisung',
-          style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        const Divider(height: 1, color: AppTheme.surface),
-        const SizedBox(height: 24),
-        _buildTenantDropdown(),
-        const SizedBox(height: 24),
-        _isLoading 
-          ? const CircularProgressIndicator(color: AppTheme.active)
-          : AppPrimaryButton(
-              text: 'Speichern',
-              color: AppTheme.active,
-              onTap: _saveUser,
-            ),
-      ],
+      title: 'Tenant-Zuweisung',
+      subtitle: 'Zuweisung für ${_emailController.text}',
+      body: Column(
+        children: [
+          _buildTenantDropdown(),
+          const SizedBox(height: 24),
+          _isLoading 
+            ? const CircularProgressIndicator(color: AppTheme.active)
+            : AppPrimaryButton(
+                text: 'Speichern',
+                color: AppTheme.active,
+                onTap: _saveUser,
+              ),
+        ],
+      ),
     );
   }
 
@@ -203,7 +186,7 @@ class _UserActionSheetState extends State<UserActionSheet> {
       ),
       child: DropdownButton<String>(
         value: _selectedSchema,
-        hint: const Text('Mandant wählen', style: TextStyle(color: AppTheme.free)),
+        hint: const Text('Tenant wählen', style: TextStyle(color: AppTheme.free)),
         dropdownColor: AppTheme.surface,
         style: const TextStyle(color: AppTheme.white),
         isExpanded: true,

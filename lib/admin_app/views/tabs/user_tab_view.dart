@@ -131,7 +131,7 @@ class _UserTabViewState extends State<UserTabView> {
               ),
               child: DropdownButton<String>(
                 value: _filterTenant,
-                hint: const Text('Alle Mandanten', style: TextStyle(color: AppTheme.free, fontSize: 14)),
+                hint: const Text('Alle Tenants', style: TextStyle(color: AppTheme.free, fontSize: 14)),
                 dropdownColor: AppTheme.surface,
                 style: const TextStyle(color: AppTheme.white, fontSize: 14),
                 isExpanded: true,
@@ -210,7 +210,7 @@ class _UserTabViewState extends State<UserTabView> {
             },
           ),
           SheetAction(
-            icon: Icons.delete_forever,
+            icon: Icons.close,
             label: 'Löschen',
             color: AppTheme.unpaid,
             onTap: () {

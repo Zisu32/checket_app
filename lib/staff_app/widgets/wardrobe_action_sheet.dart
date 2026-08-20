@@ -47,9 +47,9 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
   String _getStatusLabel(String status) {
     switch (status) {
       case 'free': return 'Verfügbar';
-      case 'unpaid': return 'Wartet auf Zahlung';
+      case 'unpaid': return 'Warte auf Zahlung';
       case 'active': return 'Belegt';
-      case 'temporary': return 'Kurz draußen';
+      case 'temporary': return 'Temporär draußen';
       default: return '';
     }
   }
