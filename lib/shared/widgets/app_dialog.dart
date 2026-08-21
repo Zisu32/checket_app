@@ -52,8 +52,13 @@ class AppDialog extends StatelessWidget {
             ],
             const SizedBox(height: 32),
             Row(
-              mainAxisAlignment: actions.length > 1 ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
-              children: actions,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                for (var i = 0; i < actions.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 12),
+                  actions[i],
+                ],
+              ],
             ),
           ],
         ),

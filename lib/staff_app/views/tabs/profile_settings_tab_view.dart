@@ -58,44 +58,37 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'User',
-                  style: TextStyle(color: AppTheme.white, fontSize: AppTheme.small, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  email,
-                  style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
-                ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Passwort ändern',
-                  style: TextStyle(color: AppTheme.white, fontSize: AppTheme.small, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  style: const TextStyle(color: AppTheme.white),
-                  cursorColor: AppTheme.white,
-                  decoration: const InputDecoration(
-                    labelText: 'Neues Passwort',
-                    labelStyle: TextStyle(color: AppTheme.free),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                _buildFormRow('User', Text(email, style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small))),
+                const SizedBox(height: 24),
+                _buildFormRow(
+                  'Neues Passwort',
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
+                    cursorColor: AppTheme.white,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _confirmPasswordController,
-                  obscureText: true,
-                  style: const TextStyle(color: AppTheme.white),
-                  cursorColor: AppTheme.white,
-                  decoration: const InputDecoration(
-                    labelText: 'Passwort bestätigen',
-                    labelStyle: TextStyle(color: AppTheme.free),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                const SizedBox(height: 24),
+                _buildFormRow(
+                  'Passwort bestätigen',
+                  TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: true,
+                    style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
+                    cursorColor: AppTheme.white,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
+                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 48),
@@ -103,7 +96,7 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
                   child: _isLoading 
                     ? const CircularProgressIndicator(color: AppTheme.active)
                     : AppPrimaryButton(
-                        text: 'Passwort aktualisieren',
+                        text: 'Speichern',
                         color: AppTheme.active,
                         onTap: _updatePassword,
                       ),
@@ -112,6 +105,24 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildFormRow(String label, Widget content) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppTheme.free,
+            fontSize: AppTheme.xsmall,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        content,
       ],
     );
   }
