@@ -86,7 +86,6 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
   }
 
   void _showSettingsAuth() {
-    final email = _syncService.supabase.auth.currentUser?.email ?? "";
     final passwordController = TextEditingController();
     bool isAuthenticating = false;
 
@@ -132,7 +131,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                       if (success) {
                         if (context.mounted) {
                           Navigator.pop(context);
-                          Navigator.pushNamed(context, '/staff/settings');
+                          Navigator.pushNamed(context, '/settings');
                         }
                       } else {
                         setDialogState(() => isAuthenticating = false);

@@ -51,11 +51,9 @@ class ChecketStaffApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String initialRoute = _getInitialRoute();
-    final bool isAdminRoute = initialRoute.startsWith('/admin');
-    final bool isStaffRoute = initialRoute.startsWith('/staff');
 
     return MaterialApp(
-      title: isAdminRoute ? 'Checket Admin' : 'Checket Staff',
+      title: 'Checket',
       theme: ThemeData.dark().copyWith(
         textSelectionTheme: TextSelectionThemeData(
           cursorColor: AppTheme.white,
@@ -65,50 +63,54 @@ class ChecketStaffApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       initialRoute: initialRoute,
+      builder: (context, child) {
+        return StreamBuilder<AuthState>(
+          stream: Supabase.instance.client.auth.onAuthStateChange,
+          builder: (context, snapshot) {
+            final session = Supabase.instance.client.auth.currentSession;
+            if (session == null) {
+              final isCurrentlyAdmin = web.window.location.hash.startsWith('#/admin');
+              return LoginView(isAdminMode: isCurrentlyAdmin);
+            }
+            return _Initializer(child: child!);
+          },
+        );
+      },
       onGenerateRoute: (settings) {
         final name = settings.name ?? '/';
-        final bool isCurrentlyAdmin = name.startsWith('/admin');
-        final bool isCurrentlyStaff = name.startsWith('/staff');
         
-        return MaterialPageRoute(
-          settings: settings,
-          builder: (context) => StreamBuilder<AuthState>(
-            stream: Supabase.instance.client.auth.onAuthStateChange,
-            builder: (context, snapshot) {
-              final session = Supabase.instance.client.auth.currentSession;
-              
-              if (session == null) {
-                return LoginView(isAdminMode: isCurrentlyAdmin);
-              }
+        if (name.startsWith('/qr')) {
+          final params = RouteService().parseStaffParams(name);
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => QrDisplayView(ticketId: params.id, secret: params.secret),
+          );
+        }
 
-              return _AuthenticatedApp(
-                isAdminMode: isCurrentlyAdmin,
-                isStaffMode: isCurrentlyStaff,
-                initialRoute: name,
-              );
-            },
-          ),
-        );
+        if (name == '/admin') {
+          return MaterialPageRoute(settings: settings, builder: (_) => const AdminView());
+        }
+
+        if (name == '/settings' || name == '/staff/settings') {
+          return MaterialPageRoute(settings: settings, builder: (_) => const SettingsView());
+        }
+
+        // Default is StaffView (Dashboard)
+        return MaterialPageRoute(settings: settings, builder: (_) => const StaffView());
       },
     );
   }
 }
 
-class _AuthenticatedApp extends StatefulWidget {
-  final bool isAdminMode;
-  final bool isStaffMode;
-  final String initialRoute;
-  const _AuthenticatedApp({
-    required this.isAdminMode, 
-    required this.isStaffMode,
-    required this.initialRoute
-  });
+class _Initializer extends StatefulWidget {
+  final Widget child;
+  const _Initializer({required this.child});
 
   @override
-  State<_AuthenticatedApp> createState() => _AuthenticatedAppState();
+  State<_Initializer> createState() => _InitializerState();
 }
 
-class _AuthenticatedAppState extends State<_AuthenticatedApp> {
+class _InitializerState extends State<_Initializer> {
   late Future<void> _initFuture;
 
   @override
@@ -118,6 +120,7 @@ class _AuthenticatedAppState extends State<_AuthenticatedApp> {
   }
 
   Future<void> _initialize() async {
+    if (SyncService().isInitialized.value) return;
     final user = Supabase.instance.client.auth.currentUser;
     final dbName = 'checket_staff_${user?.id ?? "unknown"}';
     await SyncService().init(dbName: dbName);
@@ -143,28 +146,7 @@ class _AuthenticatedAppState extends State<_AuthenticatedApp> {
                 ),
               );
             }
-
-            if (widget.isAdminMode) {
-              return const AdminView();
-            }
-
-            return Navigator(
-              initialRoute: widget.initialRoute,
-              onGenerateRoute: (settings) {
-                final params = RouteService().parseStaffParams(settings.name);
-                if (params.isQrRoute) {
-                  return MaterialPageRoute(
-                    builder: (_) => QrDisplayView(ticketId: params.id, secret: params.secret),
-                  );
-                }
-                
-                if (settings.name == '/staff/settings') {
-                  return MaterialPageRoute(builder: (_) => const SettingsView());
-                }
-                
-                return MaterialPageRoute(builder: (_) => const StaffView());
-              },
-            );
+            return widget.child;
           },
         );
       },
