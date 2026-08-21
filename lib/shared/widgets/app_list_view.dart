@@ -46,7 +46,7 @@ class AppListView<T> extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 8),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
             leading: leadingBuilder?.call(item),
             title: titleBuilder(item),
             subtitle: subtitleBuilder(item),

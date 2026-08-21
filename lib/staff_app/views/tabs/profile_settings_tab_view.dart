@@ -59,13 +59,13 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Profil & Sicherheit',
-                  style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
+                  'User',
+                  style: TextStyle(color: AppTheme.white, fontSize: AppTheme.small, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Eingeloggt als: $email',
-                  style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
+                  email,
+                  style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
                 ),
                 const SizedBox(height: 32),
                 const Text(
