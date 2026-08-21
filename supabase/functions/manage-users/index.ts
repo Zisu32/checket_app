@@ -28,9 +28,21 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseAdmin = createClient(supabaseUrl, getSecretKey())
 
-    // 1. Authenticate the requester (must be an admin)
+    // 1. Authenticate the requester
     const { data: { user: requester }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''))
-    if (authError || !requester || requester.app_metadata?.role !== 'admin') {
+    if (authError || !requester) throw new Error('Unauthorized')
+
+    // 2. Check if admin (either via app_metadata or mapping table)
+    const isGlobalAdmin = requester.app_metadata?.role === 'admin'
+
+    const { data: mapping } = await supabaseAdmin
+      .from('users_tenants_mapping')
+      .select('role')
+      .eq('user_id', requester.id)
+      .eq('role', 'admin')
+      .maybeSingle()
+
+    if (!isGlobalAdmin && !mapping) {
       throw new Error('Unauthorized: Admin access required')
     }
 
@@ -38,11 +50,9 @@ Deno.serve(async (req) => {
     const { action, email, password, role, schemaName, userId } = body
 
     if (action === 'list') {
-      // Fetch all users from auth.users (requires admin privileges)
       const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
       if (listError) throw listError
 
-      // Fetch all mappings
       const { data: mappings, error: mapError } = await supabaseAdmin
         .from('users_tenants_mapping')
         .select(`
@@ -56,7 +66,6 @@ Deno.serve(async (req) => {
 
       if (mapError) throw mapError
 
-      // Enrich users with mapping data.
       const enrichedUsers = users.map(authUser => {
         const mapping = mappings.find(m => m.user_id === authUser.id)
         return {
@@ -75,9 +84,6 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'create') {
-      if (!email || !password || !role || !schemaName) throw new Error('Missing parameters')
-
-      // 1. Create user in Auth
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
@@ -86,63 +92,21 @@ Deno.serve(async (req) => {
       })
       if (createError) throw createError
 
-      // 2. Add to mapping table
-      const { data: tenant } = await supabaseAdmin
-        .from('tenants')
-        .select('id')
-        .eq('schema_name', schemaName)
-        .single()
-
+      const { data: tenant } = await supabaseAdmin.from('tenants').select('id').eq('schema_name', schemaName).single()
       if (!tenant) throw new Error('Tenant not found')
 
-      const { error: linkError } = await supabaseAdmin
-        .from('users_tenants_mapping')
-        .insert({
-          user_id: newUser.user.id,
-          tenant_id: tenant.id,
-          role: role
-        })
-
-      if (linkError) throw linkError
+      await supabaseAdmin.from('users_tenants_mapping').insert({
+        user_id: newUser.user.id,
+        tenant_id: tenant.id,
+        role: role
+      })
 
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
-    }
-
-    if (action === 'update') {
-       if (!userId || !role || !schemaName) throw new Error('Missing parameters')
-
-       // Update metadata in Auth
-       const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-         app_metadata: { role, schema_name: schemaName }
-       })
-       if (updateAuthError) throw updateAuthError
-
-       // Update mapping table
-       const { data: tenant } = await supabaseAdmin.from('tenants').select('id').eq('schema_name', schemaName).single()
-       if (!tenant) throw new Error('Tenant not found')
-
-       const { error: updateMapError } = await supabaseAdmin.from('users_tenants_mapping').upsert({
-         user_id: userId,
-         tenant_id: tenant.id,
-         role: role
-       })
-       if (updateMapError) throw updateMapError
-
-       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
     if (action === 'delete') {
-      if (!userId) throw new Error('Missing userId')
-      const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
-      if (deleteError) throw deleteError
+      await supabaseAdmin.auth.admin.deleteUser(userId)
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
-    }
-
-    if (action === 'delete-tenant') {
-       if (!schemaName) throw new Error('Missing schemaName')
-       const { error: delError } = await supabaseAdmin.from('tenants').delete().eq('schema_name', schemaName)
-       if (delError) throw delError
-       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
     throw new Error('Invalid Action')
