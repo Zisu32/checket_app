@@ -53,9 +53,7 @@ class AppDialog extends StatelessWidget {
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: actions.length > 1 ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
-              children: actions.map((a) {
-                return Flexible(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: a));
-              }).toList(),
+              children: actions,
             ),
           ],
         ),

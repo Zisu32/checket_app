@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/theme/app_theme.dart';
+import '../../../../shared/widgets/app_header.dart';
+import '../../../../shared/widgets/app_snackbar.dart';
 import '../../../../shared/widgets/app_primary_button.dart';
 import '../../../../shared/services/sync_service.dart';
 import '../../../../shared/services/sumup_service.dart';
@@ -38,9 +40,7 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
     
     final newPrice = double.tryParse(_priceController.text.replaceAll(',', '.'));
     if (newPrice == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ungültiger Preis'), backgroundColor: AppTheme.unpaid),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Ungültiger Preis'));
       return;
     }
 
@@ -48,15 +48,11 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
     try {
       await _syncService.updateTicketPrice(_currentReaderId!, newPrice);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preis gespeichert'), backgroundColor: AppTheme.active),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Preis gespeichert', isError: false));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e'), backgroundColor: AppTheme.unpaid),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler: $e'));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -74,47 +70,54 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Ticket-Preis konfigurieren',
-            style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Legen Sie fest, wie viel ein Ticket für diesen Arbeitsplatz kostet.',
-            style: TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
-          ),
-          const SizedBox(height: 32),
-          TextField(
-            controller: _priceController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
-            cursorColor: AppTheme.white,
-            decoration: const InputDecoration(
-              labelText: 'Preis in EUR',
-              labelStyle: TextStyle(color: AppTheme.free),
-              suffixText: '€',
-              suffixStyle: TextStyle(color: AppTheme.white),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+    return Column(
+      children: [
+        const AppHeader(icon: Icons.confirmation_number),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Ticket-Preis konfigurieren',
+                  style: TextStyle(color: AppTheme.white, fontSize: AppTheme.medium, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Legen Sie fest, wie viel ein Ticket für diesen Arbeitsplatz kostet.',
+                  style: TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
+                ),
+                const SizedBox(height: 32),
+                TextField(
+                  controller: _priceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
+                  cursorColor: AppTheme.white,
+                  decoration: const InputDecoration(
+                    labelText: 'Preis in EUR',
+                    labelStyle: TextStyle(color: AppTheme.free),
+                    suffixText: '€',
+                    suffixStyle: TextStyle(color: AppTheme.white),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                  ),
+                ),
+                const SizedBox(height: 48),
+                Center(
+                  child: _isLoading 
+                    ? const CircularProgressIndicator(color: AppTheme.active)
+                    : AppPrimaryButton(
+                        text: 'Preis speichern',
+                        color: AppTheme.active,
+                        onTap: _savePrice,
+                      ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 48),
-          Center(
-            child: _isLoading 
-              ? const CircularProgressIndicator(color: AppTheme.active)
-              : AppPrimaryButton(
-                  text: 'Preis speichern',
-                  color: AppTheme.active,
-                  onTap: _savePrice,
-                ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

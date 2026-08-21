@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_snackbar.dart';
 import '../../shared/widgets/app_primary_button.dart';
 import '../../shared/services/sumup_service.dart';
 
@@ -157,7 +158,7 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
   void _showError(String msg) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler: $msg'), backgroundColor: AppTheme.unpaid),
+        AppSnackBar(message: 'Fehler: $msg', isError: true),
       );
     }
   }

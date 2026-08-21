@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../shared/database/database.dart';
 import '../../../shared/services/sync_service.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_header.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_primary_button.dart';
 
 class SessionEndTabView extends StatelessWidget {
@@ -24,18 +26,7 @@ class SessionEndTabView extends StatelessWidget {
 
     return Column(
       children: [
-        SizedBox(
-          height: 80,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: const [
-                Icon(Icons.swap_horiz_rounded, color: AppTheme.white, size: 28),
-              ],
-            ),
-          ),
-        ),
-        const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
+        const AppHeader(icon: Icons.swap_horiz_rounded),
         Expanded(
           child: Center(
             child: Padding(
@@ -61,8 +52,14 @@ class SessionEndTabView extends StatelessWidget {
                     text: 'Ja, Schicht beenden',
                     color: AppTheme.unpaid,
                     onTap: () async {
-                      await syncService.archiveAndResetShift();
-                      onComplete();
+                      try {
+                        await syncService.archiveAndResetShift();
+                        onComplete();
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler: $e'));
+                        }
+                      }
                     },
                   ),
                   const SizedBox(height: 12),

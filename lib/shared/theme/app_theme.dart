@@ -23,19 +23,4 @@ class AppTheme {
   static const double small = 16.0;
   static const double medium = 25.0;
   static const double large = 32.0;
-
-  // Global Snackbar
-  static void showSnackBar(BuildContext context, String message, {bool isError = true}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(color: white, fontSize: small),
-        ),
-        backgroundColor: isError ? unpaid : active,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
 }

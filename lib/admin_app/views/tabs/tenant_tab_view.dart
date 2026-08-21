@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
-import '../../../shared/widgets/app_primary_button.dart';
+import '../../../shared/widgets/app_header.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_action_sheet.dart';
 import '../../../shared/widgets/app_list_view.dart';
 import '../../widgets/tenant_action_sheet.dart';
@@ -36,7 +37,7 @@ class _TenantTabViewState extends State<TenantTabView> {
       });
     } catch (e) {
       if (mounted) {
-        AppTheme.showSnackBar(context, 'Fehler beim Laden: $e');
+        ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler beim Laden: $e'));
         setState(() => _isLoading = false);
       }
     }
@@ -52,7 +53,7 @@ class _TenantTabViewState extends State<TenantTabView> {
       await _loadTenants();
     } catch (e) {
       if (mounted) {
-        AppTheme.showSnackBar(context, 'Fehler beim Löschen: $e');
+        ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler beim Löschen: $e'));
       }
       setState(() => _isLoading = false);
     }
@@ -61,7 +62,7 @@ class _TenantTabViewState extends State<TenantTabView> {
   void _showTenantSheet([dynamic tenant]) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.background,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => TenantActionSheet(
         tenant: tenant,
@@ -74,8 +75,11 @@ class _TenantTabViewState extends State<TenantTabView> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildHeader(),
-        const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
+        AppHeader(
+          icon: Icons.warehouse_rounded,
+          actionText: 'Neuer Tenant',
+          onActionTap: () => _showTenantSheet(),
+        ),
         Expanded(
           child: _isLoading 
             ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
@@ -92,26 +96,6 @@ class _TenantTabViewState extends State<TenantTabView> {
               ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return SizedBox(
-      height: 80,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Icon(Icons.warehouse_rounded, color: AppTheme.white, size: 28),
-            AppPrimaryButton(
-              text: 'Neuer Tenant',
-              color: AppTheme.active,
-              onTap: () => _showTenantSheet(),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

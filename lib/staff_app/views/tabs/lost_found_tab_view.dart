@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../shared/database/database.dart';
 import '../../../shared/services/sync_service.dart';
 import '../../../shared/theme/app_theme.dart';
-import '../../../shared/widgets/app_primary_button.dart';
+import '../../../shared/widgets/app_header.dart';
 import '../../../shared/widgets/app_list_view.dart';
 import '../../widgets/lost_found_action_sheet.dart';
 
@@ -20,8 +20,11 @@ class LostFoundTabView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildHeader(),
-        const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
+        AppHeader(
+          icon: Icons.inventory_2_outlined,
+          actionText: 'Ticket wiederherstellen',
+          onActionTap: () => onSyncMonitor(-1, 'recovery'),
+        ),
         Expanded(
           child: StreamBuilder<List<LostItem>>(
             stream: syncService.watchLostItems(),
@@ -62,26 +65,6 @@ class LostFoundTabView extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return SizedBox(
-      height: 80,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Icon(Icons.inventory_2_outlined, color: AppTheme.white, size: 28),
-            AppPrimaryButton(
-              text: 'Ticket wiederherstellen',
-              color: AppTheme.active,
-              onTap: () => onSyncMonitor(-1, 'recovery'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

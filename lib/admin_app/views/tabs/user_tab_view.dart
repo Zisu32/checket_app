@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
-import '../../../shared/widgets/app_primary_button.dart';
+import '../../../shared/widgets/app_header.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_action_sheet.dart';
 import '../../../shared/widgets/app_list_view.dart';
 import '../../widgets/user_action_sheet.dart';
@@ -41,7 +42,7 @@ class _UserTabViewState extends State<UserTabView> {
       });
     } catch (e) {
       if (mounted) {
-        AppTheme.showSnackBar(context, 'Fehler beim Laden: $e');
+        ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler beim Laden: $e'));
         setState(() => _isLoading = false);
       }
     }
@@ -57,7 +58,7 @@ class _UserTabViewState extends State<UserTabView> {
       await _loadData();
     } catch (e) {
       if (mounted) {
-        AppTheme.showSnackBar(context, 'Fehler beim Löschen: $e');
+        ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler beim Löschen: $e'));
       }
       setState(() => _isLoading = false);
     }
@@ -66,7 +67,7 @@ class _UserTabViewState extends State<UserTabView> {
   void _showUserSheet([dynamic user]) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.background,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => UserActionSheet(
         user: user,
@@ -84,8 +85,11 @@ class _UserTabViewState extends State<UserTabView> {
 
     return Column(
       children: [
-        _buildHeader(),
-        const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
+        AppHeader(
+          icon: Icons.people_alt_rounded,
+          actionText: 'Neuer User',
+          onActionTap: () => _showUserSheet(),
+        ),
         _buildFilter(),
         Expanded(
           child: _isLoading 
@@ -103,26 +107,6 @@ class _UserTabViewState extends State<UserTabView> {
               ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return SizedBox(
-      height: 80,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Icon(Icons.people_alt_rounded, color: AppTheme.white, size: 28),
-            AppPrimaryButton(
-              text: 'Neuer User',
-              color: AppTheme.active,
-              onTap: () => _showUserSheet(),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

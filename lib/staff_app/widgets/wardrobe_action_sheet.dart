@@ -3,6 +3,7 @@ import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
 import '../../shared/services/sumup_service.dart';
 import '../../shared/theme/app_theme.dart';
+import '../../shared/widgets/app_snackbar.dart';
 import '../../shared/widgets/app_action_sheet.dart';
 
 class WardrobeActionSheet extends StatefulWidget {
@@ -129,9 +130,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
             }
           } catch (e) {
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Fehler: $e'), backgroundColor: AppTheme.unpaid)
-            );
+            ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler: $e'));
           } finally {
             if (mounted) setState(() => _isProcessingSumUp = false);
           }

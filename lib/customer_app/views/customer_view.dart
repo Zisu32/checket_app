@@ -8,6 +8,7 @@ import '../../shared/services/sync_service.dart';
 import '../../shared/services/platform_hints_service.dart';
 import '../../shared/theme/app_theme.dart';
 import '../widgets/ticket_card.dart';
+import '../../shared/widgets/app_snackbar.dart';
 import '../widgets/ticket_info_area.dart';
 import '../widgets/no_ticket.dart';
 
@@ -240,10 +241,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Fehler beim Erstellen des Passes: $e'),
-          backgroundColor: AppTheme.unpaid,
-        ),
+        AppSnackBar(message: 'Fehler beim Erstellen des Passes: $e', isError: true),
       );
     }
   }

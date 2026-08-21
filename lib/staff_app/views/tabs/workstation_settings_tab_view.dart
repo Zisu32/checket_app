@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/theme/app_theme.dart';
-import '../../../../shared/widgets/app_primary_button.dart';
+import '../../../../shared/widgets/app_header.dart';
+import '../../../../shared/widgets/app_snackbar.dart';
 import '../../../../shared/widgets/app_list_view.dart';
 import '../../../../shared/services/sumup_service.dart';
 import '../../widgets/workstation_sheet.dart';
@@ -38,12 +39,7 @@ class _WorkstationSettingsTabViewState extends State<WorkstationSettingsTabView>
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Fehler beim Laden: $e', style: const TextStyle(color: AppTheme.white)),
-            backgroundColor: AppTheme.unpaid,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler beim Laden: $e'));
         setState(() => _isLoading = false);
       }
     }
@@ -71,8 +67,11 @@ class _WorkstationSettingsTabViewState extends State<WorkstationSettingsTabView>
 
     return Column(
       children: [
-        _buildHeader(),
-        const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
+        AppHeader(
+          icon: Icons.tablet_android,
+          actionText: 'Neuer Arbeitsplatz',
+          onActionTap: () => _openWorkstationSheet(),
+        ),
         Expanded(
           child: _isLoading 
             ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
@@ -117,26 +116,6 @@ class _WorkstationSettingsTabViewState extends State<WorkstationSettingsTabView>
               ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return SizedBox(
-      height: 80,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Icon(Icons.tablet_android, color: AppTheme.white, size: 28),
-            AppPrimaryButton(
-              text: 'Neuer Arbeitsplatz',
-              color: AppTheme.active,
-              onTap: () => _openWorkstationSheet(),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

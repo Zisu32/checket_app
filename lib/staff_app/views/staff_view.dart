@@ -13,6 +13,7 @@ import '../widgets/loading_screen.dart';
 import '../widgets/page_indicator.dart';
 import '../widgets/wardrobe_action_sheet.dart';
 import '../../shared/widgets/app_navbar.dart';
+import '../../shared/widgets/app_snackbar.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/app_dialog.dart';
 import '../../shared/widgets/app_primary_button.dart';
@@ -136,9 +137,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                       } else {
                         setDialogState(() => isAuthenticating = false);
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Passwort falsch'), backgroundColor: AppTheme.unpaid),
-                          );
+                          ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Passwort falsch'));
                         }
                       }
                     },

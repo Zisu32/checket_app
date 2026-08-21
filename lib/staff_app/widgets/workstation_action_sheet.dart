@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/widgets/app_action_sheet.dart';
-import '../../shared/widgets/app_primary_button.dart';
 
 class WorkstationActionSheet extends StatelessWidget {
   final dynamic assignment;

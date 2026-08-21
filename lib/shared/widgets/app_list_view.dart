@@ -43,10 +43,10 @@ class AppListView<T> extends StatelessWidget {
         final item = items[index];
         return Card(
           color: cardColor,
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: 8),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
             leading: leadingBuilder?.call(item),
             title: titleBuilder(item),
             subtitle: subtitleBuilder(item),

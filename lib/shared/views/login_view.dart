@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/theme/app_theme.dart';
+import '../widgets/app_snackbar.dart';
 import '../../shared/widgets/app_primary_button.dart';
 
 class LoginView extends StatefulWidget {
@@ -38,12 +39,7 @@ class _LoginViewState extends State<LoginView> {
       
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Fehler: $e'),
-            backgroundColor: AppTheme.unpaid,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler: $e'));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_primary_button.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_action_sheet.dart';
 
 class TenantActionSheet extends StatefulWidget {
@@ -94,7 +95,7 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: AppTheme.unpaid));
+    ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: msg));
   }
 
   @override
