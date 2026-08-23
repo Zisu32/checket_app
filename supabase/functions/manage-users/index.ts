@@ -133,6 +133,16 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
+    if (action === 'delete-tenant') {
+      const { error: deleteError } = await supabaseAdmin
+        .from('tenants')
+        .delete()
+        .eq('schema_name', schemaName)
+
+      if (deleteError) throw deleteError
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
+    }
+
     throw new Error('Invalid Action')
 
   } catch (error) {
