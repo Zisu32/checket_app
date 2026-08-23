@@ -17,7 +17,7 @@ class AppHeader extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: 70,
+          height: 80,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
