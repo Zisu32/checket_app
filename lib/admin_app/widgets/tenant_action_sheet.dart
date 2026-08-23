@@ -118,13 +118,13 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
           const SizedBox(height: 16),
           const Divider(color: AppTheme.surface),
           const SizedBox(height: 16),
-          _buildInput('SumUp API Key (sk_live...)', _sumupKeyController, obscure: true),
+          _buildInput('SumUp API Key', _sumupKeyController, obscure: true),
           _buildInput('Merchant Code', _merchantCodeController),
           _buildInput('Affiliate Key', _affiliateKeyController),
           const SizedBox(height: 24),
           _isLoading 
             ? const CircularProgressIndicator(color: AppTheme.active)
-            : AppPrimaryButton(
+            : AppPrimaryButton((sk_live...)
                 text: widget.tenant == null ? 'Tenant erstellen' : 'Speichern',
                 color: AppTheme.active,
                 onTap: _saveTenant,

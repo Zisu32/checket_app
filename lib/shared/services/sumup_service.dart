@@ -86,7 +86,7 @@ class SumUpService {
     }
   }
 
-  // Local Persistence of Station Identity
+  // Local Persistence of Station Identitysumup
   String? getStationName() => _storage.getItem(_stationKey);
   String? getSelectedReaderId() => _storage.getItem(_readerIdKey);
 
