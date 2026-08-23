@@ -19,11 +19,11 @@ class AppThumbButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 50,
-          height: 50,
+          width: 70,
+          height: 70,
           decoration: BoxDecoration(
             color: AppTheme.active,
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.3),
