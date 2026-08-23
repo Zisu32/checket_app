@@ -124,7 +124,7 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
           const SizedBox(height: 24),
           _isLoading 
             ? const CircularProgressIndicator(color: AppTheme.active)
-            : AppPrimaryButton((sk_live...)
+            : AppPrimaryButton(
                 text: widget.tenant == null ? 'Tenant erstellen' : 'Speichern',
                 color: AppTheme.active,
                 onTap: _saveTenant,
