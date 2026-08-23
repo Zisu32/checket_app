@@ -226,6 +226,20 @@ class SyncService {
     }
   }
 
+  Future<double> getGlobalTicketPrice() async {
+    try {
+      final res = await _from('checket_terminal_assignments')
+          .select('ticket_price')
+          .limit(1)
+          .maybeSingle();
+      
+      if (res == null) throw 'Kein globaler Ticket-Preis gefunden.';
+      return (res['ticket_price'] as num).toDouble();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
 
 
   Future<bool> reauthenticate(String password) async {

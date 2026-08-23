@@ -29,9 +29,18 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
   }
 
   Future<void> _loadData() async {
-    final price = await _syncService.getGlobalTicketPrice();
-    _priceController.text = price.toStringAsFixed(2);
-    if (mounted) setState(() => _isLoading = false);
+    try {
+      final price = await _syncService.getGlobalTicketPrice();
+      _priceController.text = price.toStringAsFixed(2);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          AppSnackBar(message: 'Fehler beim Laden des Preises: $e', isError: true),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _savePrice() async {
@@ -77,14 +86,13 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
                 TextField(
                   controller: _priceController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  style: const TextStyle(color: AppTheme.white),
                   cursorColor: AppTheme.white,
                   maxLength: 64,
                   inputFormatters: [
                     FilteringTextInputFormatter.deny(RegExp(r'[<>{}\[\]\\/]')),
                   ],
                   decoration: InputDecoration(
-                    labelText: 'Ticket-Preis in EUR',
+                    labelText: 'Ticket-Preis',
                     errorText: (_showErrors && _priceController.text.isEmpty) ? '' : null,
                     errorStyle: const TextStyle(height: 0),
                     counterText: '',
