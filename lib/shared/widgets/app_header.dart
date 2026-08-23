@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import 'app_primary_button.dart';
 
 class AppHeader extends StatelessWidget {
   final IconData icon;
-  final String? actionText;
-  final VoidCallback? onActionTap;
-  final Color actionColor;
+  final String? title;
 
   const AppHeader({
     super.key,
     required this.icon,
-    this.actionText,
-    this.onActionTap,
-    this.actionColor = AppTheme.active,
+    this.title,
   });
 
   @override
@@ -26,15 +21,19 @@ class AppHeader extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Icon(icon, color: AppTheme.white, size: 28),
-                if (actionText != null && onActionTap != null)
-                  AppPrimaryButton(
-                    text: actionText!,
-                    color: actionColor,
-                    onTap: onActionTap!,
+                if (title != null) ...[
+                  const SizedBox(width: 16),
+                  Text(
+                    title!,
+                    style: const TextStyle(
+                      color: AppTheme.white,
+                      fontSize: AppTheme.small,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                ],
               ],
             ),
           ),

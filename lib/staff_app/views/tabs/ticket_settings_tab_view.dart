@@ -75,10 +75,9 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
 
     return Column(
       children: [
-        AppHeader(
+        const AppHeader(
           icon: Icons.confirmation_number,
-          actionText: 'Preis speichern',
-          onActionTap: _savePrice,
+          title: 'Ticket',
         ),
         Expanded(
           child: SingleChildScrollView(
@@ -114,11 +113,16 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
                     counterText: '',
                   ),
                 ),
-                if (_isLoading)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 48),
-                    child: Center(child: CircularProgressIndicator(color: AppTheme.active)),
-                  ),
+                const SizedBox(height: 48),
+                Center(
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: AppTheme.active)
+                      : AppPrimaryButton(
+                          text: 'Preis speichern',
+                          color: AppTheme.active,
+                          onTap: _savePrice,
+                        ),
+                ),
               ],
             ),
           ),

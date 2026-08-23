@@ -6,6 +6,7 @@ import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_action_sheet.dart';
 import '../../../shared/widgets/app_list_view.dart';
 import '../../widgets/tenant_action_sheet.dart';
+import '../../../shared/widgets/app_thumb_button.dart';
 
 class TenantTabView extends StatefulWidget {
   const TenantTabView({super.key});
@@ -73,28 +74,32 @@ class _TenantTabViewState extends State<TenantTabView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
-        AppHeader(
-          icon: Icons.warehouse_rounded,
-          actionText: 'Neuer Tenant',
-          onActionTap: () => _showTenantSheet(),
+        Column(
+          children: [
+            const AppHeader(
+              icon: Icons.warehouse_rounded,
+              title: 'Tenants',
+            ),
+            Expanded(
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
+                : AppListView<dynamic>(
+                    items: _tenants,
+                    onRefresh: _loadTenants,
+                    emptyMessage: 'Keine Tenants gefunden',
+                    titleBuilder: (t) => Text(t['name'], style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
+                    subtitleBuilder: (t) => Text(t['schema_name'], style: const TextStyle(color: AppTheme.free)),
+                    trailingBuilder: (t) => IconButton(
+                      icon: const Icon(Icons.more_horiz, color: AppTheme.white),
+                      onPressed: () => _showTenantActions(t),
+                    ),
+                  ),
+            ),
+          ],
         ),
-        Expanded(
-          child: _isLoading 
-            ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
-            : AppListView<dynamic>(
-                items: _tenants,
-                onRefresh: _loadTenants,
-                emptyMessage: 'Keine Tenants gefunden',
-                titleBuilder: (t) => Text(t['name'], style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
-                subtitleBuilder: (t) => Text(t['schema_name'], style: const TextStyle(color: AppTheme.free)),
-                trailingBuilder: (t) => IconButton(
-                  icon: const Icon(Icons.more_horiz, color: AppTheme.white),
-                  onPressed: () => _showTenantActions(t),
-                ),
-              ),
-        ),
+        AppThumbButton(onTap: () => _showTenantSheet()),
       ],
     );
   }

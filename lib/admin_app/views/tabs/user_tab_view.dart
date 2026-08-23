@@ -6,6 +6,7 @@ import '../../../shared/widgets/app_snackbar.dart';
 import '../../../shared/widgets/app_action_sheet.dart';
 import '../../../shared/widgets/app_list_view.dart';
 import '../../widgets/user_action_sheet.dart';
+import '../../../shared/widgets/app_thumb_button.dart';
 
 class UserTabView extends StatefulWidget {
   const UserTabView({super.key});
@@ -83,29 +84,33 @@ class _UserTabViewState extends State<UserTabView> {
         ? _users 
         : _users.where((u) => u['tenantSchema'] == _filterTenant).toList();
 
-    return Column(
+    return Stack(
       children: [
-        AppHeader(
-          icon: Icons.people_alt_rounded,
-          actionText: 'Neuer User',
-          onActionTap: () => _showUserSheet(),
+        Column(
+          children: [
+            const AppHeader(
+              icon: Icons.people_alt_rounded,
+              title: 'Users',
+            ),
+            _buildFilter(),
+            Expanded(
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
+                : AppListView<dynamic>(
+                    items: filteredUsers,
+                    onRefresh: _loadData,
+                    emptyMessage: 'Keine User gefunden',
+                    titleBuilder: (u) => Text(u['email'] ?? 'Keine E-Mail', style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
+                    subtitleBuilder: (u) => Text('${u['tenantName']} • ${u['role']}', style: const TextStyle(color: AppTheme.free)),
+                    trailingBuilder: (u) => IconButton(
+                      icon: const Icon(Icons.more_horiz, color: AppTheme.white),
+                      onPressed: () => _showUserActions(u),
+                    ),
+                  ),
+            ),
+          ],
         ),
-        _buildFilter(),
-        Expanded(
-          child: _isLoading 
-            ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
-            : AppListView<dynamic>(
-                items: filteredUsers,
-                onRefresh: _loadData,
-                emptyMessage: 'Keine Benutzer gefunden',
-                titleBuilder: (u) => Text(u['email'] ?? 'Keine E-Mail', style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold)),
-                subtitleBuilder: (u) => Text('${u['tenantName']} • ${u['role']}', style: const TextStyle(color: AppTheme.free)),
-                trailingBuilder: (u) => IconButton(
-                  icon: const Icon(Icons.more_horiz, color: AppTheme.white),
-                  onPressed: () => _showUserActions(u),
-                ),
-              ),
-        ),
+        AppThumbButton(onTap: () => _showUserSheet()),
       ],
     );
   }
@@ -152,8 +157,8 @@ class _UserTabViewState extends State<UserTabView> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => AppActionSheet(
-        title: user['email'] ?? 'Benutzer',
-        subtitle: 'Mitarbeiter verwalten',
+        title: user['email'] ?? 'User',
+        subtitle: 'User verwalten',
         actions: [
           SheetAction(
             icon: Icons.edit,

@@ -6,6 +6,7 @@ import '../../../../shared/widgets/app_list_view.dart';
 import '../../../../shared/services/sumup_service.dart';
 import '../../widgets/workstation_sheet.dart';
 import '../../widgets/workstation_action_sheet.dart';
+import '../../../../shared/widgets/app_thumb_button.dart';
 
 class WorkstationSettingsTabView extends StatefulWidget {
   const WorkstationSettingsTabView({super.key});
@@ -65,56 +66,60 @@ class _WorkstationSettingsTabViewState extends State<WorkstationSettingsTabView>
   Widget build(BuildContext context) {
     final localReaderId = _sumUpService.getSelectedReaderId();
 
-    return Column(
+    return Stack(
       children: [
-        AppHeader(
-          icon: Icons.tablet_android,
-          actionText: 'Neuer Arbeitsplatz',
-          onActionTap: () => _openWorkstationSheet(),
+        Column(
+          children: [
+            const AppHeader(
+              icon: Icons.tablet_android,
+              title: 'Arbeitsplatz',
+            ),
+            Expanded(
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
+                : AppListView<dynamic>(
+                    items: _assignments,
+                    onRefresh: _loadData,
+                    emptyMessage: 'Noch kein Arbeitsplatz eingerichtet',
+                    titleBuilder: (asg) => Text(
+                      asg['station_name'],
+                      style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold, fontSize: AppTheme.small),
+                    ),
+                    subtitleBuilder: (asg) => Text(
+                      '${asg['reader_name']}',
+                      style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.xsmall),
+                    ),
+                    trailingBuilder: (asg) => IconButton(
+                      icon: const Icon(Icons.more_horiz, color: AppTheme.white),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          backgroundColor: Colors.transparent,
+                          isScrollControlled: true,
+                          builder: (_) => WorkstationActionSheet(
+                            assignment: asg,
+                            isCurrent: asg['reader_id'] == localReaderId,
+                            onActivate: () {
+                              _sumUpService.setLocalStation(asg['station_name'], asg['reader_id']);
+                              setState(() {});
+                            },
+                            onEdit: () => _openWorkstationSheet(
+                              name: asg['station_name'],
+                              readerId: asg['reader_id'],
+                            ),
+                            onDelete: () async {
+                              await _sumUpService.removeAssignment(asg['reader_id']);
+                              _loadData();
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+            ),
+          ],
         ),
-        Expanded(
-          child: _isLoading 
-            ? const Center(child: CircularProgressIndicator(color: AppTheme.active))
-            : AppListView<dynamic>(
-                items: _assignments,
-                onRefresh: _loadData,
-                emptyMessage: 'Noch kein Arbeitsplatz eingerichtet',
-                titleBuilder: (asg) => Text(
-                  asg['station_name'],
-                  style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold, fontSize: AppTheme.small),
-                ),
-                subtitleBuilder: (asg) => Text(
-                  '${asg['reader_name']}',
-                  style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.xsmall),
-                ),
-                trailingBuilder: (asg) => IconButton(
-                  icon: const Icon(Icons.more_horiz, color: AppTheme.white),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      backgroundColor: Colors.transparent,
-                      isScrollControlled: true,
-                      builder: (_) => WorkstationActionSheet(
-                        assignment: asg,
-                        isCurrent: asg['reader_id'] == localReaderId,
-                        onActivate: () {
-                          _sumUpService.setLocalStation(asg['station_name'], asg['reader_id']);
-                          setState(() {});
-                        },
-                        onEdit: () => _openWorkstationSheet(
-                          name: asg['station_name'],
-                          readerId: asg['reader_id'],
-                        ),
-                        onDelete: () async {
-                          await _sumUpService.removeAssignment(asg['reader_id']);
-                          _loadData();
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-        ),
+        AppThumbButton(onTap: () => _openWorkstationSheet()),
       ],
     );
   }

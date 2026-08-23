@@ -52,7 +52,7 @@ class _AdminViewState extends State<AdminView> {
         selectedIndex: _currentIndex,
         onTabSelected: (index) => setState(() => _currentIndex = index),
         items: [
-          NavbarItem(icon: Icons.warehouse_rounded, label: 'Tenant'),
+          NavbarItem(icon: Icons.warehouse_rounded, label: 'Tenants'),
           NavbarItem(icon: Icons.people_alt_rounded, label: 'Users'),
         ],
       ),

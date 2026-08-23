@@ -26,7 +26,10 @@ class SessionEndTabView extends StatelessWidget {
 
     return Column(
       children: [
-        const AppHeader(icon: Icons.swap_horiz_rounded),
+        const AppHeader(
+          icon: Icons.swap_horiz_rounded,
+          title: 'Schichtende',
+        ),
         Expanded(
           child: Center(
             child: Padding(
@@ -34,12 +37,6 @@ class SessionEndTabView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Schicht beenden?',
-                    style: TextStyle(fontSize: AppTheme.medium,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.white),
-                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Sollen $activeJacketsCount aktive Jacken ins FUNDBÜRO verschoben und die Garderobe geschlossen werden?',

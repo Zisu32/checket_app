@@ -18,6 +18,7 @@ import '../../shared/widgets/app_snackbar.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/app_dialog.dart';
 import '../../shared/widgets/app_primary_button.dart';
+import '../../shared/widgets/app_thumb_button.dart';
 
 class StaffView extends StatefulWidget {
   const StaffView({super.key});
@@ -202,22 +203,39 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                   ),
                 ],
               ),
-              body: Column(
+              body: Stack(
                 children: [
-                  Expanded(
-                    child: _buildBody(allSlots),
+                  Column(
+                    children: [
+                      Expanded(
+                        child: _buildBody(allSlots),
+                      ),
+                      if (_selectedNavIndex == 1)
+                        PageIndicator(
+                          totalSlots: allSlots.length,
+                          itemsPerPage: _itemsPerPage,
+                          currentPage: _currentPage,
+                          onPageSelected: (page) {
+                            _pageController.animateToPage(
+                              page,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                        ),
+                    ],
                   ),
                   if (_selectedNavIndex == 1)
-                    PageIndicator(
-                      totalSlots: allSlots.length,
-                      itemsPerPage: _itemsPerPage,
-                      currentPage: _currentPage,
-                      onPageSelected: (page) {
-                        _pageController.animateToPage(
-                          page,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
+                    AppThumbButton(
+                      onTap: () {
+                        // Find first free slot or just open sheet for 'add' logic
+                        // Looking at _zeigeAktionen, it takes a WardrobeSlot.
+                        // For 'Add', we usually just pick the next free one if possible, 
+                        // but the ActionSheet handles selection. 
+                        // I'll pick the first slot or a dummy one if needed.
+                        if (allSlots.isNotEmpty) {
+                          _zeigeAktionen(context, allSlots.firstWhere((s) => s.status == 'free', orElse: () => allSlots.first));
+                        }
                       },
                     ),
                 ],
