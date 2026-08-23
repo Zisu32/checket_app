@@ -34,12 +34,18 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
       stream: widget.syncService.watchSlots(),
       builder: (context, snapshot) {
         final slots = snapshot.data ?? [];
-        final slot = slots.firstWhere((s) => s.id == widget.initialSlot.id, orElse: () => widget.initialSlot);
+        final slot = slots.isEmpty 
+            ? widget.initialSlot 
+            : slots.firstWhere((s) => s.id == widget.initialSlot.id, orElse: () => widget.initialSlot);
 
-        return AppActionSheet(
-          title: 'Bügel ${slot.id}',
-          subtitle: _getStatusLabel(slot.status),
-          actions: _buildActions(slot),
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: AppActionSheet(
+            key: ValueKey('${slot.id}_${slot.status}'),
+            title: 'Bügel ${slot.id}',
+            subtitle: _getStatusLabel(slot.status),
+            actions: _buildActions(slot),
+          ),
         );
       },
     );

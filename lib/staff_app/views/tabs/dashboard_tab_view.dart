@@ -46,6 +46,7 @@ class DashboardTabView extends StatelessWidget {
             if (slot.status == 'forgotten') kachelFarbe = AppTheme.forgotten;
 
             return InkWell(
+              key: ValueKey('slot_${slot.id}_${slot.status}'),
               onTap: () => onTap(slot),
               child: Container(
                 decoration: BoxDecoration(color: kachelFarbe, borderRadius: BorderRadius.circular(8)),

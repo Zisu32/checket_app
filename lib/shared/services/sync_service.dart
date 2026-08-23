@@ -174,16 +174,33 @@ class SyncService {
 
   Future<void> updateSlot(WardrobeSlot slot) async {
     statusNotifier.value = SyncStatus.syncing;
+    
+    // 1. Update local database immediately
     await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
-    final slots = await db.select(db.wardrobeSlots).get();
-    slotsNotifier.value = slots;
+    
+    // Update notifier for non-streaming listeners
+    final allSlots = await db.select(db.wardrobeSlots).get();
+    slotsNotifier.value = allSlots;
 
     try {
-      await _from('checket_garderobe').update(db.toJson(slot)).eq('id', slot.id);
+      // 2. Prepare data for Supabase (remove ID from body as it's in the .eq filter)
+      final data = db.toJson(slot);
+      data.remove('id'); 
+      
+      final response = await _from('checket_garderobe')
+          .update(data)
+          .eq('id', slot.id)
+          .select()
+          .maybeSingle();
+
+      if (response == null) {
+        throw 'Slot nicht gefunden oder keine Berechtigung.';
+      }
+
       statusNotifier.value = SyncStatus.online;
     } catch (e) {
+      print('Supabase Update Error: $e');
       statusNotifier.value = SyncStatus.offline;
-      await pullFromSupabase();
     }
   }
 
