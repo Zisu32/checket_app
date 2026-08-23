@@ -81,7 +81,7 @@ class QrDisplay extends StatelessWidget {
         const SizedBox(height: 40),
         Text(
           isRecovery
-              ? 'Dein Handy lädt dein Ticket automatisch aus dem Speicher.'
+              ? 'Dein Smartphone lädt dein Ticket automatisch.'
               : 'Dein digitales Ticket für die Garderobe.',
           textAlign: TextAlign.center,
           style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
