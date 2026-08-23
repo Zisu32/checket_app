@@ -187,21 +187,24 @@ class SyncService {
     }
   }
 
-  Future<void> updateTicketPrice(String readerId, double newPrice) async {
+  Future<void> updateGlobalTicketPrice(double newPrice) async {
     try {
+      // Update ALL terminals with the same price
       await _from('checket_terminal_assignments')
-          .update({'ticket_price': newPrice}).eq('reader_id', readerId);
+          .update({'ticket_price': newPrice});
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<double> getTicketPrice(String readerId) async {
+  Future<double> getGlobalTicketPrice() async {
     try {
       final res = await _from('checket_terminal_assignments')
           .select('ticket_price')
-          .eq('reader_id', readerId)
-          .single();
+          .limit(1)
+          .maybeSingle();
+      
+      if (res == null) return 2.50;
       return (res['ticket_price'] as num).toDouble();
     } catch (e) {
       return 2.50;

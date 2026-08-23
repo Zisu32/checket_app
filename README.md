@@ -12,7 +12,7 @@ Checket ist ein digitales Garderoben-Management-System, das physische Garderoben
 * **Local-First Sync**: Volle Offline-Fähigkeit durch lokalen Drift-Cache; automatischer Hintergrund-Abgleich mit Supabase Realtime.
 * **Sicherheits-Check**: Integrierte Sperre am Schichtende, falls noch unbezahlte Jacken im System sind.
 * **SumUp Cloud Integration**: Direkte Ansteuerung des **SumUp Solo** Terminals über das Dashboard (Cloud API).
-* **Setting-Bereich**: Passwortgeschützter Bereich zur Verwaltung von Benutzerdaten sowie Arbeitsplätzen und individuellen Ticketpreisen pro Terminal.
+* **Setting-Bereich**: Passwortgeschützter Bereich zur Verwaltung von Benutzerdaten sowie Arbeitsplätzen und Ticketpreis.
 * **Zur Wallet-Hinzufügen**: Webticket kann zur Wallet hinzugefügt werden, sodass eine Push-Benachrichtigung gesendet werden kann, falls der Kunde die Jacke vergisst.
 
 ---
