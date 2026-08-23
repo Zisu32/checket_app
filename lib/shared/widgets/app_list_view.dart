@@ -21,7 +21,7 @@ class AppListView<T> extends StatelessWidget {
     required this.subtitleBuilder,
     this.leadingBuilder,
     this.trailingBuilder,
-    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+    this.padding = const EdgeInsets.only(left: 24, right: 24, top: 8, bottom: 80),
     this.cardColor = AppTheme.surface,
   });
 
