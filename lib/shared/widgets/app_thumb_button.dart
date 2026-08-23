@@ -15,7 +15,7 @@ class AppThumbButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned(
       bottom: 20,
-      right: 28,
+      right: 25,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
