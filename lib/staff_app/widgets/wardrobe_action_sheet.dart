@@ -79,7 +79,15 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
             updatedAt: DateTime.now(),
           );
           widget.onSyncMonitor(slot.id, secret);
-          await widget.syncService.updateSlot(updated);
+          try {
+            await widget.syncService.updateSlot(updated);
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                AppSnackBar(message: 'Check-in fehlgeschlagen: $e', isError: true),
+              );
+            }
+          }
         },
       ));
     }
@@ -120,9 +128,17 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                     paymentMethod: 'nfc', 
                     updatedAt: DateTime.now()
                   );
-                  await widget.syncService.updateSlot(updated);
-                  if (!mounted) return;
-                  Navigator.pop(context);
+                  try {
+                    await widget.syncService.updateSlot(updated);
+                    if (!mounted) return;
+                    Navigator.pop(context);
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        AppSnackBar(message: 'Zahlung konnte nicht gespeichert werden: $e', isError: true),
+                      );
+                    }
+                  }
                 } else if (payStatus == 'FAILED' || payStatus == 'CANCELLED') {
                   throw 'Zahlung wurde abgebrochen oder ist fehlgeschlagen.';
                 }
@@ -149,9 +165,17 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
         color: AppTheme.secret,
         onTap: () async {
           final updated = slot.copyWith(status: 'active', isPaid: true, paymentMethod: 'bar', updatedAt: DateTime.now());
-          await widget.syncService.updateSlot(updated);
-          if (!mounted) return;
-          Navigator.pop(context);
+          try {
+            await widget.syncService.updateSlot(updated);
+            if (!mounted) return;
+            Navigator.pop(context);
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                AppSnackBar(message: 'Fehler beim Speichern: $e', isError: true),
+              );
+            }
+          }
         },
       ));
     }
@@ -164,9 +188,17 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
           color: AppTheme.temporary,
           onTap: () async {
             final updated = slot.copyWith(status: 'temporary', updatedAt: DateTime.now());
-            await widget.syncService.updateSlot(updated);
-            if (!mounted) return;
-            Navigator.pop(context);
+            try {
+              await widget.syncService.updateSlot(updated);
+              if (!mounted) return;
+              Navigator.pop(context);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  AppSnackBar(message: 'Fehler: $e', isError: true),
+                );
+              }
+            }
           },
         ));
       } else {
@@ -176,9 +208,17 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
           color: AppTheme.active,
           onTap: () async {
             final updated = slot.copyWith(status: 'active', updatedAt: DateTime.now());
-            await widget.syncService.updateSlot(updated);
-            if (!mounted) return;
-            Navigator.pop(context);
+            try {
+              await widget.syncService.updateSlot(updated);
+              if (!mounted) return;
+              Navigator.pop(context);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  AppSnackBar(message: 'Fehler: $e', isError: true),
+                );
+              }
+            }
           },
         ));
       }
@@ -195,9 +235,17 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
             paymentMethod: 'none',
             updatedAt: DateTime.now(),
           );
-          await widget.syncService.updateSlot(updated);
-          if (!mounted) return;
-          Navigator.pop(context);
+          try {
+            await widget.syncService.updateSlot(updated);
+            if (!mounted) return;
+            Navigator.pop(context);
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                AppSnackBar(message: 'Checkout fehlgeschlagen: $e', isError: true),
+              );
+            }
+          }
         },
       ));
     }

@@ -175,17 +175,18 @@ class SyncService {
   Future<void> updateSlot(WardrobeSlot slot) async {
     statusNotifier.value = SyncStatus.syncing;
     
-    // 1. Update local database immediately
-    await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
+    // Get old state for potential rollback
+    final oldSlot = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(slot.id))).getSingle();
     
-    // Update notifier for non-streaming listeners
-    final allSlots = await db.select(db.wardrobeSlots).get();
-    slotsNotifier.value = allSlots;
+    // 1. Update local database immediately for UI feedback
+    await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
+    await _notifySlots();
 
     try {
-      // 2. Prepare data for Supabase (remove ID from body as it's in the .eq filter)
+      // 2. Prepare data for Supabase
       final data = db.toJson(slot);
       data.remove('id'); 
+      data.remove('updated_at');
       
       final response = await _from('checket_garderobe')
           .update(data)
@@ -194,14 +195,24 @@ class SyncService {
           .maybeSingle();
 
       if (response == null) {
-        throw 'Slot nicht gefunden oder keine Berechtigung.';
+        throw 'Synchronisation fehlgeschlagen (keine Berechtigung).';
       }
 
       statusNotifier.value = SyncStatus.online;
     } catch (e) {
       print('Supabase Update Error: $e');
       statusNotifier.value = SyncStatus.offline;
+      
+      // Rollback local state to ensure consistency
+      await db.into(db.wardrobeSlots).insertOnConflictUpdate(oldSlot);
+      await _notifySlots();
+      rethrow;
     }
+  }
+
+  Future<void> _notifySlots() async {
+    final allSlots = await db.select(db.wardrobeSlots).get();
+    slotsNotifier.value = allSlots;
   }
 
   Future<void> updateGlobalTicketPrice(double newPrice) async {
@@ -215,19 +226,7 @@ class SyncService {
     }
   }
 
-  Future<double> getGlobalTicketPrice() async {
-    try {
-      final res = await _from('checket_terminal_assignments')
-          .select('ticket_price')
-          .limit(1)
-          .maybeSingle();
-      
-      if (res == null) return 2.50;
-      return (res['ticket_price'] as num).toDouble();
-    } catch (e) {
-      return 2.50;
-    }
-  }
+
 
   Future<bool> reauthenticate(String password) async {
     try {
