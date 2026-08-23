@@ -14,13 +14,13 @@ class AppThumbButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 15,
-      right: 15,
+      bottom: 20,
+      right: 20,
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 70,
-          height: 70,
+          width: 60,
+          height: 60,
           decoration: BoxDecoration(
             color: AppTheme.active,
             borderRadius: BorderRadius.circular(12),
