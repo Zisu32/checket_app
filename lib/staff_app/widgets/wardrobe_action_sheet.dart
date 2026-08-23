@@ -27,20 +27,14 @@ class WardrobeActionSheet extends StatefulWidget {
 class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
   bool _isProcessingSumUp = false;
   String _sumUpStatusText = 'Warte auf Terminal...';
-  late Stream<WardrobeSlot?> _slotStream;
-
-  @override
-  void initState() {
-    super.initState();
-    _slotStream = widget.syncService.watchSingleSlot(widget.initialSlot.id);
-  }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<WardrobeSlot?>(
-      stream: _slotStream,
+    return StreamBuilder<List<WardrobeSlot>>(
+      stream: widget.syncService.watchSlots(),
       builder: (context, snapshot) {
-        final slot = snapshot.data ?? widget.initialSlot;
+        final slots = snapshot.data ?? [];
+        final slot = slots.firstWhere((s) => s.id == widget.initialSlot.id, orElse: () => widget.initialSlot);
 
         return AppActionSheet(
           title: 'Bügel ${slot.id}',
@@ -110,9 +104,9 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
 
               while (!isPaid && attempts < maxAttempts && mounted) {
                 setState(() => _sumUpStatusText = 'Warte auf Zahlung...');
-                final status = await SumUpService().checkPaymentStatus(checkoutId);
+                final payStatus = await SumUpService().checkPaymentStatus(checkoutId);
                 
-                if (status == 'PAID') {
+                if (payStatus == 'PAID') {
                   isPaid = true;
                   final updated = slot.copyWith(
                     status: 'active', 
@@ -123,7 +117,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
                   await widget.syncService.updateSlot(updated);
                   if (!mounted) return;
                   Navigator.pop(context);
-                } else if (status == 'FAILED' || status == 'CANCELLED') {
+                } else if (payStatus == 'FAILED' || payStatus == 'CANCELLED') {
                   throw 'Zahlung wurde abgebrochen oder ist fehlgeschlagen.';
                 }
                 
