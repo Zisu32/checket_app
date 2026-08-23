@@ -31,10 +31,10 @@ class DashboardTabView extends StatelessWidget {
         return GridView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 50,
+            maxCrossAxisExtent: 40,
             mainAxisSpacing: 8,
             crossAxisSpacing: 8,
-            mainAxisExtent: 50,
+            mainAxisExtent: 40,
           ),
           itemCount: displaySlots.length,
           itemBuilder: (context, index) {
