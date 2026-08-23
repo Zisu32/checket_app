@@ -134,10 +134,40 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'delete-tenant') {
+      // 1. Get Tenant ID
+      const { data: tenant, error: tenantError } = await supabaseAdmin
+        .from('tenants')
+        .select('id')
+        .eq('schema_name', schemaName)
+        .single()
+
+      if (tenantError || !tenant) throw new Error('Tenant not found')
+
+      // 2. Get associated users
+      const { data: mappings } = await supabaseAdmin
+        .from('users_tenants_mapping')
+        .select('user_id')
+        .eq('tenant_id', tenant.id)
+
+      // 3. Delete users from Supabase Auth
+      if (mappings && mappings.length > 0) {
+        for (const m of mappings) {
+          // Don't delete the requester (current admin) even if mapped
+          if (m.user_id !== requester.id) {
+            try {
+              await supabaseAdmin.auth.admin.deleteUser(m.user_id)
+            } catch (e) {
+              console.error(`Error deleting user ${m.user_id}:`, e)
+            }
+          }
+        }
+      }
+
+      // 4. Delete the tenant itself
       const { error: deleteError } = await supabaseAdmin
         .from('tenants')
         .delete()
-        .eq('schema_name', schemaName)
+        .eq('id', tenant.id)
 
       if (deleteError) throw deleteError
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
