@@ -57,7 +57,7 @@ class QrDisplay extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          isRecovery ? 'BITTE BASIS-URL SCANNEN' : 'BITTE SCANNEN',
+          isRecovery ? 'BITTE SCANNEN' : 'BITTE SCANNEN',
           style: const TextStyle(
             fontSize: 18,
             color: AppTheme.free,
