@@ -53419,7 +53419,7 @@ if(r==null)r="public"
 l=k+j
 q=m?l+"?tenant="+r:l+"?id="+A.i(n)+"&secret="+A.i(this.d)+"&tenant="+r
 n=A.c1(m?"TICKET WIEDERHERSTELLEN":"TICKET "+A.i(n),o,o,o,B.a4a,o,o)
-l=A.c1(m?"BITTE BASIS-URL SCANNEN":"BITTE SCANNEN",o,o,o,B.a5E,o,o)
+l=A.c1("BITTE SCANNEN",o,o,o,B.a5E,o,o)
 p=A.fD(24)
 p=A.f1(new A.Hi(q,-1,A.bI(a,o,t.w).w.a.ger()*0.6,!1,o),B.u,o,o,new A.dA(B.a8,o,o,p,o,o,B.ay),o,o,B.qB,o)
 return A.dh(A.b([n,B.a24,l,B.jO,p,B.jO,A.c1(m?"Dein Handy l\xe4dt dein Ticket automatisch aus dem Speicher.":"Dein digitales Ticket f\xfcr die Garderobe.",o,o,o,B.hp,B.bQ,o)],t.p),B.F,B.cX,B.a5)}}
@@ -54108,7 +54108,7 @@ var $async$ia=A.u(function(b,c){if(b===1)return A.p(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.vp(new A.pD(1787484482,p.b),t.hU).b7(new A.aIP(),t.y):o
+q=o==null?p.d=n.a.vp(new A.pD(1787484572,p.b),t.hU).b7(new A.aIP(),t.y):o
 s=1
 break
 case 1:return A.q(q,r)}})
@@ -55118,7 +55118,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.aoy?2:4
 break
-case 2:p=1787484482
+case 2:p=1787484572
 s=3
 break
 case 4:s=n instanceof A.NZ?5:7
@@ -55131,10 +55131,10 @@ break
 case 7:throw A.e(A.dD("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.m(a.a2f(new A.a_K(q,new A.uq()),new A.GN(p,1787484482)),$async$tP)
-case 9:s=n instanceof A.NZ&&p!==1787484482?10:11
+return A.m(a.a2f(new A.a_K(q,new A.uq()),new A.GN(p,1787484572)),$async$tP)
+case 9:s=n instanceof A.NZ&&p!==1787484572?10:11
 break
-case 10:n.a.a48("PRAGMA user_version = 1787484482;")
+case 10:n.a.a48("PRAGMA user_version = 1787484572;")
 s=12
 return A.m(A.cQ(null,t.H),$async$tP)
 case 12:case 11:return A.q(null,r)}})
