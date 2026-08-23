@@ -77,7 +77,7 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
                 TextField(
                   controller: _priceController,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
+                  style: const TextStyle(color: AppTheme.white),
                   cursorColor: AppTheme.white,
                   maxLength: 64,
                   inputFormatters: [
@@ -86,7 +86,7 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
                   decoration: InputDecoration(
                     labelText: 'Ticket-Preis in EUR',
                     errorText: (_showErrors && _priceController.text.isEmpty) ? '' : null,
-                    errorStyle: const TextStyle(height: 0, fontSize: 0),
+                    errorStyle: const TextStyle(height: 0),
                     counterText: '',
                   ),
                 ),

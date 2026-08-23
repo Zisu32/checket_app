@@ -191,7 +191,8 @@ class SyncService {
     try {
       // Update ALL terminals with the same price
       await _from('checket_terminal_assignments')
-          .update({'ticket_price': newPrice});
+          .update({'ticket_price': newPrice})
+          .neq('reader_id', '');
     } catch (e) {
       rethrow;
     }
