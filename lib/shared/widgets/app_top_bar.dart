@@ -80,7 +80,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
-      actions: actions != null ? [...actions!, const SizedBox(width: 8)] : null,
+      actions: actions != null ? [...actions!, const SizedBox(width: 25)] : null,
     );
   }
 }
