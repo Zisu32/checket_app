@@ -8,11 +8,11 @@ Checket ist ein digitales Garderoben-Management-System, das physische Garderoben
 * **Zwei-Tab-System**: Ein separater Kunden-Tab ("Checket QR"), der live über `BroadcastChannel` aktualisiert wird. Die URL bleibt dabei sauber (`#/qr`) und verbirgt sensible Ticket-Daten.
 * **Digitales Kunden-Ticket**: Web-Ansicht für Gäste mit Live-Status (animiert) und optionaler Wallet-Integration (Apple/Google).
 * **Intelligentes Fundbüro**: Automatisierte Archivierung von Jacken am Schichtende mit einfacher Aushändigungs-Logik.
-* **Platform-Administration (Admin-App)**: Zentrale Verwaltung von Tenants, deren SumUp-Konfigurationen und der Benutzerverwaltung.
+* **Platform-Administration**: Zentrale Verwaltung von Tenants, deren SumUp-Konfigurationen und der Benutzerverwaltung.
 * **Local-First Sync**: Volle Offline-Fähigkeit durch lokalen Drift-Cache; automatischer Hintergrund-Abgleich mit Supabase Realtime.
 * **Sicherheits-Check**: Integrierte Sperre am Schichtende, falls noch unbezahlte Jacken im System sind.
 * **SumUp Cloud Integration**: Direkte Ansteuerung des **SumUp Solo** Terminals über das Dashboard (Cloud API).
-* **Setting-Bereich**: Passwortgeschützter Bereich zur Verwaltung von Arbeitsplätzen und individuellen Ticketpreisen pro Terminal.
+* **Setting-Bereich**: Passwortgeschützter Bereich zur Verwaltung von Benutzerdaten sowie Arbeitsplätzen und individuellen Ticketpreisen pro Terminal.
 * **Zur Wallet-Hinzufügen**: Webticket kann zur Wallet hinzugefügt werden, sodass eine Push-Benachrichtigung gesendet werden kann, falls der Kunde die Jacke vergisst.
 
 ---
@@ -24,7 +24,7 @@ Checket nutzt eine **Split-App-Architektur**, bei der spezialisierte Flutter-Ein
 ### Einstiegspunkte (`lib/`)
 
 *   **`main_staff.dart`**: Der zentrale Hub für Personal und Admins.
-    *   **Staff-Bereich** (`/#/staff`): Operative Steuerung der Garderobe.
+    *   **Staff-Bereich** (`/staff`): Operative Steuerung der Garderobe.
     *   **Admin-Bereich** (`/#/admin`): Plattformverwaltung für System-Admins.
 *   **`main_customer.dart`**: Das Gäste-Portal für digitale Belege.
 
@@ -32,7 +32,7 @@ Checket nutzt eine **Split-App-Architektur**, bei der spezialisierte Flutter-Ein
 
 Das System ist als Software-as-a-Service (SaaS) aufgebaut. Jeder Kunde (Mandant) erhält ein eigenes, isoliertes Datenbankschema in der PostgreSQL-Instanz.
 
-1.  **Isolierte Schemas**: Jeder Mandant nutzt ein eigenes Schema (z.B. `tenant_club_a`), das die Tabellen `checket_garderobe`, `checket_lost_found` und `checket_terminal_assignments` enthält.
+1.  **Isolierte Schemas**: Jeder Tenant nutzt ein eigenes Schema (z.B. `tenant_club_a`), das die benötigten Tabellen enthält.
 2.  **Zentrale Verwaltung**: Das `public`-Schema enthält die globale Tabelle `tenants` und die Zuweisung von Benutzern zu ihren jeweiligen Schemas.
 3.  **Sicherheit**: Der Zugriff wird über Row Level Security (RLS) gesteuert. Der Einstellungsbereich und die Admin-App sind zusätzlich durch Re-Authentifizierung geschützt.
 
@@ -42,7 +42,7 @@ Das System ist als Software-as-a-Service (SaaS) aufgebaut. Jeder Kunde (Mandant)
     *   `database/`: Definition des Drift-Schemas und generierter SQLite-Code.
     *   `services/`: Plattformunabhängige Logik (Sync, Routing, SumUp).
     *   `views/`: Geteilte Views.
-    *   `widgets/`: Wiederverwendbare UI-Komponenten (`AppNavbar`, `AppTopBar`, `AppPrimaryButton`, `AppDialog`).
+    *   `widgets/`: Wiederverwendbare UI-Komponenten.
 *   **`admin_app/`**: Workspace für die Plattform-Verwaltung.
     *   `views/tabs/`: Verwaltung von Tenants und Usern.
     *   `widgets/`: Spezifische Bedienelemente.
@@ -82,9 +82,9 @@ Um die Infrastruktur vorzubereiten, muss das SQL-Skript `multi_tenant_setup.sql`
 
 ### 2. SumUp Solo Einrichtung
 1.  Logge dich auf [me.sumup.com](https://me.sumup.com) ein.
-2.  **API-Key**: Gehe zu **Geschäftseinstellungen > Für Entwickler** und generiere einen **Personal Access Token** (Static API Key).
+2.  **API-Key**: Gehe zu **Geschäftseinstellungen > Für Entwickler** und generiere einen API-Key.
 3.  **Merchant Code**: Notiere dir deine Händlernummer (zu finden unter **Profil > Profil-Details**).
-4.  **Affiliate Key**: Gehe zu **Geschäftseinstellungen > Für Entwickler >** und generiere einen Affiliate Key.
+4.  **Affiliate Key**: Gehe zu **Geschäftseinstellungen > Für Entwickler >** und generiere einen Affiliate-Key.
 5.  **Terminal kopplen mit SumUp**: Gehe zu **Geschäftseinstellungen > Cloud-API** und registiere dein Terminal
 6.  **Kopple via Cloud-API**: Hinterlege die Keys im **Admin-Bereich** der App des jeweiligen Tenants.
 
