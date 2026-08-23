@@ -49,28 +49,29 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
 
   Future<void> _saveTenant() async {
     setState(() => _showErrors = true);
-    if (_nameController.text.isEmpty || _schemaController.text.isEmpty) return;
+    
+    if (_nameController.text.isEmpty || 
+        _schemaController.text.isEmpty ||
+        _sumupKeyController.text.isEmpty ||
+        _merchantCodeController.text.isEmpty ||
+        _affiliateKeyController.text.isEmpty) {
+      _showError('Bitte alle Felder ausfüllen');
+      return;
+    }
     
     setState(() => _isLoading = true);
     try {
-      await _supabase.rpc('create_new_tenant', params: {
-        'tenant_name': _nameController.text.trim(),
-        'target_schema': _schemaController.text.trim().toLowerCase(),
-      });
-      setState(() {
-        _step = 2;
-        _isLoading = false;
-      });
-    } catch (e) {
-      _showError('Provisioning fehlgeschlagen: $e');
-      setState(() => _isLoading = false);
-    }
-  }
+      final schema = _schemaController.text.trim().toLowerCase();
+      
+      // 1. Create Tenant (Schema)
+      if (widget.tenant == null) {
+        await _supabase.rpc('create_new_tenant', params: {
+          'tenant_name': _nameController.text.trim(),
+          'target_schema': schema,
+        });
+      }
 
-  Future<void> _saveSecrets() async {
-    final schema = _schemaController.text.trim().toLowerCase();
-    setState(() => _isLoading = true);
-    try {
+      // 2. Store Secrets
       final secrets = {
         'SUMUP_API_KEY': _sumupKeyController.text.trim(),
         'SUMUP_MERCHANT_CODE': _merchantCodeController.text.trim(),
@@ -78,19 +79,17 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
       };
 
       for (var entry in secrets.entries) {
-        if (entry.value.isNotEmpty) {
-          await _supabase.rpc('store_tenant_secret', params: {
-            'p_schema': schema,
-            'p_key_name': entry.key,
-            'p_secret_value': entry.value,
-          });
-        }
+        await _supabase.rpc('store_tenant_secret', params: {
+          'p_schema': schema,
+          'p_key_name': entry.key,
+          'p_secret_value': entry.value,
+        });
       }
       
       widget.onSaved();
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      _showError('Fehler beim Speichern der Secrets: $e');
+      _showError('Fehler beim Speichern: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -102,41 +101,16 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      child: _step == 1 ? _buildStep1() : _buildStep2(),
-    );
-  }
-
-  Widget _buildStep1() {
     return AppActionSheet(
-      key: const ValueKey(1),
       title: widget.tenant == null ? 'Neuer Tenant' : widget.tenant['name'],
       subtitle: widget.tenant == null ? 'Tenant anlegen' : 'Tenant bearbeiten',
       body: Column(
         children: [
           _buildInput('Anzeigename (z.B. Club Saphir)', _nameController),
           _buildInput('Schema-Name (z.B. tenant_saphir)', _schemaController, enabled: widget.tenant == null),
-          const SizedBox(height: 24),
-          _isLoading 
-            ? const CircularProgressIndicator(color: AppTheme.active)
-            : AppPrimaryButton(
-                text: 'Speichern & Weiter',
-                color: AppTheme.active,
-                onTap: _saveTenant,
-              ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStep2() {
-    return AppActionSheet(
-      key: const ValueKey(2),
-      title: 'SumUp Secrets',
-      subtitle: 'Konfiguration für ${_nameController.text}',
-      body: Column(
-        children: [
+          const SizedBox(height: 16),
+          const Divider(color: AppTheme.surface),
+          const SizedBox(height: 16),
           _buildInput('SumUp API Key (sk_live...)', _sumupKeyController, obscure: true),
           _buildInput('Merchant Code', _merchantCodeController),
           _buildInput('Affiliate Key', _affiliateKeyController),
@@ -144,9 +118,9 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
           _isLoading 
             ? const CircularProgressIndicator(color: AppTheme.active)
             : AppPrimaryButton(
-                text: 'Abschließen',
+                text: widget.tenant == null ? 'Tenant erstellen' : 'Speichern',
                 color: AppTheme.active,
-                onTap: _saveSecrets,
+                onTap: _saveTenant,
               ),
         ],
       ),
