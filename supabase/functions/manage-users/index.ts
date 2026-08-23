@@ -104,6 +104,30 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
     }
 
+    if (action === 'update') {
+      const updateData: any = {
+        app_metadata: { role, schema_name: schemaName }
+      }
+      if (password) updateData.password = password
+
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, updateData)
+      if (updateError) throw updateError
+
+      const { data: tenant } = await supabaseAdmin.from('tenants').select('id').eq('schema_name', schemaName).single()
+      if (!tenant) throw new Error('Tenant not found')
+
+      // Update mapping (upsert)
+      const { error: mapError } = await supabaseAdmin.from('users_tenants_mapping').upsert({
+        user_id: userId,
+        tenant_id: tenant.id,
+        role: role
+      }, { onConflict: 'user_id' })
+
+      if (mapError) throw mapError
+
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
+    }
+
     if (action === 'delete') {
       await supabaseAdmin.auth.admin.deleteUser(userId)
       return new Response(JSON.stringify({ success: true }), { headers: corsHeaders })
