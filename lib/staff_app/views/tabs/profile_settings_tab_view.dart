@@ -54,7 +54,10 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
 
     return Column(
       children: [
-        const AppHeader(icon: Icons.person_rounded),
+        const AppHeader(
+          icon: Icons.person_rounded,
+          title: 'Profil',
+        ),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),

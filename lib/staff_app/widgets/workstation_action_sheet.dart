@@ -24,17 +24,23 @@ class WorkstationActionSheet extends StatelessWidget {
       title: assignment['station_name'],
       subtitle: 'Arbeitsplatz verwalten',
       actions: [
+        if (!isCurrent)
+          SheetAction(
+            icon: Icons.check_circle_outline_rounded,
+            label: 'Aktivieren',
+            color: AppTheme.active,
+            onTap: () {
+              Navigator.pop(context);
+              onActivate();
+            },
+          ),
         SheetAction(
-          icon: isCurrent ? Icons.create_rounded : Icons.check,
-          label: isCurrent ? 'Bearbeiten' : 'Aktivieren',
-          color: AppTheme.active,
+          icon: Icons.edit_rounded,
+          label: 'Bearbeiten',
+          color: isCurrent ? AppTheme.active : AppTheme.white,
           onTap: () {
             Navigator.pop(context);
-            if (isCurrent) {
-              onEdit();
-            } else {
-              onActivate();
-            }
+            onEdit();
           },
         ),
         SheetAction(
