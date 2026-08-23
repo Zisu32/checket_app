@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/widgets/app_snackbar.dart';
@@ -96,12 +97,17 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
                   cursorColor: AppTheme.white,
+                  maxLength: 64,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'[<>{}\[\]\\/]')),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'Preis in EUR',
                     errorText: (_showErrors && _priceController.text.isEmpty) ? '' : null,
                     errorStyle: const TextStyle(height: 0, fontSize: 0),
                     suffixText: '€',
                     suffixStyle: const TextStyle(color: AppTheme.white),
+                    counterText: '',
                   ),
                 ),
                 const SizedBox(height: 48),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/theme/app_theme.dart';
@@ -26,7 +27,8 @@ class _LoginViewState extends State<LoginView> {
   Future<void> _handleLogin() async {
     setState(() => _showErrors = true);
     
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) return;
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@') || _passwordController.text.isEmpty) return;
 
     setState(() => _isLoading = true);
     try {
@@ -82,10 +84,15 @@ class _LoginViewState extends State<LoginView> {
                 keyboardType: TextInputType.emailAddress,
                 style: const TextStyle(color: AppTheme.white),
                 cursorColor: AppTheme.white,
+                maxLength: 64,
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp(r'[<>{}\[\]\\/]')),
+                ],
                 decoration: InputDecoration(
                   labelText: 'E-Mail',
-                  errorText: emailEmpty ? '' : null,
+                  errorText: (emailEmpty || (_showErrors && !_emailController.text.contains('@'))) ? '' : null,
                   errorStyle: const TextStyle(height: 0, fontSize: 0),
+                  counterText: '',
                 ),
               ),
               const SizedBox(height: 16),
@@ -94,10 +101,15 @@ class _LoginViewState extends State<LoginView> {
                 obscureText: true,
                 style: const TextStyle(color: AppTheme.white),
                 cursorColor: AppTheme.white,
+                maxLength: 64,
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp(r'[<>{}\[\]\\/]')),
+                ],
                 decoration: InputDecoration(
                   labelText: 'Passwort',
                   errorText: passwordEmpty ? '' : null,
                   errorStyle: const TextStyle(height: 0, fontSize: 0),
+                  counterText: '',
                 ),
               ),
               const SizedBox(height: 32),

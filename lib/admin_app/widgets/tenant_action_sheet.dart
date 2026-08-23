@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_primary_button.dart';
@@ -58,6 +59,12 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
       _showError('Bitte alle Felder ausfüllen');
       return;
     }
+
+    final schema = _schemaController.text.trim().toLowerCase();
+    if (!schema.startsWith('tenant_')) {
+      _showError('Schema-Name muss mit tenant_ beginnen');
+      return;
+    }
     
     setState(() => _isLoading = true);
     try {
@@ -106,7 +113,7 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
       subtitle: widget.tenant == null ? 'Tenant anlegen' : 'Tenant bearbeiten',
       body: Column(
         children: [
-          _buildInput('Anzeigename (z.B. Club Saphir)', _nameController),
+          _buildInput('Anzeigename', _nameController),
           _buildInput('Schema-Name (z.B. tenant_saphir)', _schemaController, enabled: widget.tenant == null),
           const SizedBox(height: 16),
           const Divider(color: AppTheme.surface),
@@ -128,7 +135,11 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
   }
 
   Widget _buildInput(String label, TextEditingController controller, {bool obscure = false, bool enabled = true}) {
-    final bool isEmpty = _showErrors && controller.text.isEmpty;
+    bool isError = _showErrors && controller.text.isEmpty;
+    
+    if (_showErrors && label.contains('Schema-Name') && !controller.text.toLowerCase().startsWith('tenant_')) {
+      isError = true;
+    }
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -136,11 +147,16 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
         controller: controller,
         obscureText: obscure,
         enabled: enabled,
+        maxLength: 64,
+        inputFormatters: [
+          FilteringTextInputFormatter.deny(RegExp(r'[<>{}\[\]\\/]')),
+        ],
         style: const TextStyle(color: AppTheme.white),
         decoration: InputDecoration(
           labelText: label,
-          errorText: isEmpty ? '' : null,
+          errorText: isError ? '' : null,
           errorStyle: const TextStyle(height: 0, fontSize: 0),
+          counterText: '',
         ),
       ),
     );

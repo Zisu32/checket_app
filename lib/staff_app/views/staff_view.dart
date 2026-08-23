@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
@@ -101,6 +101,10 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
               controller: passwordController,
               obscureText: true,
               autofocus: true,
+              maxLength: 64,
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[<>{}\[\]\\/]')),
+              ],
               style: const TextStyle(color: AppTheme.white),
               cursorColor: AppTheme.white,
               onChanged: (_) => setFieldState(() {}),
@@ -108,6 +112,7 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
                 labelText: 'Passwort eingeben',
                 errorText: (passwordController.text.isEmpty && isAuthenticating) ? '' : null,
                 errorStyle: const TextStyle(height: 0, fontSize: 0),
+                counterText: '',
               ),
             ),
           ),

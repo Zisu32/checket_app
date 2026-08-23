@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/widgets/app_snackbar.dart';
 import '../../shared/widgets/app_primary_button.dart';
@@ -79,10 +80,15 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
             child: TextField(
               controller: _nameController,
               autofocus: true,
+              maxLength: 64,
+              inputFormatters: [
+                FilteringTextInputFormatter.deny(RegExp(r'[<>{}\[\]\\/]')),
+              ],
               cursorColor: AppTheme.white,
               style: const TextStyle(color: AppTheme.white),
               decoration: const InputDecoration(
                 labelText: 'Name des Arbeitsplatzes',
+                counterText: '',
               ),
             ),
           ),

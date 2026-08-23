@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/widgets/app_primary_button.dart';
@@ -48,7 +49,8 @@ class _UserActionSheetState extends State<UserActionSheet> {
 
   Future<void> _nextStep() async {
     setState(() => _showErrors = true);
-    if (_emailController.text.isEmpty || (_passwordController.text.isEmpty && widget.user == null)) {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@') || (_passwordController.text.isEmpty && widget.user == null)) {
       return;
     }
     setState(() {
@@ -143,6 +145,7 @@ class _UserActionSheetState extends State<UserActionSheet> {
 
   Widget _buildInput(String label, TextEditingController controller, {bool obscure = false, bool enabled = true}) {
     final bool isEmpty = _showErrors && controller.text.isEmpty;
+    final bool isEmailInvalid = _showErrors && label.contains('E-Mail') && !controller.text.contains('@');
     // Password is only mandatory for new users
     final bool isMandatory = label.contains('E-Mail') || (label == 'Passwort' && widget.user == null);
     
@@ -152,11 +155,16 @@ class _UserActionSheetState extends State<UserActionSheet> {
         controller: controller,
         obscureText: obscure,
         enabled: enabled,
+        maxLength: 64,
+        inputFormatters: [
+          FilteringTextInputFormatter.deny(RegExp(r'[<>{}\[\]\\/]')),
+        ],
         style: const TextStyle(color: AppTheme.white),
         decoration: InputDecoration(
           labelText: label,
-          errorText: (isMandatory && isEmpty) ? '' : null,
+          errorText: (isMandatory && (isEmpty || isEmailInvalid)) ? '' : null,
           errorStyle: const TextStyle(height: 0, fontSize: 0),
+          counterText: '',
         ),
       ),
     );
