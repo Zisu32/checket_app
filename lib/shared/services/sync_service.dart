@@ -224,6 +224,10 @@ class SyncService {
     }
   }
 
+  Stream<WardrobeSlot?> watchSingleSlot(int id) {
+    return (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).watchSingleOrNull();
+  }
+
   Stream<List<WardrobeSlot>> watchSlots() {
     return (db.select(db.wardrobeSlots)..orderBy([(t) => OrderingTerm(expression: t.id)])).watch();
   }

@@ -27,14 +27,20 @@ class WardrobeActionSheet extends StatefulWidget {
 class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
   bool _isProcessingSumUp = false;
   String _sumUpStatusText = 'Warte auf Terminal...';
+  late Stream<WardrobeSlot?> _slotStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _slotStream = widget.syncService.watchSingleSlot(widget.initialSlot.id);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<WardrobeSlot>>(
-      stream: widget.syncService.watchSlots(),
+    return StreamBuilder<WardrobeSlot?>(
+      stream: _slotStream,
       builder: (context, snapshot) {
-        final slots = snapshot.data ?? [];
-        final slot = slots.firstWhere((s) => s.id == widget.initialSlot.id, orElse: () => widget.initialSlot);
+        final slot = snapshot.data ?? widget.initialSlot;
 
         return AppActionSheet(
           title: 'Bügel ${slot.id}',
