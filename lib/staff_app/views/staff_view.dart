@@ -96,17 +96,19 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
         builder: (context, setDialogState) => AppDialog(
           title: 'Zugriff geschützt',
           subtitle: 'Anmeldung erforderlich',
-          body: TextField(
-            controller: passwordController,
-            obscureText: true,
-            autofocus: true,
-            style: const TextStyle(color: AppTheme.white),
-            cursorColor: AppTheme.white,
-            decoration: const InputDecoration(
-              labelText: 'Passwort eingeben',
-              labelStyle: TextStyle(color: AppTheme.free),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+          body: StatefulBuilder(
+            builder: (context, setFieldState) => TextField(
+              controller: passwordController,
+              obscureText: true,
+              autofocus: true,
+              style: const TextStyle(color: AppTheme.white),
+              cursorColor: AppTheme.white,
+              onChanged: (_) => setFieldState(() {}),
+              decoration: InputDecoration(
+                labelText: 'Passwort eingeben',
+                errorText: (passwordController.text.isEmpty && isAuthenticating) ? '' : null,
+                errorStyle: const TextStyle(height: 0, fontSize: 0),
+              ),
             ),
           ),
           actions: [

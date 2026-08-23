@@ -82,10 +82,7 @@ class _WorkstationSheetState extends State<WorkstationSheet> {
               cursorColor: AppTheme.white,
               style: const TextStyle(color: AppTheme.white),
               decoration: const InputDecoration(
-                hintText: 'z.B. Tresen Mitte',
-                hintStyle: TextStyle(color: Colors.white24),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
-                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.background)),
+                labelText: 'Name des Arbeitsplatzes',
               ),
             ),
           ),

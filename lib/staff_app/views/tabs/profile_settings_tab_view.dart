@@ -16,8 +16,10 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+  bool _showErrors = false;
 
   Future<void> _updatePassword() async {
+    setState(() => _showErrors = true);
     final password = _passwordController.text;
     final confirm = _confirmPasswordController.text;
 
@@ -67,11 +69,10 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
                     obscureText: true,
                     style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
                     cursorColor: AppTheme.white,
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 8),
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                    decoration: InputDecoration(
+                      labelText: 'Neues Passwort',
+                      errorText: (_showErrors && _passwordController.text.isEmpty) ? '' : null,
+                      errorStyle: const TextStyle(height: 0, fontSize: 0),
                     ),
                   ),
                 ),
@@ -83,11 +84,10 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
                     obscureText: true,
                     style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
                     cursorColor: AppTheme.white,
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 8),
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                    decoration: InputDecoration(
+                      labelText: 'Passwort bestätigen',
+                      errorText: (_showErrors && (_confirmPasswordController.text.isEmpty || _confirmPasswordController.text != _passwordController.text)) ? '' : null,
+                      errorStyle: const TextStyle(height: 0, fontSize: 0),
                     ),
                   ),
                 ),

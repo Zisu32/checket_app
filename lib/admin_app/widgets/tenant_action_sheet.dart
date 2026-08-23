@@ -19,6 +19,7 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
   final _supabase = Supabase.instance.client;
   int _step = 1;
   bool _isLoading = false;
+  bool _showErrors = false;
 
   // Step 1 Controllers
   late TextEditingController _nameController;
@@ -47,6 +48,7 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
   }
 
   Future<void> _saveTenant() async {
+    setState(() => _showErrors = true);
     if (_nameController.text.isEmpty || _schemaController.text.isEmpty) return;
     
     setState(() => _isLoading = true);
@@ -152,6 +154,8 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
   }
 
   Widget _buildInput(String label, TextEditingController controller, {bool obscure = false, bool enabled = true}) {
+    final bool isEmpty = _showErrors && controller.text.isEmpty;
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
@@ -161,10 +165,8 @@ class _TenantActionSheetState extends State<TenantActionSheet> {
         style: const TextStyle(color: AppTheme.white),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: AppTheme.free),
-          disabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-          enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-          focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+          errorText: isEmpty ? '' : null,
+          errorStyle: const TextStyle(height: 0, fontSize: 0),
         ),
       ),
     );

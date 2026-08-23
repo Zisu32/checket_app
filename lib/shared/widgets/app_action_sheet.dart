@@ -65,7 +65,10 @@ class AppActionSheet extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
           const SizedBox(height: 16),
-          if (body != null) body!,
+          if (body != null) Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: body!,
+          ),
           if (actions != null)
             ...actions!.map((action) => ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),

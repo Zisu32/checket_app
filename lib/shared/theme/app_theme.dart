@@ -23,4 +23,33 @@ class AppTheme {
   static const double small = 16.0;
   static const double medium = 25.0;
   static const double large = 32.0;
+
+  // Text-Inputfield
+  static InputDecorationTheme get inputDecorationTheme => InputDecorationTheme(
+    labelStyle: const TextStyle(color: free),
+    floatingLabelStyle: WidgetStateTextStyle.resolveWith((states) {
+      return const TextStyle(color: free);
+    }),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: surface),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: surface),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: active),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: unpaid),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: unpaid),
+    ),
+  );
 }

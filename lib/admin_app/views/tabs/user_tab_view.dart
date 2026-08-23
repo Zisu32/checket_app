@@ -112,7 +112,7 @@ class _UserTabViewState extends State<UserTabView> {
 
   Widget _buildFilter() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
       child: Row(
         children: [
           const Text('Filter:', style: TextStyle(color: AppTheme.free)),

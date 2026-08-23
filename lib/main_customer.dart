@@ -38,6 +38,7 @@ class ChecketCustomerWebApp extends StatelessWidget {
     return MaterialApp(
       title: 'Checket Ticket',
       theme: ThemeData.dark().copyWith(
+        inputDecorationTheme: AppTheme.inputDecorationTheme,
         textSelectionTheme: TextSelectionThemeData(
           cursorColor: AppTheme.white,
           selectionColor: AppTheme.white.withValues(alpha: 0.24),

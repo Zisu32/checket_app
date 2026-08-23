@@ -84,13 +84,8 @@ class _LoginViewState extends State<LoginView> {
                 cursorColor: AppTheme.white,
                 decoration: InputDecoration(
                   labelText: 'E-Mail',
-                  labelStyle: TextStyle(color: emailEmpty ? AppTheme.unpaid : AppTheme.free),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: emailEmpty ? AppTheme.unpaid : AppTheme.surface),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: emailEmpty ? AppTheme.unpaid : AppTheme.active),
-                  ),
+                  errorText: emailEmpty ? '' : null,
+                  errorStyle: const TextStyle(height: 0, fontSize: 0),
                 ),
               ),
               const SizedBox(height: 16),
@@ -101,13 +96,8 @@ class _LoginViewState extends State<LoginView> {
                 cursorColor: AppTheme.white,
                 decoration: InputDecoration(
                   labelText: 'Passwort',
-                  labelStyle: TextStyle(color: passwordEmpty ? AppTheme.unpaid : AppTheme.free),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: passwordEmpty ? AppTheme.unpaid : AppTheme.surface),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: passwordEmpty ? AppTheme.unpaid : AppTheme.active),
-                  ),
+                  errorText: passwordEmpty ? '' : null,
+                  errorStyle: const TextStyle(height: 0, fontSize: 0),
                 ),
               ),
               const SizedBox(height: 32),

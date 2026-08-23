@@ -20,6 +20,7 @@ class _UserActionSheetState extends State<UserActionSheet> {
   final _supabase = Supabase.instance.client;
   int _step = 1;
   bool _isLoading = false;
+  bool _showErrors = false;
 
   // Step 1: User Info
   late TextEditingController _emailController;
@@ -46,16 +47,19 @@ class _UserActionSheetState extends State<UserActionSheet> {
   }
 
   Future<void> _nextStep() async {
+    setState(() => _showErrors = true);
     if (_emailController.text.isEmpty || (_passwordController.text.isEmpty && widget.user == null)) {
-      _showError('Bitte E-Mail und Passwort angeben');
       return;
     }
-    setState(() => _step = 2);
+    setState(() {
+      _step = 2;
+      _showErrors = false;
+    });
   }
 
   Future<void> _saveUser() async {
+    setState(() => _showErrors = true);
     if (_selectedSchema == null) {
-      _showError('Bitte einen Tenant auswählen');
       return;
     }
 
@@ -138,6 +142,10 @@ class _UserActionSheetState extends State<UserActionSheet> {
   }
 
   Widget _buildInput(String label, TextEditingController controller, {bool obscure = false, bool enabled = true}) {
+    final bool isEmpty = _showErrors && controller.text.isEmpty;
+    // Password is only mandatory for new users
+    final bool isMandatory = label.contains('E-Mail') || (label == 'Passwort' && widget.user == null);
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
@@ -147,10 +155,8 @@ class _UserActionSheetState extends State<UserActionSheet> {
         style: const TextStyle(color: AppTheme.white),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: AppTheme.free),
-          disabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-          enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-          focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+          errorText: (isMandatory && isEmpty) ? '' : null,
+          errorStyle: const TextStyle(height: 0, fontSize: 0),
         ),
       ),
     );
@@ -161,7 +167,7 @@ class _UserActionSheetState extends State<UserActionSheet> {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         border: Border.all(color: AppTheme.surface),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButton<String>(
         value: _selectedRole,
@@ -179,11 +185,13 @@ class _UserActionSheetState extends State<UserActionSheet> {
   }
 
   Widget _buildTenantDropdown() {
+    final bool isError = _showErrors && _selectedSchema == null;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: AppTheme.surface),
-        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: isError ? AppTheme.unpaid : AppTheme.surface),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: DropdownButton<String>(
         value: _selectedSchema,

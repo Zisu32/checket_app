@@ -18,6 +18,7 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
   final _sumUpService = SumUpService();
   final _priceController = TextEditingController();
   bool _isLoading = true;
+  bool _showErrors = false;
   String? _currentReaderId;
 
   @override
@@ -36,7 +37,8 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
   }
 
   Future<void> _savePrice() async {
-    if (_currentReaderId == null) return;
+    setState(() => _showErrors = true);
+    if (_currentReaderId == null || _priceController.text.isEmpty) return;
     
     final newPrice = double.tryParse(_priceController.text.replaceAll(',', '.'));
     if (newPrice == null) {
@@ -94,13 +96,12 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.medium),
                   cursorColor: AppTheme.white,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Preis in EUR',
-                    labelStyle: TextStyle(color: AppTheme.free),
+                    errorText: (_showErrors && _priceController.text.isEmpty) ? '' : null,
+                    errorStyle: const TextStyle(height: 0, fontSize: 0),
                     suffixText: '€',
-                    suffixStyle: TextStyle(color: AppTheme.white),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.surface)),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppTheme.active)),
+                    suffixStyle: const TextStyle(color: AppTheme.white),
                   ),
                 ),
                 const SizedBox(height: 48),
