@@ -61,34 +61,28 @@ class _ProfileSettingsTabViewState extends State<ProfileSettingsTabView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildFormRow('User', Text(email, style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small))),
-                const SizedBox(height: 24),
-                _buildFormRow(
-                  'Neues Passwort',
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
-                    cursorColor: AppTheme.white,
-                    decoration: InputDecoration(
-                      labelText: 'Neues Passwort',
-                      errorText: (_showErrors && _passwordController.text.isEmpty) ? '' : null,
-                      errorStyle: const TextStyle(height: 0, fontSize: 0),
-                    ),
+                const SizedBox(height: 32),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
+                  cursorColor: AppTheme.white,
+                  decoration: InputDecoration(
+                    labelText: 'Neues Passwort',
+                    errorText: (_showErrors && _passwordController.text.isEmpty) ? '' : null,
+                    errorStyle: const TextStyle(height: 0, fontSize: 0),
                   ),
                 ),
                 const SizedBox(height: 24),
-                _buildFormRow(
-                  'Passwort bestätigen',
-                  TextField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
-                    cursorColor: AppTheme.white,
-                    decoration: InputDecoration(
-                      labelText: 'Passwort bestätigen',
-                      errorText: (_showErrors && (_confirmPasswordController.text.isEmpty || _confirmPasswordController.text != _passwordController.text)) ? '' : null,
-                      errorStyle: const TextStyle(height: 0, fontSize: 0),
-                    ),
+                TextField(
+                  controller: _confirmPasswordController,
+                  obscureText: true,
+                  style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
+                  cursorColor: AppTheme.white,
+                  decoration: InputDecoration(
+                    labelText: 'Passwort bestätigen',
+                    errorText: (_showErrors && (_confirmPasswordController.text.isEmpty || _confirmPasswordController.text != _passwordController.text)) ? '' : null,
+                    errorStyle: const TextStyle(height: 0, fontSize: 0),
                   ),
                 ),
                 const SizedBox(height: 48),
