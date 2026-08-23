@@ -35,7 +35,7 @@ class AppThumbButton extends StatelessWidget {
           child: Icon(
             icon,
             color: AppTheme.white,
-            size: 28,
+            size: 32,
           ),
         ),
       ),
