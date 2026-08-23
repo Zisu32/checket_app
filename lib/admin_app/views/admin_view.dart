@@ -6,6 +6,7 @@ import '../../shared/widgets/app_navbar.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import 'tabs/tenant_tab_view.dart';
 import 'tabs/user_tab_view.dart';
+import 'package:web/web.dart' as web;
 
 class AdminView extends StatefulWidget {
   const AdminView({super.key});
@@ -16,6 +17,12 @@ class AdminView extends StatefulWidget {
 
 class _AdminViewState extends State<AdminView> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    web.document.title = 'Checket Admin';
+  }
 
   @override
   Widget build(BuildContext context) {

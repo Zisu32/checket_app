@@ -112,7 +112,7 @@ class _UserTabViewState extends State<UserTabView> {
 
   Widget _buildFilter() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       child: Row(
         children: [
           const Text('Filter:', style: TextStyle(color: AppTheme.free)),
@@ -122,7 +122,7 @@ class _UserTabViewState extends State<UserTabView> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 border: Border.all(color: AppTheme.surface),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: DropdownButton<String>(
                 value: _filterTenant,

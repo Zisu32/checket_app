@@ -14,7 +14,7 @@ class AppSnackBar extends SnackBar {
           backgroundColor: isError ? AppTheme.unpaid : AppTheme.active,
           behavior: SnackBarBehavior.fixed,
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
           ),
         );
 }
