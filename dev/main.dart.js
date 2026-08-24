@@ -45784,19 +45784,23 @@ k.su(null)
 q=3
 j=A.b_d(a,null,new A.a3I(A.c8("sqlite3.wasm",0,null),A.c8("drift_worker.js",0,null)))
 o.a=new A.IS(j)
-if(b!=null)o.c=b
+if(b!=null)j=o.c=b
 else{j=o.b.giP().e.a
 n=j==null?null:j.r
 j=n
 j=A.bu(j==null?null:j.b.i(0,"schema_name"))
-o.c=j==null?"public":j}s=6
+j=o.c=j==null?"public":j}s=j!=="public"?6:8
+break
+case 6:s=9
 return A.k(o.o0(),$async$uA)
-case 6:s=7
+case 9:s=10
 return A.k(o.qn(),$async$uA)
-case 7:o.f.su(!0)
-h.su(B.zv)
-o.aez()
+case 10:o.aez()
 o.aey()
+s=7
+break
+case 8:h.su(B.zv)
+case 7:o.f.su(!0)
 q=1
 s=5
 break
@@ -45815,72 +45819,75 @@ break
 case 5:return A.r(null,r)
 case 1:return A.q(p.at(-1),r)}})
 return A.t($async$uA,r)},
-o0(){var s=0,r=A.u(t.H),q=1,p=[],o=this,n,m,l,k,j,i,h,g,f,e
-var $async$o0=A.v(function(a,b){if(a===1){p.push(b)
-s=q}for(;;)switch(s){case 0:f=o.r
-f.su(B.kN)
-q=3
-k=o.b.KB(o.c).Vy("checket_garderobe").KD()
-j=k.f.gej().i(0,"order")
-i=j==null?"":j+","
-s=6
-return A.k(A.aSx(k.aiV(k.Xn("order",i+"id.asc.nullslast")),k.$ti.c),$async$o0)
-case 6:n=b
-k=J.dA(n,new A.ak9(o),t.sx)
-h=A.U(k,k.$ti.h("ad.E"))
-m=h
-k=o.a
-k===$&&A.a()
+o0(){var s=0,r=A.u(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e,d
+var $async$o0=A.v(function(a,b){if(a===1){o.push(b)
+s=p}for(;;)switch(s){case 0:if(n.c==="public"){s=1
+break}j=n.r
+j.su(B.kN)
+p=4
+i=n.b.KB(n.c).Vy("checket_garderobe").KD()
+h=i.f.gej().i(0,"order")
+g=h==null?"":h+","
 s=7
-return A.k(k.Tz(new A.aka(o,m)),$async$o0)
-case 7:k=o.a
+return A.k(A.aSx(i.aiV(i.Xn("order",g+"id.asc.nullslast")),i.$ti.c),$async$o0)
+case 7:m=b
+i=J.dA(m,new A.ak9(n),t.sx)
+f=A.U(i,i.$ti.h("ad.E"))
+l=f
+i=n.a
+i===$&&A.a()
 s=8
-return A.k(k.vS(k.gop(),t.pb,t.Sx).vw(),$async$o0)
-case 8:l=b
-o.d.su(l)
-f.su(B.zv)
-q=1
-s=5
-break
-case 3:q=2
-e=p.pop()
-f.su(B.kO)
-throw e
-s=5
-break
-case 2:s=1
-break
-case 5:return A.r(null,r)
-case 1:return A.q(p.at(-1),r)}})
-return A.t($async$o0,r)},
-qn(){var s=0,r=A.u(t.H),q=1,p=[],o=this,n,m,l,k,j,i,h,g
-var $async$qn=A.v(function(a,b){if(a===1){p.push(b)
-s=q}for(;;)switch(s){case 0:q=3
-k=o.b.KB(o.c).Vy("checket_lost_found").KD()
-j=k.agS("is_handed_over","eq.false")
+return A.k(i.Tz(new A.aka(n,l)),$async$o0)
+case 8:i=n.a
+s=9
+return A.k(i.vS(i.gop(),t.pb,t.Sx).vw(),$async$o0)
+case 9:k=b
+n.d.su(k)
+j.su(B.zv)
+p=2
 s=6
-return A.k(A.azE(k.N9(j),k.$ti.c),$async$qn)
-case 6:n=b
-k=J.dA(n,new A.akc(o),t.cP)
-i=A.U(k,k.$ti.h("ad.E"))
-m=i
-k=o.a
-k===$&&A.a()
+break
+case 4:p=3
+d=o.pop()
+j.su(B.kO)
+throw d
+s=6
+break
+case 3:s=2
+break
+case 6:case 1:return A.r(q,r)
+case 2:return A.q(o.at(-1),r)}})
+return A.t($async$o0,r)},
+qn(){var s=0,r=A.u(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f
+var $async$qn=A.v(function(a,b){if(a===1){o.push(b)
+s=p}for(;;)switch(s){case 0:g=n.c
+if(g==="public"){s=1
+break}p=4
+g=n.b.KB(g).Vy("checket_lost_found").KD()
+j=g.agS("is_handed_over","eq.false")
 s=7
-return A.k(k.Tz(new A.akd(o,m)),$async$qn)
-case 7:q=1
-s=5
+return A.k(A.azE(g.N9(j),g.$ti.c),$async$qn)
+case 7:m=b
+g=J.dA(m,new A.akc(n),t.cP)
+i=A.U(g,g.$ti.h("ad.E"))
+l=i
+g=n.a
+g===$&&A.a()
+s=8
+return A.k(g.Tz(new A.akd(n,l)),$async$qn)
+case 8:p=2
+s=6
 break
-case 3:q=2
-g=p.pop()
-l=A.T(g)
-A.tj("Sync Error (Pull Lost): "+A.j(l))
-s=5
+case 4:p=3
+f=o.pop()
+k=A.T(f)
+A.tj("Sync Error (Pull Lost): "+A.j(k))
+s=6
 break
-case 2:s=1
+case 3:s=2
 break
-case 5:return A.r(null,r)
-case 1:return A.q(p.at(-1),r)}})
+case 6:case 1:return A.r(q,r)
+case 2:return A.q(o.at(-1),r)}})
 return A.t($async$qn,r)},
 aez(){var s=this,r=s.b.ax
 r===$&&A.a()
@@ -46415,7 +46422,7 @@ var $async$fl=A.v(function(b,c){if(b===1)return A.q(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.qy(new A.n0(1787561809,p.b),t.hU).av(new A.asL(),t.y):o
+q=o==null?p.d=n.a.qy(new A.n0(1787564779,p.b),t.hU).av(new A.asL(),t.y):o
 s=1
 break
 case 1:return A.r(q,r)}})
@@ -47410,7 +47417,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.acb?2:4
 break
-case 2:p=1787561809
+case 2:p=1787564779
 s=3
 break
 case 4:s=n instanceof A.H7?5:7
@@ -47423,10 +47430,10 @@ break
 case 7:throw A.e(A.cN("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.k(a.TA(new A.Si(q,new A.qg()),new A.BE(p,1787561809)),$async$pb)
-case 9:s=n instanceof A.H7&&p!==1787561809?10:11
+return A.k(a.TA(new A.Si(q,new A.qg()),new A.BE(p,1787564779)),$async$pb)
+case 9:s=n instanceof A.H7&&p!==1787564779?10:11
 break
-case 10:n.a.V2("PRAGMA user_version = 1787561809;")
+case 10:n.a.V2("PRAGMA user_version = 1787564779;")
 s=12
 return A.k(A.dG(null,t.H),$async$pb)
 case 12:case 11:return A.r(null,r)}})
