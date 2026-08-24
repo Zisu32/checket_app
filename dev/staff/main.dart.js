@@ -53284,7 +53284,7 @@ case 6:case 1:return A.q(q,r)
 case 2:return A.p(o.at(-1),r)}})
 return A.r($async$Ct,r)},
 J(a){var s=this,r=null,q=s.f,p=A.b([new A.iS(A.aS("[0-9.,]",!0,!1,!1,!1),!0,"")],t.VS)
-q=A.r3(!1,q,B.a8,A.pW(r,r,r,r,r,r,"",r,!0,r,r,r,r,B.a67,s.x&&q.a.a.length===0?"":r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,"Ticket-Preis",!0,!0,!1,r,r,r,r,r,r,r,r,r,r,r,r,r,r),r,s.r,p,B.a3r,5,!1,r,s.gakG(),r)
+q=A.r3(!1,q,B.a8,A.pW(r,r,r,r,r,r,"",r,!0,r,r,r,r,B.a67,s.x&&q.a.a.length===0?"":r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,"Ticket-Preis in EUR",!0,!0,!1,r,r,r,r,r,r,r,r,r,r,r,r,r,r),r,s.r,p,B.a3r,5,!1,r,s.gakG(),r)
 p=t.p
 return A.df(A.b([B.Fn,A.kC(A.awb(A.df(A.b([B.c6,q,B.hk,A.fo(s.w?B.cO:A.lH(B.a1,s.gatE(),"Speichern"),r,r)],p),B.bZ,B.T,B.a5),B.iw))],p),B.F,B.T,B.a5)}}
 A.aMB.prototype={
@@ -54241,7 +54241,7 @@ var $async$ia=A.u(function(b,c){if(b===1)return A.p(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.vp(new A.pB(1787564975,p.b),t.hU).b7(new A.aIQ(),t.y):o
+q=o==null?p.d=n.a.vp(new A.pB(1787565067,p.b),t.hU).b7(new A.aIQ(),t.y):o
 s=1
 break
 case 1:return A.q(q,r)}})
@@ -55251,7 +55251,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.aox?2:4
 break
-case 2:p=1787564975
+case 2:p=1787565067
 s=3
 break
 case 4:s=n instanceof A.NZ?5:7
@@ -55264,10 +55264,10 @@ break
 case 7:throw A.e(A.dD("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.m(a.a2i(new A.a_M(q,new A.uq()),new A.GN(p,1787564975)),$async$tP)
-case 9:s=n instanceof A.NZ&&p!==1787564975?10:11
+return A.m(a.a2i(new A.a_M(q,new A.uq()),new A.GN(p,1787565067)),$async$tP)
+case 9:s=n instanceof A.NZ&&p!==1787565067?10:11
 break
-case 10:n.a.a4a("PRAGMA user_version = 1787564975;")
+case 10:n.a.a4a("PRAGMA user_version = 1787565067;")
 s=12
 return A.m(A.cR(null,t.H),$async$tP)
 case 12:case 11:return A.q(null,r)}})
