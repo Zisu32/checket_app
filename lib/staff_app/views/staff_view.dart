@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/database/database.dart';
 import '../../shared/services/sync_service.dart';
+import '../../shared/services/sumup_service.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/services/monitor_service.dart';
 import 'tabs/lost_found_tab_view.dart';
