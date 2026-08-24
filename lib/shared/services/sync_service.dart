@@ -145,6 +145,7 @@ class SyncService {
         'is_paid': false,
         'payment_method': 'none',
         'secret': '',
+        'group_id': '',
         'updated_at': DateTime.now().toIso8601String()
       }).neq('status', 'free');
 
@@ -188,6 +189,7 @@ class SyncService {
       await Future.wait(slots.map((slot) {
         final data = db.toJson(slot);
         data.remove('id');
+        data.remove('updated_at');
         return _from('checket_garderobe').update(data).eq('id', slot.id);
       }));
       
@@ -286,6 +288,7 @@ class SyncService {
           isPaid: lostBySecret.isPaid,
           paymentMethod: 'none',
           secret: lostBySecret.secret,
+          groupId: '',
           updatedAt: lostBySecret.createdAt,
         ));
         return;
