@@ -29,7 +29,6 @@ class SyncService {
     try {
       db = AppDatabase(name: dbName);
       
-      // Determine schema
       if (schema != null) {
         _schemaName = schema;
       } else {
@@ -37,7 +36,6 @@ class SyncService {
         _schemaName = user?.appMetadata['schema_name'] as String? ?? 'public';
       }
 
-      // Perform initial pulls and wait for them
       await pullFromSupabase();
       await pullLostItemsFromSupabase();
       
@@ -54,11 +52,10 @@ class SyncService {
         : 'Initialisierung fehlgeschlagen: $e';
       errorNotifier.value = msg;
       statusNotifier.value = SyncStatus.offline;
-      rethrow; // Rethrow so FutureBuilder in UI catches it
+      rethrow;
     }
   }
 
-  // Helper to get scoped query
   SupabaseQueryBuilder _from(String table) => supabase.schema(_schemaName).from(table);
 
   Future<void> pullFromSupabase() async {
@@ -174,50 +171,23 @@ class SyncService {
 
   Future<void> updateSlot(WardrobeSlot slot) async {
     statusNotifier.value = SyncStatus.syncing;
-    
-    // Get old state for potential rollback
-    final oldSlot = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(slot.id))).getSingle();
-    
-    // 1. Update local database immediately for UI feedback
     await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
-    await _notifySlots();
+    
+    final slots = await db.select(db.wardrobeSlots).get();
+    slotsNotifier.value = slots;
 
     try {
-      // 2. Prepare data for Supabase
-      final data = db.toJson(slot);
-      data.remove('id'); 
-      data.remove('updated_at');
-      
-      final response = await _from('checket_garderobe')
-          .update(data)
-          .eq('id', slot.id)
-          .select()
-          .maybeSingle();
-
-      if (response == null) {
-        throw 'Synchronisation fehlgeschlagen (keine Berechtigung).';
-      }
-
+      await _from('checket_garderobe').update(db.toJson(slot)).eq('id', slot.id);
       statusNotifier.value = SyncStatus.online;
     } catch (e) {
-      print('Supabase Update Error: $e');
       statusNotifier.value = SyncStatus.offline;
-      
-      // Rollback local state to ensure consistency
-      await db.into(db.wardrobeSlots).insertOnConflictUpdate(oldSlot);
-      await _notifySlots();
+      await pullFromSupabase();
       rethrow;
     }
   }
 
-  Future<void> _notifySlots() async {
-    final allSlots = await db.select(db.wardrobeSlots).get();
-    slotsNotifier.value = allSlots;
-  }
-
   Future<void> updateGlobalTicketPrice(double newPrice) async {
     try {
-      // Update ALL terminals with the same price
       await _from('checket_terminal_assignments')
           .update({'ticket_price': newPrice})
           .neq('reader_id', '');
@@ -240,13 +210,10 @@ class SyncService {
     }
   }
 
-
-
   Future<bool> reauthenticate(String password) async {
     try {
       final email = supabase.auth.currentUser?.email;
       if (email == null) return false;
-
       await supabase.auth.signInWithPassword(email: email, password: password);
       return true;
     } catch (e) {
