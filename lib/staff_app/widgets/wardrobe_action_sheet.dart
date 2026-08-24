@@ -173,7 +173,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
   }
 
   Future<void> _handlePayment(List<WardrobeSlot> slots, String method) async {
-    final groupId = Uuid().v4();
+    final String? groupId = slots.length > 1 ? Uuid().v4() : null;
     final secret = widget.onGenerateSecret();
     
     if (method == 'nfc') {
@@ -227,7 +227,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
       isPaid: true,
       paymentMethod: method,
       secret: secret,
-      groupId: groupId,
+      groupId: groupId ?? '',
       updatedAt: DateTime.now(),
     )).toList();
 

@@ -81,6 +81,15 @@ class _WorkstationSettingsTabViewState extends State<WorkstationSettingsTabView>
                     items: _assignments,
                     onRefresh: _loadData,
                     emptyMessage: 'Noch kein Arbeitsplatz eingerichtet',
+                    borderBuilder: (asg) {
+                      final bool isActive = asg['reader_id'] == localReaderId;
+                      return RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: isActive 
+                          ? const BorderSide(color: AppTheme.active, width: 2) 
+                          : BorderSide.none,
+                      );
+                    },
                     titleBuilder: (asg) => Text(
                       asg['station_name'],
                       style: const TextStyle(color: AppTheme.white, fontWeight: FontWeight.bold, fontSize: AppTheme.small),

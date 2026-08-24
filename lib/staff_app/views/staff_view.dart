@@ -69,12 +69,17 @@ class _StaffViewState extends State<StaffView> {
   }
 
   void _syncMonitor(int? id, String secret, {String? groupId}) {
-    MonitorService().updateMonitor(id, secret, groupId: groupId);
+    final readerId = _syncService.db.name.contains('unknown') 
+        ? 'default' 
+        : (SumUpService().getSelectedReaderId() ?? 'default');
+    
+    MonitorService().updateMonitor(id, secret, groupId: groupId, targetId: readerId);
+    
     final origin = web.window.location.origin;
     final path = web.window.location.pathname;
-    // Use a clean URL without sensitive parameters
-    final qrUrl = '$origin$path#/qr';
-    web.window.open(qrUrl, 'checket_monitor');
+    // Use a clean URL without sensitive parameters, include target for identification
+    final qrUrl = '$origin$path#/qr?target=$readerId';
+    web.window.open(qrUrl, 'checket_monitor_$readerId');
   }
 
   void _showSettingsAuth() {

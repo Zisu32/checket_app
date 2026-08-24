@@ -26,22 +26,25 @@ class MonitorService {
     }.toJS;
   }
 
-  void updateMonitor(int? id, String secret, {String? groupId}) {
-    if (id != null) web.window.localStorage.setItem(_kIdKey, id.toString());
-    if (groupId != null) web.window.localStorage.setItem(_kGroupIdKey, groupId);
-    web.window.localStorage.setItem(_kSecretKey, secret);
+  void updateMonitor(int? id, String secret, {String? groupId, String targetId = 'default'}) {
+    final prefix = 'monitor_${targetId}_';
+    if (id != null) web.window.localStorage.setItem('${prefix}last_id', id.toString());
+    if (groupId != null) web.window.localStorage.setItem('${prefix}last_group_id', groupId);
+    web.window.localStorage.setItem('${prefix}last_secret', secret);
 
     _channel.postMessage({
+      'targetId': targetId,
       'id': id, 
       'groupId': groupId,
       'secret': secret
     }.jsify());
   }
 
-  ({int? id, String? groupId, String? secret}) readLastKnown() {
-    final idStr = web.window.localStorage.getItem(_kIdKey);
-    final groupId = web.window.localStorage.getItem(_kGroupIdKey);
-    final secret = web.window.localStorage.getItem(_kSecretKey);
+  ({int? id, String? groupId, String? secret}) readLastKnown({String targetId = 'default'}) {
+    final prefix = 'monitor_${targetId}_';
+    final idStr = web.window.localStorage.getItem('${prefix}last_id');
+    final groupId = web.window.localStorage.getItem('${prefix}last_group_id');
+    final secret = web.window.localStorage.getItem('${prefix}last_secret');
     return (
       id: idStr != null ? int.tryParse(idStr) : null, 
       groupId: groupId,

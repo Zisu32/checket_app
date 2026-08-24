@@ -9,6 +9,7 @@ class AppListView<T> extends StatelessWidget {
   final Widget Function(T item) subtitleBuilder;
   final Widget Function(T item)? leadingBuilder;
   final Widget Function(T item)? trailingBuilder;
+  final ShapeBorder Function(T item)? borderBuilder;
   final EdgeInsets padding;
   final Color cardColor;
 
@@ -21,6 +22,7 @@ class AppListView<T> extends StatelessWidget {
     required this.subtitleBuilder,
     this.leadingBuilder,
     this.trailingBuilder,
+    this.borderBuilder,
     this.padding = const EdgeInsets.only(left: 24, right: 24, top: 8, bottom: 80),
     this.cardColor = AppTheme.surface,
   });
@@ -44,7 +46,7 @@ class AppListView<T> extends StatelessWidget {
         return Card(
           color: cardColor,
           margin: const EdgeInsets.only(bottom: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: borderBuilder?.call(item) ?? RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 1),
             leading: leadingBuilder?.call(item),

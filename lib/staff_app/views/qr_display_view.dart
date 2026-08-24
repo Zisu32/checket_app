@@ -33,6 +33,11 @@ class _QrDisplayViewState extends State<QrDisplayView> {
     super.initState();
     web.document.title = 'Checket QR';
 
+    // Identify which workstation this monitor belongs to
+    final fullUrl = web.window.location.href;
+    final uri = Uri.parse(fullUrl);
+    final targetId = uri.queryParameters['target'] ?? 'default';
+
     final monitor = MonitorService();
     monitor.init();
 
@@ -41,7 +46,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
       _currentGroupId = widget.groupId;
       _currentSecret = widget.secret;
     } else {
-      final last = monitor.readLastKnown();
+      final last = monitor.readLastKnown(targetId: targetId);
       _currentId = last.id;
       _currentGroupId = last.groupId;
       _currentSecret = last.secret;
@@ -49,6 +54,9 @@ class _QrDisplayViewState extends State<QrDisplayView> {
 
     _subscription = monitor.onUpdate.listen((data) {
       if (!mounted) return;
+
+      // Filter messages intended for this specific monitor
+      if (data['targetId'] != targetId) return;
 
       final rawId = data['id'];
       final newId = rawId is int ? rawId : (rawId as num?)?.toInt();
