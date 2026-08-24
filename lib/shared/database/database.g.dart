@@ -45,6 +45,14 @@ class $WardrobeSlotsTable extends WardrobeSlots
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant(''));
+  static const VerificationMeta _groupIdMeta =
+      const VerificationMeta('groupId');
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+      'group_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -55,7 +63,7 @@ class $WardrobeSlotsTable extends WardrobeSlots
       defaultValue: currentDateAndTime);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, status, isPaid, paymentMethod, secret, updatedAt];
+      [id, status, isPaid, paymentMethod, secret, groupId, updatedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -87,6 +95,10 @@ class $WardrobeSlotsTable extends WardrobeSlots
       context.handle(_secretMeta,
           secret.isAcceptableOrUnknown(data['secret']!, _secretMeta));
     }
+    if (data.containsKey('group_id')) {
+      context.handle(_groupIdMeta,
+          groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta));
+    }
     if (data.containsKey('updated_at')) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
@@ -110,6 +122,8 @@ class $WardrobeSlotsTable extends WardrobeSlots
           .read(DriftSqlType.string, data['${effectivePrefix}payment_method'])!,
       secret: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}secret'])!,
+      groupId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}group_id'])!,
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
     );
@@ -127,6 +141,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
   final bool isPaid;
   final String paymentMethod;
   final String secret;
+  final String groupId;
   final DateTime updatedAt;
   const WardrobeSlot(
       {required this.id,
@@ -134,6 +149,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
       required this.isPaid,
       required this.paymentMethod,
       required this.secret,
+      required this.groupId,
       required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -143,6 +159,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
     map['is_paid'] = Variable<bool>(isPaid);
     map['payment_method'] = Variable<String>(paymentMethod);
     map['secret'] = Variable<String>(secret);
+    map['group_id'] = Variable<String>(groupId);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
@@ -154,6 +171,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
       isPaid: Value(isPaid),
       paymentMethod: Value(paymentMethod),
       secret: Value(secret),
+      groupId: Value(groupId),
       updatedAt: Value(updatedAt),
     );
   }
@@ -167,6 +185,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
       isPaid: serializer.fromJson<bool>(json['isPaid']),
       paymentMethod: serializer.fromJson<String>(json['paymentMethod']),
       secret: serializer.fromJson<String>(json['secret']),
+      groupId: serializer.fromJson<String>(json['groupId']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -179,6 +198,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
       'isPaid': serializer.toJson<bool>(isPaid),
       'paymentMethod': serializer.toJson<String>(paymentMethod),
       'secret': serializer.toJson<String>(secret),
+      'groupId': serializer.toJson<String>(groupId),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -189,6 +209,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
           bool? isPaid,
           String? paymentMethod,
           String? secret,
+          String? groupId,
           DateTime? updatedAt}) =>
       WardrobeSlot(
         id: id ?? this.id,
@@ -196,6 +217,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
         isPaid: isPaid ?? this.isPaid,
         paymentMethod: paymentMethod ?? this.paymentMethod,
         secret: secret ?? this.secret,
+        groupId: groupId ?? this.groupId,
         updatedAt: updatedAt ?? this.updatedAt,
       );
   WardrobeSlot copyWithCompanion(WardrobeSlotsCompanion data) {
@@ -207,6 +229,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
           ? data.paymentMethod.value
           : this.paymentMethod,
       secret: data.secret.present ? data.secret.value : this.secret,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -219,14 +242,15 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
           ..write('isPaid: $isPaid, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('secret: $secret, ')
+          ..write('groupId: $groupId, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, status, isPaid, paymentMethod, secret, updatedAt);
+  int get hashCode => Object.hash(
+      id, status, isPaid, paymentMethod, secret, groupId, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -236,6 +260,7 @@ class WardrobeSlot extends DataClass implements Insertable<WardrobeSlot> {
           other.isPaid == this.isPaid &&
           other.paymentMethod == this.paymentMethod &&
           other.secret == this.secret &&
+          other.groupId == this.groupId &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -245,6 +270,7 @@ class WardrobeSlotsCompanion extends UpdateCompanion<WardrobeSlot> {
   final Value<bool> isPaid;
   final Value<String> paymentMethod;
   final Value<String> secret;
+  final Value<String> groupId;
   final Value<DateTime> updatedAt;
   const WardrobeSlotsCompanion({
     this.id = const Value.absent(),
@@ -252,6 +278,7 @@ class WardrobeSlotsCompanion extends UpdateCompanion<WardrobeSlot> {
     this.isPaid = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.secret = const Value.absent(),
+    this.groupId = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   WardrobeSlotsCompanion.insert({
@@ -260,6 +287,7 @@ class WardrobeSlotsCompanion extends UpdateCompanion<WardrobeSlot> {
     this.isPaid = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.secret = const Value.absent(),
+    this.groupId = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   static Insertable<WardrobeSlot> custom({
@@ -268,6 +296,7 @@ class WardrobeSlotsCompanion extends UpdateCompanion<WardrobeSlot> {
     Expression<bool>? isPaid,
     Expression<String>? paymentMethod,
     Expression<String>? secret,
+    Expression<String>? groupId,
     Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
@@ -276,6 +305,7 @@ class WardrobeSlotsCompanion extends UpdateCompanion<WardrobeSlot> {
       if (isPaid != null) 'is_paid': isPaid,
       if (paymentMethod != null) 'payment_method': paymentMethod,
       if (secret != null) 'secret': secret,
+      if (groupId != null) 'group_id': groupId,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
@@ -286,6 +316,7 @@ class WardrobeSlotsCompanion extends UpdateCompanion<WardrobeSlot> {
       Value<bool>? isPaid,
       Value<String>? paymentMethod,
       Value<String>? secret,
+      Value<String>? groupId,
       Value<DateTime>? updatedAt}) {
     return WardrobeSlotsCompanion(
       id: id ?? this.id,
@@ -293,6 +324,7 @@ class WardrobeSlotsCompanion extends UpdateCompanion<WardrobeSlot> {
       isPaid: isPaid ?? this.isPaid,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       secret: secret ?? this.secret,
+      groupId: groupId ?? this.groupId,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -315,6 +347,9 @@ class WardrobeSlotsCompanion extends UpdateCompanion<WardrobeSlot> {
     if (secret.present) {
       map['secret'] = Variable<String>(secret.value);
     }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -329,6 +364,7 @@ class WardrobeSlotsCompanion extends UpdateCompanion<WardrobeSlot> {
           ..write('isPaid: $isPaid, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('secret: $secret, ')
+          ..write('groupId: $groupId, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -712,6 +748,7 @@ typedef $$WardrobeSlotsTableCreateCompanionBuilder = WardrobeSlotsCompanion
   Value<bool> isPaid,
   Value<String> paymentMethod,
   Value<String> secret,
+  Value<String> groupId,
   Value<DateTime> updatedAt,
 });
 typedef $$WardrobeSlotsTableUpdateCompanionBuilder = WardrobeSlotsCompanion
@@ -721,6 +758,7 @@ typedef $$WardrobeSlotsTableUpdateCompanionBuilder = WardrobeSlotsCompanion
   Value<bool> isPaid,
   Value<String> paymentMethod,
   Value<String> secret,
+  Value<String> groupId,
   Value<DateTime> updatedAt,
 });
 
@@ -747,6 +785,9 @@ class $$WardrobeSlotsTableFilterComposer
 
   ColumnFilters<String> get secret => $composableBuilder(
       column: $table.secret, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get groupId => $composableBuilder(
+      column: $table.groupId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
@@ -777,6 +818,9 @@ class $$WardrobeSlotsTableOrderingComposer
   ColumnOrderings<String> get secret => $composableBuilder(
       column: $table.secret, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get groupId => $composableBuilder(
+      column: $table.groupId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
@@ -804,6 +848,9 @@ class $$WardrobeSlotsTableAnnotationComposer
 
   GeneratedColumn<String> get secret =>
       $composableBuilder(column: $table.secret, builder: (column) => column);
+
+  GeneratedColumn<String> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -840,6 +887,7 @@ class $$WardrobeSlotsTableTableManager extends RootTableManager<
             Value<bool> isPaid = const Value.absent(),
             Value<String> paymentMethod = const Value.absent(),
             Value<String> secret = const Value.absent(),
+            Value<String> groupId = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
           }) =>
               WardrobeSlotsCompanion(
@@ -848,6 +896,7 @@ class $$WardrobeSlotsTableTableManager extends RootTableManager<
             isPaid: isPaid,
             paymentMethod: paymentMethod,
             secret: secret,
+            groupId: groupId,
             updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
@@ -856,6 +905,7 @@ class $$WardrobeSlotsTableTableManager extends RootTableManager<
             Value<bool> isPaid = const Value.absent(),
             Value<String> paymentMethod = const Value.absent(),
             Value<String> secret = const Value.absent(),
+            Value<String> groupId = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
           }) =>
               WardrobeSlotsCompanion.insert(
@@ -864,6 +914,7 @@ class $$WardrobeSlotsTableTableManager extends RootTableManager<
             isPaid: isPaid,
             paymentMethod: paymentMethod,
             secret: secret,
+            groupId: groupId,
             updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0

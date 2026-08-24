@@ -19,6 +19,7 @@ class RouteService {
       }
     }
 
+    String ticketId = params['id'] ?? '';
     String groupId = params['groupId'] ?? '';
     String secret = params['secret'] ?? '';
     String tenant = params['tenant'] ?? '';
@@ -26,20 +27,20 @@ class RouteService {
     final storage = web.window.localStorage;
 
     // Persist or recover from localStorage for PWA support
-    if ((ticketIdStr.isNotEmpty || groupId.isNotEmpty) && secret.isNotEmpty) {
-      if (ticketIdStr.isNotEmpty) storage.setItem('last_ticket_id', ticketIdStr);
+    if ((ticketId.isNotEmpty || groupId.isNotEmpty) && secret.isNotEmpty) {
+      if (ticketId.isNotEmpty) storage.setItem('last_ticket_id', ticketId);
       if (groupId.isNotEmpty) storage.setItem('last_group_id', groupId);
       storage.setItem('last_ticket_secret', secret);
       if (tenant.isNotEmpty) storage.setItem('last_tenant', tenant);
     } else {
-      ticketIdStr = storage.getItem('last_ticket_id') ?? '';
+      ticketId = storage.getItem('last_ticket_id') ?? '';
       groupId = storage.getItem('last_group_id') ?? '';
       secret = storage.getItem('last_ticket_secret') ?? '';
       tenant = storage.getItem('last_tenant') ?? '';
     }
 
     return (
-      id: int.tryParse(ticketIdStr),
+      id: int.tryParse(ticketId),
       groupId: groupId.isNotEmpty ? groupId : null,
       secret: secret.isNotEmpty ? secret : null,
       tenant: tenant.isNotEmpty ? tenant : null,

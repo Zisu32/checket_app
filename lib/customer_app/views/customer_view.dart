@@ -224,6 +224,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
         'generate-wallet-pass',
         body: {
           'ticketId': _activeId,
+          'groupId': _activeGroupId,
           'secret': _activeSecret,
           'platform': PlatformHintsService.isIOS ? 'apple' : 'google',
           'origin': '$origin$path',
