@@ -36,15 +36,18 @@ class SyncService {
         _schemaName = user?.appMetadata['schema_name'] as String? ?? 'public';
       }
 
-      await pullFromSupabase();
-      await pullLostItemsFromSupabase();
+      // Only pull wardrobe data if we are in a tenant schema
+      if (_schemaName != 'public') {
+        await pullFromSupabase();
+        await pullLostItemsFromSupabase();
+        _setupRealtime();
+        _setupLostFoundRealtime();
+      } else {
+        // Admin mode: Just report as online
+        statusNotifier.value = SyncStatus.online;
+      }
       
       isInitialized.value = true;
-      statusNotifier.value = SyncStatus.online;
-
-      _setupRealtime();
-      _setupLostFoundRealtime();
-      
     } catch (e) {
       print('Sync Error during init: $e');
       final msg = e.toString().contains('403') 
@@ -59,6 +62,7 @@ class SyncService {
   SupabaseQueryBuilder _from(String table) => supabase.schema(_schemaName).from(table);
 
   Future<void> pullFromSupabase() async {
+    if (_schemaName == 'public') return;
     statusNotifier.value = SyncStatus.syncing;
     try {
       final data = await _from('checket_garderobe').select().order('id', ascending: true);
@@ -78,6 +82,7 @@ class SyncService {
   }
 
   Future<void> pullLostItemsFromSupabase() async {
+    if (_schemaName == 'public') return;
     try {
       final data = await _from('checket_lost_found').select().eq('is_handed_over', false);
       final entries = (data as List).map((json) => db.lostItemCompanionFromJson(json)).toList();
