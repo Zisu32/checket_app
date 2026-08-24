@@ -18,14 +18,36 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
   final _syncService = SyncService();
   final _sumUpService = SumUpService();
   final _priceController = TextEditingController();
+  final _focusNode = FocusNode();
   bool _isLoading = true;
   bool _showErrors = false;
-  String? _currentReaderId;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _formatInput();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    _priceController.dispose();
+    super.dispose();
+  }
+
+  void _formatInput() {
+    String text = _priceController.text.replaceAll(',', '.').trim();
+    if (text.isEmpty) return;
+    
+    double? val = double.tryParse(text);
+    if (val != null) {
+      _priceController.text = val.toStringAsFixed(2);
+    }
   }
 
   Future<void> _loadData() async {
@@ -44,10 +66,11 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
   }
 
   Future<void> _savePrice() async {
+    _formatInput();
     setState(() => _showErrors = true);
     if (_priceController.text.isEmpty) return;
     
-    final newPrice = double.tryParse(_priceController.text.replaceAll(',', '.'));
+    final newPrice = double.tryParse(_priceController.text);
     if (newPrice == null) {
       ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Ungültiger Preis'));
       return;
@@ -85,11 +108,13 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
                 const SizedBox(height: 16),
                 TextField(
                   controller: _priceController,
+                  focusNode: _focusNode,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   cursorColor: AppTheme.white,
-                  maxLength: 64,
+                  maxLength: 5,
+                  onEditingComplete: _formatInput,
                   inputFormatters: [
-                    FilteringTextInputFormatter.deny(RegExp(r'[<>{}\[\]\\/]')),
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
                   decoration: InputDecoration(
                     labelText: 'Ticket-Preis',
