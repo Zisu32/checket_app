@@ -117,7 +117,7 @@ class _TicketSettingsTabViewState extends State<TicketSettingsTabView> {
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
                   decoration: InputDecoration(
-                    labelText: 'Ticket-Preis',
+                    labelText: 'Ticket-Preis in EUR',
                     errorText: (_showErrors && _priceController.text.isEmpty) ? '' : null,
                     errorStyle: const TextStyle(height: 0),
                     counterText: '',
