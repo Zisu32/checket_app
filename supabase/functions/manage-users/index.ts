@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
     const { data: { user: requester }, error: authError } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''))
     if (authError || !requester) throw new Error('Unauthorized')
 
-    // 2. Check if admin (either via app_metadata or mapping table)
+    // 2. Check if admin
     const isGlobalAdmin = requester.app_metadata?.role === 'admin'
 
     const { data: mapping } = await supabaseAdmin

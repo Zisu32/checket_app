@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
   if (!authHeader) return new Response(JSON.stringify({ error: 'Missing Auth Header' }), { status: 401 })
 
   try {
-    // 1. Initialize Admin Client (Bypasses RLS to fetch tenant secrets)
+    // 1. Initialize Admin Client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseAdmin = createClient(supabaseUrl, getSecretKey())
 

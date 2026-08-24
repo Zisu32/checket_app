@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     const slot = slots[0]
     const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
 
-    // Helper for Status Coloring & Text
+    // Helper for Status Coloring
     const statusMap: Record<string, { color: string, text: string }> = {
       'unpaid': { color: '#B71C1C', text: 'Zahlung ausstehend' },
       'active': { color: '#00B58B', text: 'Jacke auf Platz aktiv' },

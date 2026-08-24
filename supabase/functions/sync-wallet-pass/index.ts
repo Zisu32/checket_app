@@ -23,7 +23,6 @@ Deno.serve(async (req) => {
 
   try {
     const payload = await req.json()
-    // Supabase Webhooks include 'schema', 'table', 'record', 'old_record'
     const { schema, record, old_record } = payload
 
     console.log(`--- SYNC WEBHOOK START ---`)
