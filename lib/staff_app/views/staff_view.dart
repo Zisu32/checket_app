@@ -19,7 +19,6 @@ import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/app_dialog.dart';
 import '../../shared/widgets/app_primary_button.dart';
 import '../../shared/widgets/app_thumb_button.dart';
-import '../widgets/group_action_sheet.dart';
 
 class StaffView extends StatefulWidget {
   const StaffView({super.key});

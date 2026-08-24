@@ -10,7 +10,7 @@ import '../../shared/widgets/app_action_sheet.dart';
 class WardrobeActionSheet extends StatefulWidget {
   final List<WardrobeSlot> initialSlots;
   final SyncService syncService;
-  final Function(int id, String secret) onSyncMonitor;
+  final Function(int? id, String secret, {String? groupId}) onSyncMonitor;
   final String Function() onGenerateSecret;
   final VoidCallback? onCompleted;
 
@@ -173,7 +173,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
   }
 
   Future<void> _handlePayment(List<WardrobeSlot> slots, String method) async {
-    final groupId = const Uuid().v4();
+    final groupId = Uuid().v4();
     final secret = widget.onGenerateSecret();
     
     if (method == 'nfc') {
