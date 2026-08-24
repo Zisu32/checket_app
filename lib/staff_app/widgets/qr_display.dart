@@ -6,12 +6,14 @@ import '../../shared/theme/app_theme.dart';
 
 class QrDisplay extends StatelessWidget {
   final int? ticketId;
+  final String? groupId;
   final String? secret;
 
   const QrDisplay({
     super.key,
-    required this.ticketId,
-    required this.secret,
+    this.ticketId,
+    this.groupId,
+    this.secret,
   });
 
   @override
@@ -39,6 +41,8 @@ class QrDisplay extends StatelessWidget {
     String qrData;
     if (isRecovery) {
       qrData = '$origin$path?tenant=$tenant'; // Base website with tenant
+    } else if (groupId != null) {
+      qrData = '$origin$path?groupId=$groupId&secret=$secret&tenant=$tenant';
     } else {
       qrData = '$origin$path?id=$ticketId&secret=$secret&tenant=$tenant';
     }
@@ -47,7 +51,8 @@ class QrDisplay extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET $ticketId',
+          isRecovery ? 'TICKET WIEDERHERSTELLEN' : (groupId != null ? 'GRUPPEN-TICKET' : 'TICKET $ticketId'),
+          textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 42,
             fontWeight: FontWeight.w900,

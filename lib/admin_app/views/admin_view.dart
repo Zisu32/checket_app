@@ -28,8 +28,8 @@ class _AdminViewState extends State<AdminView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: const AppTopBar(
-        leading: SizedBox.shrink(),
+      appBar: AppTopBar(
+        leading: const SizedBox.shrink(),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, size: 24),

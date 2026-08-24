@@ -12,8 +12,8 @@ class SumUpService {
 
   // Triggers a payment on the physical SumUp Solo terminal and returns the SumUp checkoutId if successful.
   Future<String?> triggerTerminalPayment({
-    required int slotId,
-    required String secret,
+    required int slotCount,
+    List<int>? slotIds,
   }) async {
     try {
       final supabase = Supabase.instance.client;
@@ -23,8 +23,8 @@ class SumUpService {
         'sumup-terminal-pay',
         body: {
           'action': 'pay',
-          'slotId': slotId,
-          'secret': secret,
+          'slotCount': slotCount,
+          'slotIds': slotIds,
           'readerId': readerId,
         },
       );

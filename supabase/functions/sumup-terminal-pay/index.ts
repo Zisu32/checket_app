@@ -112,18 +112,18 @@ Deno.serve(async (req) => {
 
     // --- ACTION: PAY ---
     if (action === 'pay') {
-      const sid = Number(slotId)
-      const { data: slot } = await supabase.from('checket_garderobe').select('status').eq('id', sid).single()
-      if (slot?.status === 'active') throw new Error('Already paid.')
+      const { slotIds = [], slotCount = 1 } = body
 
-      // Fetch price for this terminal
+      // Fetch global price (from any terminal assignment since they are now global)
       const { data: assignment } = await supabase
         .from('checket_terminal_assignments')
         .select('ticket_price')
-        .eq('reader_id', readerId)
-        .single()
+        .limit(1)
+        .maybeSingle()
 
-      const priceInCent = Math.round((assignment?.ticket_price) * 100)
+      const basePrice = assignment?.ticket_price || 2.50
+      const totalAmount = basePrice * slotCount
+      const priceInCent = Math.round(totalAmount * 100)
 
       const checkoutResponse = await fetch(`https://api.sumup.com/v0.1/merchants/${MERCHANT_CODE}/readers/${readerId}/checkout`, {
         method: 'POST',
@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           total_amount: { currency: 'EUR', minor_unit: 2, value: priceInCent },
-          foreign_tx_id: `hook_${slotId}_${Date.now()}`,
+          foreign_tx_id: `hook_group_${Date.now()}`,
           affiliate_key: AFFILIATE_KEY,
         }),
       })

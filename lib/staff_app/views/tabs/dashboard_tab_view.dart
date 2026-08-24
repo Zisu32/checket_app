@@ -7,6 +7,7 @@ class DashboardTabView extends StatelessWidget {
   final PageController pageController;
   final int itemsPerPage;
   final Function(WardrobeSlot) onTap;
+  final Set<int> selectedIds;
   final Function(int) onPageChanged;
 
   const DashboardTabView({
@@ -15,6 +16,7 @@ class DashboardTabView extends StatelessWidget {
     required this.pageController,
     required this.itemsPerPage,
     required this.onTap,
+    required this.selectedIds,
     required this.onPageChanged,
   });
 
@@ -39,17 +41,28 @@ class DashboardTabView extends StatelessWidget {
           itemCount: displaySlots.length,
           itemBuilder: (context, index) {
             final slot = displaySlots[index];
+            final isSelected = selectedIds.contains(slot.id);
+            
             Color kachelFarbe = AppTheme.surface;
             if (slot.status == 'unpaid') kachelFarbe = AppTheme.unpaid;
             if (slot.status == 'active') kachelFarbe = AppTheme.active;
             if (slot.status == 'temporary') kachelFarbe = AppTheme.temporary;
             if (slot.status == 'forgotten') kachelFarbe = AppTheme.forgotten;
+            if (slot.status == 'marked') kachelFarbe = AppTheme.background;
+            
+            // Selection override
+            if (isSelected) kachelFarbe = AppTheme.background;
+
+            final bool showBorder = isSelected || slot.status == 'marked';
 
             return InkWell(
-              key: ValueKey('slot_${slot.id}_${slot.status}'),
+              key: ValueKey('slot_${slot.id}_${slot.status}_$isSelected'),
               onTap: () => onTap(slot),
               child: Container(
-                decoration: BoxDecoration(color: kachelFarbe, borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                  color: showBorder ? AppTheme.background : kachelFarbe, 
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Center(
                   child: Text('${slot.id}', style: const TextStyle(fontSize: AppTheme.small, fontWeight: FontWeight.bold, color: AppTheme.white))
                 ),

@@ -13,6 +13,7 @@ class WardrobeSlots extends Table {
   BoolColumn get isPaid => boolean().withDefault(const Constant(false))();
   TextColumn get paymentMethod => text().withDefault(const Constant('none'))();
   TextColumn get secret => text().withDefault(const Constant(''))();
+  TextColumn get groupId => text().withDefault(const Constant(''))();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -75,6 +76,7 @@ class AppDatabase extends _$AppDatabase {
       isPaid: Value(json['is_paid'] as bool? ?? false),
       paymentMethod: Value(json['payment_method'] as String? ?? 'none'),
       secret: Value(json['secret'] as String? ?? ''),
+      groupId: Value(json['group_id'] as String? ?? ''),
       updatedAt: Value(DateTime.parse(json['updated_at'] as String)),
     );
   }
@@ -86,6 +88,7 @@ class AppDatabase extends _$AppDatabase {
       'is_paid': entry.isPaid,
       'payment_method': entry.paymentMethod,
       'secret': entry.secret,
+      'group_id': entry.groupId,
       'updated_at': entry.updatedAt.toIso8601String(),
     };
   }

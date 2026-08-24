@@ -59,6 +59,7 @@ class _Router extends StatelessWidget {
     final params = RouteService().parseCustomerParams();
     return _AuthenticatedApp(
       ticketId: params.id,
+      groupId: params.groupId,
       secret: params.secret,
       tenant: params.tenant,
     );
@@ -67,10 +68,11 @@ class _Router extends StatelessWidget {
 
 class _AuthenticatedApp extends StatefulWidget {
   final int? ticketId;
+  final String? groupId;
   final String? secret;
   final String? tenant;
 
-  const _AuthenticatedApp({this.ticketId, this.secret, this.tenant});
+  const _AuthenticatedApp({this.ticketId, this.groupId, this.secret, this.tenant});
 
   @override
   State<_AuthenticatedApp> createState() => _AuthenticatedAppState();
@@ -110,12 +112,13 @@ class _AuthenticatedAppState extends State<_AuthenticatedApp> {
           );
         }
 
-        if (widget.ticketId == null || widget.secret == null) {
+        if (widget.ticketId == null && widget.groupId == null || widget.secret == null) {
           return const NoTicket();
         }
 
         return CustomerView(
           ticketId: widget.ticketId,
+          groupId: widget.groupId,
           secret: widget.secret,
         );
       },

@@ -12,6 +12,7 @@ class MonitorService {
   bool _listening = false;
 
   static const _kIdKey = 'monitor_last_id';
+  static const _kGroupIdKey = 'monitor_last_group_id';
   static const _kSecretKey = 'monitor_last_secret';
 
   void init() {
@@ -25,17 +26,27 @@ class MonitorService {
     }.toJS;
   }
 
-  void updateMonitor(int id, String secret) {
-    web.window.localStorage.setItem(_kIdKey, id.toString());
+  void updateMonitor(int? id, String secret, {String? groupId}) {
+    if (id != null) web.window.localStorage.setItem(_kIdKey, id.toString());
+    if (groupId != null) web.window.localStorage.setItem(_kGroupIdKey, groupId);
     web.window.localStorage.setItem(_kSecretKey, secret);
 
-    _channel.postMessage({'id': id, 'secret': secret}.jsify());
+    _channel.postMessage({
+      'id': id, 
+      'groupId': groupId,
+      'secret': secret
+    }.jsify());
   }
 
-  ({int? id, String? secret}) readLastKnown() {
+  ({int? id, String? groupId, String? secret}) readLastKnown() {
     final idStr = web.window.localStorage.getItem(_kIdKey);
+    final groupId = web.window.localStorage.getItem(_kGroupIdKey);
     final secret = web.window.localStorage.getItem(_kSecretKey);
-    return (id: idStr != null ? int.tryParse(idStr) : null, secret: secret);
+    return (
+      id: idStr != null ? int.tryParse(idStr) : null, 
+      groupId: groupId,
+      secret: secret
+    );
   }
 
   Stream<Map<String, dynamic>> get onUpdate => _controller.stream;

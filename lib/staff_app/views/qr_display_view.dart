@@ -8,11 +8,13 @@ import '../widgets/qr_display.dart';
 
 class QrDisplayView extends StatefulWidget {
   final int? ticketId;
+  final String? groupId;
   final String? secret;
 
   const QrDisplayView({
     super.key,
     this.ticketId,
+    this.groupId,
     this.secret,
   });
 
@@ -22,6 +24,7 @@ class QrDisplayView extends StatefulWidget {
 
 class _QrDisplayViewState extends State<QrDisplayView> {
   int? _currentId;
+  String? _currentGroupId;
   String? _currentSecret;
   late StreamSubscription _subscription;
 
@@ -33,12 +36,14 @@ class _QrDisplayViewState extends State<QrDisplayView> {
     final monitor = MonitorService();
     monitor.init();
 
-    if (widget.ticketId != null && widget.secret != null) {
+    if (widget.ticketId != null || widget.groupId != null && widget.secret != null) {
       _currentId = widget.ticketId;
+      _currentGroupId = widget.groupId;
       _currentSecret = widget.secret;
     } else {
       final last = monitor.readLastKnown();
       _currentId = last.id;
+      _currentGroupId = last.groupId;
       _currentSecret = last.secret;
     }
 
@@ -47,10 +52,12 @@ class _QrDisplayViewState extends State<QrDisplayView> {
 
       final rawId = data['id'];
       final newId = rawId is int ? rawId : (rawId as num?)?.toInt();
+      final newGroupId = data['groupId'] as String?;
       final newSecret = data['secret'] as String?;
 
       setState(() {
         _currentId = newId;
+        _currentGroupId = newGroupId;
         _currentSecret = newSecret;
       });
     });
@@ -92,7 +99,11 @@ class _QrDisplayViewState extends State<QrDisplayView> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20),
-            child: QrDisplay(ticketId: _currentId, secret: _currentSecret),
+            child: QrDisplay(
+              ticketId: _currentId, 
+              groupId: _currentGroupId,
+              secret: _currentSecret,
+            ),
           ),
         ),
       ),

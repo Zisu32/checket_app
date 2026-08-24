@@ -174,21 +174,38 @@ class SyncService {
     }
   }
 
-  Future<void> updateSlot(WardrobeSlot slot) async {
+  Future<void> updateSlots(List<WardrobeSlot> slots) async {
     statusNotifier.value = SyncStatus.syncing;
-    await db.into(db.wardrobeSlots).insertOnConflictUpdate(slot);
     
-    final slots = await db.select(db.wardrobeSlots).get();
-    slotsNotifier.value = slots;
+    // 1. Update local DB
+    await db.batch((batch) {
+      batch.insertAll(db.wardrobeSlots, slots, mode: InsertMode.insertOrReplace);
+    });
+    await _notifySlots();
 
     try {
-      await _from('checket_garderobe').update(db.toJson(slot)).eq('id', slot.id);
+      // 2. Update Supabase
+      await Future.wait(slots.map((slot) {
+        final data = db.toJson(slot);
+        data.remove('id');
+        return _from('checket_garderobe').update(data).eq('id', slot.id);
+      }));
+      
       statusNotifier.value = SyncStatus.online;
     } catch (e) {
       statusNotifier.value = SyncStatus.offline;
       await pullFromSupabase();
       rethrow;
     }
+  }
+
+  Future<void> updateSlot(WardrobeSlot slot) async {
+    await updateSlots([slot]);
+  }
+
+  Future<void> _notifySlots() async {
+    final slots = await db.select(db.wardrobeSlots).get();
+    slotsNotifier.value = slots;
   }
 
   Future<void> updateGlobalTicketPrice(double newPrice) async {
@@ -238,6 +255,13 @@ class SyncService {
     return (db.select(db.lostItems)
       ..where((t) => t.isHandedOver.equals(false))
       ..orderBy([(t) => OrderingTerm(expression: t.originalSlotId, mode: OrderingMode.asc)]))
+      .watch();
+  }
+
+  Stream<List<WardrobeSlot>> watchGroup(String groupId, String secret) {
+    return (db.select(db.wardrobeSlots)
+      ..where((t) => t.groupId.equals(groupId) & t.secret.equals(secret))
+      ..orderBy([(t) => OrderingTerm(expression: t.id)]))
       .watch();
   }
 

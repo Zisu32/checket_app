@@ -19,6 +19,7 @@ import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/app_dialog.dart';
 import '../../shared/widgets/app_primary_button.dart';
 import '../../shared/widgets/app_thumb_button.dart';
+import '../widgets/group_action_sheet.dart';
 
 class StaffView extends StatefulWidget {
   const StaffView({super.key});
@@ -30,6 +31,9 @@ class _StaffViewState extends State<StaffView> {
   final _syncService = SyncService();
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
+  
+  // Selection
+  final Set<int> _selectedSlotIds = {};
   
   // Navigation & Pagination
   int _selectedNavIndex = 1; // Default: Dashboard
@@ -65,8 +69,8 @@ class _StaffViewState extends State<StaffView> {
         6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
-  void _syncMonitor(int id, String secret) {
-    MonitorService().updateMonitor(id, secret);
+  void _syncMonitor(int? id, String secret, {String? groupId}) {
+    MonitorService().updateMonitor(id, secret, groupId: groupId);
     final origin = web.window.location.origin;
     final path = web.window.location.pathname;
     // Use a clean URL without sensitive parameters
@@ -212,14 +216,37 @@ class _StaffViewState extends State<StaffView> {
                   ),
                   if (_selectedNavIndex == 1)
                     AppThumbButton(
-                      onTap: () {
-                        // Find first free slot or just open sheet for 'add' logic
-                        // Looking at _zeigeAktionen, it takes a WardrobeSlot.
-                        // For 'Add', we usually just pick the next free one if possible, 
-                        // but the ActionSheet handles selection. 
-                        // I'll pick the first slot or a dummy one if needed.
-                        if (allSlots.isNotEmpty) {
-                          _zeigeAktionen(context, allSlots.firstWhere((s) => s.status == 'free', orElse: () => allSlots.first));
+                      onTap: () async {
+                        if (_selectedSlotIds.isNotEmpty) {
+                          final selectedSlots = allSlots.where((s) => _selectedSlotIds.contains(s.id)).toList();
+                          _zeigeAktionen(context, selectedSlots, onCompleted: () {
+                            setState(() {
+                              _selectedSlotIds.clear();
+                            });
+                          });
+                        } else {
+                          // Find first free slot
+                          final firstFree = allSlots.firstWhere((s) => s.status == 'free', orElse: () => allSlots.first);
+                          final secret = _generateSecret();
+                          final updated = firstFree.copyWith(
+                            status: 'unpaid',
+                            secret: secret,
+                            updatedAt: DateTime.now(),
+                          );
+                          
+                          _syncMonitor(firstFree.id, secret);
+                          try {
+                            await _syncService.updateSlot(updated);
+                            if (mounted) {
+                              _zeigeAktionen(context, [updated]);
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                AppSnackBar(message: 'Fehler: $e', isError: true),
+                              );
+                            }
+                          }
                         }
                       },
                     ),
@@ -264,7 +291,22 @@ class _StaffViewState extends State<StaffView> {
           slots: allSlots,
           pageController: _pageController,
           itemsPerPage: _itemsPerPage,
-          onTap: (slot) => _zeigeAktionen(context, slot),
+          selectedIds: _selectedSlotIds,
+          onTap: (slot) {
+            if (slot.status == 'free' || slot.status == 'marked') {
+              setState(() {
+                if (_selectedSlotIds.contains(slot.id)) {
+                  _selectedSlotIds.remove(slot.id);
+                } else {
+                  _selectedSlotIds.add(slot.id);
+                }
+              });
+              
+              _syncService.updateSlot(slot.copyWith(status: _selectedSlotIds.contains(slot.id) ? 'marked' : 'free'));
+            } else {
+              _zeigeAktionen(context, [slot]);
+            }
+          },
           onPageChanged: (index) => setState(() => _currentPage = index),
         );
       case 2:
@@ -278,17 +320,18 @@ class _StaffViewState extends State<StaffView> {
     }
   }
 
-  void _zeigeAktionen(BuildContext context, WardrobeSlot initialSlot) {
+  void _zeigeAktionen(BuildContext context, List<WardrobeSlot> initialSlots, {VoidCallback? onCompleted}) {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.background,
       isScrollControlled: true,
       builder: (modalContext) {
         return WardrobeActionSheet(
-          initialSlot: initialSlot,
+          initialSlots: initialSlots,
           syncService: _syncService,
           onSyncMonitor: _syncMonitor,
           onGenerateSecret: _generateSecret,
+          onCompleted: onCompleted,
         );
       },
     );
