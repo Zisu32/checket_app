@@ -15,30 +15,12 @@ class SettingsView extends StatefulWidget {
   State<SettingsView> createState() => _SettingsViewState();
 }
 
-class _SettingsViewState extends State<SettingsView> with SingleTickerProviderStateMixin {
-  final _syncService = SyncService();
+class _SettingsViewState extends State<SettingsView> {
   int _currentIndex = 1; // Default: Arbeitsplatz
-
-  late AnimationController _animationController;
-  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   @override
@@ -46,8 +28,6 @@ class _SettingsViewState extends State<SettingsView> with SingleTickerProviderSt
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppTopBar(
-        syncService: _syncService,
-        pulseAnimation: _pulseAnimation,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),

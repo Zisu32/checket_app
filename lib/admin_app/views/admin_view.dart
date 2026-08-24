@@ -15,40 +15,21 @@ class AdminView extends StatefulWidget {
   State<AdminView> createState() => _AdminViewState();
 }
 
-class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMixin {
+class _AdminViewState extends State<AdminView> {
   int _currentIndex = 0;
-  late AnimationController _animationController;
-  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     web.document.title = 'Checket Admin';
-
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppTopBar(
-        syncService: SyncService(),
-        pulseAnimation: _pulseAnimation,
-        leading: const SizedBox.shrink(),
+      appBar: const AppTopBar(
+        leading: SizedBox.shrink(),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_rounded, size: 24),

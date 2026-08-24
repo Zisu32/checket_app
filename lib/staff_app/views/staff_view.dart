@@ -26,7 +26,7 @@ class StaffView extends StatefulWidget {
   State<StaffView> createState() => _StaffViewState();
 }
 
-class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMixin {
+class _StaffViewState extends State<StaffView> {
   final _syncService = SyncService();
   bool _showTimeoutMessage = false;
   Timer? _timeoutTimer;
@@ -36,9 +36,6 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
   late PageController _pageController;
   int _currentPage = 0;
   final int _itemsPerPage = 100;
-
-  late AnimationController _animationController;
-  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -52,22 +49,12 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
         setState(() => _showTimeoutMessage = true);
       }
     });
-
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
-    
-    _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
   }
 
   @override
   void dispose() {
     _timeoutTimer?.cancel();
     _pageController.dispose();
-    _animationController.dispose();
     super.dispose();
   }
 
@@ -194,8 +181,6 @@ class _StaffViewState extends State<StaffView> with SingleTickerProviderStateMix
             return Scaffold(
               backgroundColor: AppTheme.background,
               appBar: AppTopBar(
-                syncService: _syncService,
-                pulseAnimation: _pulseAnimation,
                 actions: [
                   IconButton(
                     icon: const Icon(Icons.settings_outlined, size: 26),
