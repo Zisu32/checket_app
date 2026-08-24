@@ -69,9 +69,7 @@ class _StaffViewState extends State<StaffView> {
   }
 
   void _syncMonitor(int? id, String secret, {String? groupId}) {
-    final readerId = _syncService.db.name.contains('unknown') 
-        ? 'default' 
-        : (SumUpService().getSelectedReaderId() ?? 'default');
+    final readerId = SumUpService().getSelectedReaderId() ?? 'default';
     
     MonitorService().updateMonitor(id, secret, groupId: groupId, targetId: readerId);
     

@@ -221,7 +221,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
     }
   }
 
-  Future<void> _finalizeGroup(List<WardrobeSlot> slots, String groupId, String secret, String method) async {
+  Future<void> _finalizeGroup(List<WardrobeSlot> slots, String? groupId, String secret, String method) async {
     final updatedSlots = slots.map((s) => s.copyWith(
       status: 'active',
       isPaid: true,
