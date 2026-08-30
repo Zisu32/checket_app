@@ -69,10 +69,15 @@ class _StaffViewState extends State<StaffView> {
         6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 
-  void _syncMonitor(int? id, String secret, {String? groupId}) {
+  void _syncMonitor(String? label, String secret, {String? groupId}) {
     final readerId = SumUpService().getSelectedReaderId() ?? 'default';
     
-    MonitorService().updateMonitor(id, secret, groupId: groupId, targetId: readerId);
+    MonitorService().updateMonitor(
+      label: label, 
+      secret: secret, 
+      groupId: groupId, 
+      targetId: readerId
+    );
     
     final origin = web.window.location.origin;
     final path = web.window.location.pathname;

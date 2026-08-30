@@ -23,7 +23,7 @@ class QrDisplayView extends StatefulWidget {
 }
 
 class _QrDisplayViewState extends State<QrDisplayView> {
-  int? _currentId;
+  String? _currentId;
   String? _currentGroupId;
   String? _currentSecret;
   late StreamSubscription _subscription;
@@ -42,12 +42,12 @@ class _QrDisplayViewState extends State<QrDisplayView> {
     monitor.init();
 
     if (widget.ticketId != null || widget.groupId != null && widget.secret != null) {
-      _currentId = widget.ticketId;
+      _currentId = widget.ticketId?.toString();
       _currentGroupId = widget.groupId;
       _currentSecret = widget.secret;
     } else {
       final last = monitor.readLastKnown(targetId: targetId);
-      _currentId = last.id;
+      _currentId = last.label;
       _currentGroupId = last.groupId;
       _currentSecret = last.secret;
     }
@@ -58,13 +58,12 @@ class _QrDisplayViewState extends State<QrDisplayView> {
       // Filter messages intended for this specific monitor
       if (data['targetId'] != targetId) return;
 
-      final rawId = data['id'];
-      final newId = rawId is int ? rawId : (rawId as num?)?.toInt();
+      final label = data['label'] as String?;
       final newGroupId = data['groupId'] as String?;
       final newSecret = data['secret'] as String?;
 
       setState(() {
-        _currentId = newId;
+        _currentId = label;
         _currentGroupId = newGroupId;
         _currentSecret = newSecret;
       });

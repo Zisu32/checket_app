@@ -110,7 +110,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
     final screenHeight = MediaQuery.of(context).size.height;
     final isShortScreen = screenHeight < 700;
 
-    if (_activeId == null && _activeGroupId == null || _activeSecret == null) {
+    if ((_activeId == null && _activeGroupId == null) || _activeSecret == null) {
       return const NoTicket();
     }
 

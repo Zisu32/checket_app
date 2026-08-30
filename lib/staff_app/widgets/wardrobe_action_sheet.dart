@@ -234,7 +234,8 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
     try {
       await widget.syncService.updateSlots(updatedSlots);
       if (slots.isNotEmpty) {
-        widget.onSyncMonitor(slots.first.id, secret, groupId: groupId);
+        final label = slots.map((s) => s.id).join(', ');
+        widget.onSyncMonitor(label, secret, groupId: groupId);
       }
       
       if (!mounted) return;
