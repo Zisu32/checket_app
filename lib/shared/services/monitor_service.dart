@@ -33,8 +33,20 @@ class MonitorService {
     String targetId = 'default',
   }) {
     final prefix = 'monitor_${targetId}_';
-    if (label != null) web.window.localStorage.setItem('${prefix}last_label', label);
-    if (groupId != null) web.window.localStorage.setItem('${prefix}last_group_id', groupId);
+    
+    // Always update or clear to avoid stale data from previous sessions
+    if (label != null) {
+      web.window.localStorage.setItem('${prefix}last_label', label);
+    } else {
+      web.window.localStorage.removeItem('${prefix}last_label');
+    }
+
+    if (groupId != null) {
+      web.window.localStorage.setItem('${prefix}last_group_id', groupId);
+    } else {
+      web.window.localStorage.removeItem('${prefix}last_group_id');
+    }
+
     web.window.localStorage.setItem('${prefix}last_secret', secret);
 
     _channel.postMessage({

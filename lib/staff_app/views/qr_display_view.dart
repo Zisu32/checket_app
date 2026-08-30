@@ -36,7 +36,17 @@ class _QrDisplayViewState extends State<QrDisplayView> {
     // Identify which workstation this monitor belongs to
     final fullUrl = web.window.location.href;
     final uri = Uri.parse(fullUrl);
-    final targetId = uri.queryParameters['target'] ?? 'default';
+    
+    // Handle parameters inside the fragment (e.g., #/qr?target=...)
+    Map<String, String> params = Map.from(uri.queryParameters);
+    if (uri.hasFragment) {
+      final fragment = uri.fragment.contains('?') ? uri.fragment.split('?').last : '';
+      if (fragment.isNotEmpty) {
+        params.addAll(Uri.splitQueryString(fragment));
+      }
+    }
+    
+    final targetId = params['target'] ?? 'default';
 
     final monitor = MonitorService();
     monitor.init();

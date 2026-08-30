@@ -41,10 +41,12 @@ class QrDisplay extends StatelessWidget {
     String qrData;
     if (isRecovery) {
       qrData = '$origin$path?tenant=$tenant'; // Base website with tenant
-    } else if (groupId != null) {
+    } else if (groupId != null && groupId!.isNotEmpty) {
       qrData = '$origin$path?groupId=$groupId&secret=$secret&tenant=$tenant';
     } else {
-      qrData = '$origin$path?id=$ticketId&secret=$secret&tenant=$tenant';
+      // For single tickets, clean the label to ensure it's just the ID
+      final idOnly = ticketId?.split(',').first.trim() ?? '';
+      qrData = '$origin$path?id=$idOnly&secret=$secret&tenant=$tenant';
     }
 
     return Column(
@@ -53,7 +55,7 @@ class QrDisplay extends StatelessWidget {
         Text(
           isRecovery 
             ? 'TICKET WIEDERHERSTELLEN' 
-            : (groupId != null ? 'GRUPPEN-TICKET $ticketId' : 'TICKET $ticketId'),
+            : (groupId != null && groupId!.isNotEmpty ? 'GRUPPEN-TICKET' : 'TICKET $ticketId'),
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 42,
@@ -62,6 +64,19 @@ class QrDisplay extends StatelessWidget {
             letterSpacing: 2,
           ),
         ),
+        if (groupId != null && groupId!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              ticketId ?? '',
+              style: const TextStyle(
+                fontSize: 32,
+                color: AppTheme.white,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
         const SizedBox(height: 10),
         Text(
           isRecovery ? 'BITTE SCANNEN' : 'BITTE SCANNEN',

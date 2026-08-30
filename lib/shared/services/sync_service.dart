@@ -261,10 +261,54 @@ class SyncService {
   }
 
   Stream<List<WardrobeSlot>> watchGroup(String groupId, String secret) {
-    return (db.select(db.wardrobeSlots)
-      ..where((t) => t.groupId.equals(groupId) & t.secret.equals(secret))
-      ..orderBy([(t) => OrderingTerm(expression: t.id)]))
-      .watch();
+    final controller = StreamController<List<WardrobeSlot>>.broadcast();
+    
+    Future<void> update() async {
+      if (controller.isClosed) return;
+      
+      // 1. Check local DB
+      final local = await (db.select(db.wardrobeSlots)
+            ..where((t) => t.groupId.equals(groupId) & t.secret.equals(secret))
+            ..orderBy([(t) => OrderingTerm(expression: t.id)]))
+          .get();
+      
+      if (local.isNotEmpty) {
+        controller.add(local);
+      } else {
+        // 2. Fallback to Supabase (important for first guest load)
+        try {
+          final data = await _from('checket_garderobe')
+              .select()
+              .eq('group_id', groupId)
+              .eq('secret', secret)
+              .order('id', ascending: true);
+          
+          final slots = (data as List).map((json) => WardrobeSlot(
+            id: json['id'] as int,
+            status: json['status'] as String? ?? 'free',
+            isPaid: json['is_paid'] as bool? ?? false,
+            paymentMethod: json['payment_method'] as String? ?? 'none',
+            secret: json['secret'] as String? ?? '',
+            groupId: json['group_id'] as String? ?? '',
+            updatedAt: DateTime.parse(json['updated_at'] as String),
+          )).toList();
+          
+          if (slots.isNotEmpty) controller.add(slots);
+        } catch (e) {
+          // Silent fail or empty
+        }
+      }
+    }
+
+    final sub = db.wardrobeSlots.all().watch().listen((_) => update());
+    update();
+    
+    controller.onCancel = () {
+      sub.cancel();
+      controller.close();
+    };
+    
+    return controller.stream;
   }
 
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
