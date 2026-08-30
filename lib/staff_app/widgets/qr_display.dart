@@ -18,7 +18,7 @@ class QrDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRecovery = ticketId == -1 || secret == 'recovery';
+    final isRecovery = ticketId == '-1' || secret == 'recovery';
     
     // Generate URL for QR
     final origin = web.window.location.origin;

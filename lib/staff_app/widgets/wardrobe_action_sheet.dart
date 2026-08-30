@@ -49,7 +49,10 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingPrice = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Preisfehler: $e', isError: true));
+        setState(() => _isLoadingPrice = false);
+      }
     }
   }
 
@@ -70,7 +73,8 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
         // If multiple slots, we are in group mode. If one, check its status.
         final bool isGroup = currentSlots.length > 1;
         final firstSlot = currentSlots.first;
-        final bool isNewCheckIn = isGroup || firstSlot.status == 'free' || firstSlot.status == 'marked';
+        final bool isNewCheckIn = isGroup || 
+            ['free', 'marked', 'unpaid'].contains(firstSlot.status.toLowerCase());
         
         String title = isGroup ? '${currentSlots.length} Jacken' : 'Bügel ${firstSlot.id}';
         String subtitle = _getStatusLabel(firstSlot.status);

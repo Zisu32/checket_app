@@ -227,7 +227,7 @@ class SyncService {
           .limit(1)
           .maybeSingle();
       
-      if (res == null) throw 'Kein globaler Ticket-Preis gefunden.';
+      if (res == null) throw 'Kein globaler Ticket-Preis konfiguriert.';
       return (res['ticket_price'] as num).toDouble();
     } catch (e) {
       rethrow;
