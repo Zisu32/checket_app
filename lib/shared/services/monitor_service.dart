@@ -11,10 +11,6 @@ class MonitorService {
   final _controller = StreamController<Map<String, dynamic>>.broadcast();
   bool _listening = false;
 
-  static const _kIdKey = 'monitor_last_id';
-  static const _kGroupIdKey = 'monitor_last_group_id';
-  static const _kSecretKey = 'monitor_last_secret';
-
   void init() {
     if (_listening) return;
     _listening = true;
@@ -34,7 +30,6 @@ class MonitorService {
   }) {
     final prefix = 'monitor_${targetId}_';
     
-    // Always update or clear to avoid stale data from previous sessions
     if (label != null) {
       web.window.localStorage.setItem('${prefix}last_label', label);
     } else {

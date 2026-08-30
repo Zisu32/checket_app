@@ -162,9 +162,7 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
             final updated = firstSlot.copyWith(
               status: 'free',
               isPaid: false,
-              secret: '',
               paymentMethod: 'none',
-              groupId: '',
               updatedAt: DateTime.now(),
             );
             await _updateAndPop(updated);
@@ -177,8 +175,10 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
   }
 
   Future<void> _handlePayment(List<WardrobeSlot> slots, String method) async {
-    final String? groupId = slots.length > 1 ? Uuid().v4() : null;
-    final secret = widget.onGenerateSecret();
+    final firstSlot = slots.first;
+    // Use existing IDs if already unpaid, otherwise generate new ones (fallback)
+    final String? groupId = firstSlot.status == 'unpaid' ? (firstSlot.groupId.isNotEmpty ? firstSlot.groupId : null) : (slots.length > 1 ? Uuid().v4() : null);
+    final secret = firstSlot.status == 'unpaid' ? firstSlot.secret : widget.onGenerateSecret();
     
     if (method == 'nfc') {
       setState(() {

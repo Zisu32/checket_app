@@ -124,6 +124,13 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
           builder: (context, snapshot) {
             final slots = snapshot.data ?? [];
             final bool isSearching = !snapshot.hasData;
+
+            // Trigger a manual pull when something changes in the background
+            if (_activeGroupId != null && _activeSecret != null) {
+              _syncService.pullGroupFromSupabase(_activeGroupId!, _activeSecret!);
+            } else if (_activeId != null && _activeSecret != null) {
+              _syncService.pullTicketFromSupabase(_activeId!, _activeSecret!);
+            }
             
             if (slots.isEmpty && !isSearching) {
                return const NoTicket();

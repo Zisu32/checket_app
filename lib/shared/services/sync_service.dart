@@ -81,6 +81,44 @@ class SyncService {
     }
   }
 
+  Future<void> pullGroupFromSupabase(String groupId, String secret) async {
+    if (_schemaName == 'public') return;
+    try {
+      final data = await _from('checket_garderobe')
+          .select()
+          .eq('group_id', groupId)
+          .eq('secret', secret);
+      
+      final entries = (data as List).map((json) => db.companionFromJson(json)).toList();
+      await db.batch((batch) {
+        batch.insertAll(db.wardrobeSlots, entries, mode: InsertMode.insertOrReplace);
+      });
+      await _notifySlots();
+    } catch (e) {
+      print('Guest Sync Error (Group): $e');
+    }
+  }
+
+  Future<void> pullTicketFromSupabase(int id, String secret) async {
+    if (_schemaName == 'public') return;
+    try {
+      final data = await _from('checket_garderobe')
+          .select()
+          .eq('id', id)
+          .eq('secret', secret)
+          .maybeSingle();
+      
+      if (data != null) {
+        await db.batch((batch) {
+          batch.insertAll(db.wardrobeSlots, [db.companionFromJson(data)], mode: InsertMode.insertOrReplace);
+        });
+        await _notifySlots();
+      }
+    } catch (e) {
+      print('Guest Sync Error (Ticket): $e');
+    }
+  }
+
   Future<void> pullLostItemsFromSupabase() async {
     if (_schemaName == 'public') return;
     try {
@@ -102,7 +140,11 @@ class SyncService {
       schema: _schemaName,
       table: 'checket_garderobe',
       callback: (payload) async {
-        await pullFromSupabase();
+        // If we are a tenant/staff, we pull everything
+        final user = supabase.auth.currentUser;
+        if (user != null) {
+          await pullFromSupabase();
+        }
       },
     ).subscribe((status, [error]) {
        if (status == RealtimeSubscribeStatus.channelError) {
@@ -312,31 +354,63 @@ class SyncService {
   }
 
   Stream<WardrobeSlot?> watchTicket(int id, String secret) {
-    final controller = StreamController<WardrobeSlot?>();
+    final controller = StreamController<WardrobeSlot?>.broadcast();
     Future<void> update() async {
       if (controller.isClosed) return;
-      final activeBySecret = await (db.select(db.wardrobeSlots)
+      
+      // 1. Check local DB
+      final localActive = await (db.select(db.wardrobeSlots)
             ..where((t) => t.id.equals(id) & t.secret.equals(secret)))
           .getSingleOrNull();
-      if (activeBySecret != null && activeBySecret.status != 'free') {
-        controller.add(activeBySecret);
+      
+      if (localActive != null && localActive.status != 'free') {
+        controller.add(localActive);
         return;
       }
-      final lostBySecret = await (db.select(db.lostItems)
+      
+      final localLost = await (db.select(db.lostItems)
             ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret)))
           .getSingleOrNull();
-      if (lostBySecret != null) {
+      
+      if (localLost != null) {
         controller.add(WardrobeSlot(
-          id: lostBySecret.originalSlotId,
-          status: lostBySecret.isHandedOver ? 'picked_up' : 'forgotten',
-          isPaid: lostBySecret.isPaid,
+          id: localLost.originalSlotId,
+          status: localLost.isHandedOver ? 'picked_up' : 'forgotten',
+          isPaid: localLost.isPaid,
           paymentMethod: 'none',
-          secret: lostBySecret.secret,
+          secret: localLost.secret,
           groupId: '',
-          updatedAt: lostBySecret.createdAt,
+          updatedAt: localLost.createdAt,
         ));
         return;
       }
+
+      // 2. Fallback to Supabase (important for guest view)
+      try {
+        final data = await _from('checket_garderobe')
+            .select()
+            .eq('id', id)
+            .eq('secret', secret)
+            .maybeSingle();
+        
+        if (data != null) {
+          final slot = WardrobeSlot(
+            id: data['id'] as int,
+            status: data['status'] as String? ?? 'free',
+            isPaid: data['is_paid'] as bool? ?? false,
+            paymentMethod: data['payment_method'] as String? ?? 'none',
+            secret: data['secret'] as String? ?? '',
+            groupId: data['group_id'] as String? ?? '',
+            updatedAt: DateTime.parse(data['updated_at'] as String),
+          );
+          controller.add(slot);
+          return;
+        }
+      } catch (e) {
+        // Silent
+      }
+
+      // 3. Check for general picked up state
       final hookInGrid = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
       if (hookInGrid != null) {
         if (hookInGrid.status == 'free') {

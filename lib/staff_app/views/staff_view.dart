@@ -225,35 +225,43 @@ class _StaffViewState extends State<StaffView> {
                   if (_selectedNavIndex == 1)
                     AppThumbButton(
                       onTap: () async {
+                        final List<WardrobeSlot> targetSlots = [];
                         if (_selectedSlotIds.isNotEmpty) {
-                          final selectedSlots = allSlots.where((s) => _selectedSlotIds.contains(s.id)).toList();
-                          _zeigeAktionen(context, selectedSlots, onCompleted: () {
-                            setState(() {
-                              _selectedSlotIds.clear();
-                            });
-                          });
+                          targetSlots.addAll(allSlots.where((s) => _selectedSlotIds.contains(s.id)));
                         } else {
-                          // Find first free slot
                           final firstFree = allSlots.firstWhere((s) => s.status == 'free', orElse: () => allSlots.first);
-                          final secret = _generateSecret();
-                          final updated = firstFree.copyWith(
-                            status: 'unpaid',
-                            secret: secret,
-                            updatedAt: DateTime.now(),
-                          );
-                          
-                          _syncMonitor(firstFree.id.toString(), secret);
-                          try {
-                            await _syncService.updateSlot(updated);
-                            if (mounted) {
-                              _zeigeAktionen(context, [updated]);
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                AppSnackBar(message: 'Fehler: $e', isError: true),
-                              );
-                            }
+                          targetSlots.add(firstFree);
+                        }
+
+                        if (targetSlots.isEmpty) return;
+
+                        final secret = _generateSecret();
+                        final String? groupId = targetSlots.length > 1 ? Uuid().v4() : null;
+                        
+                        final updatedSlots = targetSlots.map((s) => s.copyWith(
+                          status: 'unpaid',
+                          secret: secret,
+                          groupId: groupId ?? '',
+                          updatedAt: DateTime.now(),
+                        )).toList();
+
+                        final label = targetSlots.map((s) => s.id).join(', ');
+                        _syncMonitor(label, secret, groupId: groupId);
+
+                        try {
+                          await _syncService.updateSlots(updatedSlots);
+                          if (mounted) {
+                            _zeigeAktionen(context, updatedSlots, onCompleted: () {
+                              setState(() {
+                                _selectedSlotIds.clear();
+                              });
+                            });
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              AppSnackBar(message: 'Fehler beim Starten des Check-ins: $e', isError: true),
+                            );
                           }
                         }
                       },

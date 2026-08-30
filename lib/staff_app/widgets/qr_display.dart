@@ -55,7 +55,7 @@ class QrDisplay extends StatelessWidget {
         Text(
           isRecovery 
             ? 'TICKET WIEDERHERSTELLEN' 
-            : (groupId != null && groupId!.isNotEmpty ? 'GRUPPEN-TICKET' : 'TICKET $ticketId'),
+            : (groupId != null && groupId!.isNotEmpty ? 'GRUPPEN-TICKET $ticketId' : 'TICKET $ticketId'),
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontSize: 42,
@@ -64,19 +64,6 @@ class QrDisplay extends StatelessWidget {
             letterSpacing: 2,
           ),
         ),
-        if (groupId != null && groupId!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Text(
-              ticketId ?? '',
-              style: const TextStyle(
-                fontSize: 32,
-                color: AppTheme.white,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
         const SizedBox(height: 10),
         Text(
           isRecovery ? 'BITTE SCANNEN' : 'BITTE SCANNEN',
