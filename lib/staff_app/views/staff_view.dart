@@ -242,7 +242,7 @@ class _StaffViewState extends State<StaffView> {
                             updatedAt: DateTime.now(),
                           );
                           
-                          _syncMonitor(firstFree.id, secret);
+                          _syncMonitor(firstFree.id.toString(), secret);
                           try {
                             await _syncService.updateSlot(updated);
                             if (mounted) {

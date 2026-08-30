@@ -10,7 +10,7 @@ import '../../shared/widgets/app_action_sheet.dart';
 class WardrobeActionSheet extends StatefulWidget {
   final List<WardrobeSlot> initialSlots;
   final SyncService syncService;
-  final Function(int? id, String secret, {String? groupId}) onSyncMonitor;
+  final Function(String? label, String secret, {String? groupId}) onSyncMonitor;
   final String Function() onGenerateSecret;
   final VoidCallback? onCompleted;
 
