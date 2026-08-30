@@ -9,7 +9,7 @@ import '../../../shared/widgets/app_thumb_button.dart';
 
 class LostFoundTabView extends StatelessWidget {
   final SyncService syncService;
-  final Function(String?, String, {String? groupId}) onSyncMonitor;
+  final Function(String? label, String secret, {String? groupId}) onSyncMonitor;
 
   const LostFoundTabView({
     super.key,
