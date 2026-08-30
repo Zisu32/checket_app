@@ -76,7 +76,8 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
         final bool isNewCheckIn = isGroup || 
             ['free', 'marked', 'unpaid'].contains(firstSlot.status.toLowerCase());
         
-        String title = isGroup ? '${currentSlots.length} Jacken' : 'Bügel ${firstSlot.id}';
+        final String label = currentSlots.map((s) => s.id).join(', ');
+        String title = 'Bügel $label';
         String subtitle = _getStatusLabel(firstSlot.status);
         
         if (isNewCheckIn) {
