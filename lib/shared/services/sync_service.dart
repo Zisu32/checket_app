@@ -84,14 +84,28 @@ class SyncService {
   Future<void> pullGroupFromSupabase(String groupId, String secret) async {
     if (_schemaName == 'public') return;
     try {
-      final data = await _from('checket_garderobe')
+      // 1. Pull from Wardrobe
+      final wardrobeData = await _from('checket_garderobe')
           .select()
           .eq('group_id', groupId)
           .eq('secret', secret);
       
-      final entries = (data as List).map((json) => db.companionFromJson(json)).toList();
+      final wardrobeEntries = (wardrobeData as List).map((json) => db.companionFromJson(json)).toList();
+      
+      // 2. Pull from Lost Found
+      final lostData = await _from('checket_lost_found')
+          .select()
+          .eq('group_id', groupId)
+          .eq('secret', secret);
+      
+      final lostEntries = (lostData as List).map((json) => db.lostItemCompanionFromJson(json)).toList();
+
       await db.batch((batch) {
-        batch.insertAll(db.wardrobeSlots, entries, mode: InsertMode.insertOrReplace);
+        // Update wardrobe slots
+        batch.insertAll(db.wardrobeSlots, wardrobeEntries, mode: InsertMode.insertOrReplace);
+
+        // Update lost items
+        batch.insertAll(db.lostItems, lostEntries, mode: InsertMode.insertOrReplace);
       });
       await _notifySlots();
     } catch (e) {
@@ -102,18 +116,29 @@ class SyncService {
   Future<void> pullTicketFromSupabase(int id, String secret) async {
     if (_schemaName == 'public') return;
     try {
-      final data = await _from('checket_garderobe')
+      // 1. Check Wardrobe
+      final wardrobeData = await _from('checket_garderobe')
           .select()
           .eq('id', id)
           .eq('secret', secret)
           .maybeSingle();
       
-      if (data != null) {
-        await db.batch((batch) {
-          batch.insertAll(db.wardrobeSlots, [db.companionFromJson(data)], mode: InsertMode.insertOrReplace);
-        });
-        await _notifySlots();
-      }
+      // 2. Check Lost Found
+      final lostData = await _from('checket_lost_found')
+          .select()
+          .eq('original_slot_id', id)
+          .eq('secret', secret)
+          .maybeSingle();
+
+      await db.batch((batch) {
+        if (wardrobeData != null) {
+          batch.insertAll(db.wardrobeSlots, [db.companionFromJson(wardrobeData)], mode: InsertMode.insertOrReplace);
+        }
+        if (lostData != null) {
+          batch.insertAll(db.lostItems, [db.lostItemCompanionFromJson(lostData)], mode: InsertMode.insertOrReplace);
+        }
+      });
+      await _notifySlots();
     } catch (e) {
       print('Guest Sync Error (Ticket): $e');
     }
@@ -191,6 +216,11 @@ class SyncService {
         'group_id': '',
         'updated_at': DateTime.now().toIso8601String()
       }).neq('status', 'free');
+
+      // Clear local wardrobe cache to avoid ghost items for staff
+      await db.batch((batch) {
+        batch.deleteWhere(db.wardrobeSlots, (t) => const Constant(true));
+      });
 
       await Future.wait([
         pullLostItemsFromSupabase(),
@@ -309,7 +339,7 @@ class SyncService {
     Future<void> update() async {
       if (controller.isClosed) return;
       
-      // 1. Check local DB (WardrobeSlots)
+      // 1. Check local DB (WardrobeSlots) - Only those that still match secret/group
       final localWardrobe = await (db.select(db.wardrobeSlots)
             ..where((t) => t.groupId.equals(groupId) & t.secret.equals(secret))
             ..orderBy([(t) => OrderingTerm(expression: t.id)]))
@@ -323,7 +353,7 @@ class SyncService {
 
       final Map<int, WardrobeSlot> slotsMap = {};
       
-      // Prefer active/unpaid slots over lost items for the same ID if there's a conflict
+      // Priority 1: Items in Fundbüro (Archived)
       for (final l in localLost) {
         slotsMap[l.originalSlotId] = WardrobeSlot(
           id: l.originalSlotId,
@@ -336,9 +366,19 @@ class SyncService {
         );
       }
       
+      // Priority 2: Active items in wardrobe (Live)
+      // If an item is in both, the 'active' one in wardrobe table is usually the most recent 
+      // UNLESS it's status is 'free' (meaning it's been reset but we still have the secret in cache)
       for (final w in localWardrobe) {
         if (w.status != 'free') {
            slotsMap[w.id] = w;
+        } else {
+           // If it's free in wardrobe but we have it as forgotten in lost_found, 
+           // the loop above already added it. 
+           // If it's free and NOT in lost_found, it was probably picked up.
+           if (!slotsMap.containsKey(w.id)) {
+              slotsMap[w.id] = w.copyWith(status: 'picked_up');
+           }
         }
       }
 
@@ -381,9 +421,15 @@ class SyncService {
           )).toList();
 
           final Map<int, WardrobeSlot> remoteMap = {};
+          // Fill with lost slots first
           for (final s in lostSlots) remoteMap[s.id] = s;
+          // Overwrite with active wardrobe slots if they still match secret
           for (final s in wardrobeSlots) {
-            if (s.status != 'free') remoteMap[s.id] = s;
+            if (s.status != 'free') {
+              remoteMap[s.id] = s;
+            } else if (!remoteMap.containsKey(s.id)) {
+              remoteMap[s.id] = s.copyWith(status: 'picked_up');
+            }
           }
 
           if (remoteMap.isNotEmpty) {
@@ -414,16 +460,12 @@ class SyncService {
     Future<void> update() async {
       if (controller.isClosed) return;
       
-      // 1. Check local DB
+      // 1. Check local DB (WardrobeSlots)
       final localActive = await (db.select(db.wardrobeSlots)
             ..where((t) => t.id.equals(id) & t.secret.equals(secret)))
           .getSingleOrNull();
       
-      if (localActive != null && localActive.status != 'free') {
-        controller.add(localActive);
-        return;
-      }
-      
+      // 2. Check local DB (LostItems)
       final localLost = await (db.select(db.lostItems)
             ..where((t) => t.originalSlotId.equals(id) & t.secret.equals(secret)))
           .getSingleOrNull();
@@ -435,36 +477,26 @@ class SyncService {
           isPaid: localLost.isPaid,
           paymentMethod: 'none',
           secret: localLost.secret,
-          groupId: '',
+          groupId: localLost.groupId,
           updatedAt: localLost.createdAt,
         ));
         return;
       }
 
-      // 2. Fallback to Supabase (important for guest view)
-      try {
-        // Check Wardrobe
-        final wardrobeData = await _from('checket_garderobe')
-            .select()
-            .eq('id', id)
-            .eq('secret', secret)
-            .maybeSingle();
-        
-        if (wardrobeData != null) {
-          final slot = WardrobeSlot(
-            id: wardrobeData['id'] as int,
-            status: wardrobeData['status'] as String? ?? 'free',
-            isPaid: wardrobeData['is_paid'] as bool? ?? false,
-            paymentMethod: wardrobeData['payment_method'] as String? ?? 'none',
-            secret: wardrobeData['secret'] as String? ?? '',
-            groupId: wardrobeData['group_id'] as String? ?? '',
-            updatedAt: DateTime.parse(wardrobeData['updated_at'] as String),
-          );
-          controller.add(slot);
-          return;
+      if (localActive != null) {
+        if (localActive.status != 'free') {
+           controller.add(localActive);
+           return;
+        } else {
+           // If it's free in local DB, it was probably picked up
+           controller.add(localActive.copyWith(status: 'picked_up'));
+           return;
         }
+      }
 
-        // Check Lost Found
+      // 3. Fallback to Supabase (important for guest view)
+      try {
+        // Check Lost Found first (archived state)
         final lostData = await _from('checket_lost_found')
             .select()
             .eq('original_slot_id', id)
@@ -484,21 +516,38 @@ class SyncService {
           controller.add(slot);
           return;
         }
+
+        // Check Wardrobe (live state)
+        final wardrobeData = await _from('checket_garderobe')
+            .select()
+            .eq('id', id)
+            .eq('secret', secret)
+            .maybeSingle();
+        
+        if (wardrobeData != null) {
+          final slot = WardrobeSlot(
+            id: wardrobeData['id'] as int,
+            status: wardrobeData['status'] as String? ?? 'free',
+            isPaid: wardrobeData['is_paid'] as bool? ?? false,
+            paymentMethod: wardrobeData['payment_method'] as String? ?? 'none',
+            secret: wardrobeData['secret'] as String? ?? '',
+            groupId: wardrobeData['group_id'] as String? ?? '',
+            updatedAt: DateTime.parse(wardrobeData['updated_at'] as String),
+          );
+          
+          if (slot.status != 'free') {
+             controller.add(slot);
+          } else {
+             controller.add(slot.copyWith(status: 'picked_up'));
+          }
+          return;
+        }
       } catch (e) {
         print('watchTicket fallback error: $e');
       }
 
-      // 3. Check for general picked up state
-      final hookInGrid = await (db.select(db.wardrobeSlots)..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (hookInGrid != null) {
-        if (hookInGrid.status == 'free') {
-          controller.add(hookInGrid);
-        } else {
-          controller.add(hookInGrid.copyWith(status: 'picked_up'));
-        }
-      } else {
-        controller.add(null);
-      }
+      // 4. Default: No data found for this secret
+      controller.add(null);
     }
     final sub1 = db.wardrobeSlots.all().watch().listen((_) => update());
     final sub2 = db.lostItems.all().watch().listen((_) => update());
