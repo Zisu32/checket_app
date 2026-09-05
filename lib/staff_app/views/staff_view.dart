@@ -251,12 +251,11 @@ class _StaffViewState extends State<StaffView> {
 
                         try {
                           await _syncService.updateSlots(updatedSlots);
+                          setState(() {
+                            _selectedSlotIds.clear();
+                          });
                           if (mounted) {
-                            _zeigeAktionen(context, updatedSlots, onCompleted: () {
-                              setState(() {
-                                _selectedSlotIds.clear();
-                              });
-                            });
+                            _zeigeAktionen(context, updatedSlots);
                           }
                         } catch (e) {
                           if (mounted) {

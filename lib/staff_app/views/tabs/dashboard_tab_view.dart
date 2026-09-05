@@ -53,14 +53,15 @@ class DashboardTabView extends StatelessWidget {
             // Selection override
             if (isSelected) kachelFarbe = AppTheme.background;
 
-            final bool showBorder = isSelected || slot.status == 'marked';
+            final bool isMarked = slot.status == 'marked' || isSelected;
+            final bool isUnpaid = slot.status == 'unpaid';
 
             return InkWell(
               key: ValueKey('slot_${slot.id}_${slot.status}_$isSelected'),
               onTap: () => onTap(slot),
               child: Container(
                 decoration: BoxDecoration(
-                  color: showBorder ? AppTheme.background : kachelFarbe, 
+                  color: isUnpaid ? AppTheme.unpaid : (isMarked ? AppTheme.background : kachelFarbe), 
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
