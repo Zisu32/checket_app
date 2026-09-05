@@ -196,6 +196,18 @@ class _StaffViewState extends State<StaffView> {
               appBar: AppTopBar(
                 actions: [
                   IconButton(
+                    tooltip: 'Monitor leeren',
+                    icon: const Icon(Icons.desktop_access_disabled_outlined, size: 24),
+                    onPressed: () {
+                      final readerId = SumUpService().getSelectedReaderId() ?? 'default';
+                      MonitorService().updateMonitor(
+                        label: null, 
+                        secret: '', 
+                        targetId: readerId
+                      );
+                    },
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.settings_outlined, size: 26),
                     onPressed: _showSettingsAuth,
                   ),

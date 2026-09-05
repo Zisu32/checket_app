@@ -132,6 +132,20 @@ class _WardrobeActionSheetState extends State<WardrobeActionSheet> {
       ));
     } else {
       // Existing slot actions (Active, Temporary, etc.)
+      if (firstSlot.status != 'free') {
+        // Option to show QR code again if it expired or customer missed it
+        actions.add(SheetAction(
+          icon: Icons.qr_code_2_rounded,
+          label: 'QR-Code anzeigen',
+          color: AppTheme.active,
+          onTap: () {
+            final label = slots.map((s) => s.id).join(', ');
+            widget.onSyncMonitor(label, firstSlot.secret, groupId: firstSlot.groupId.isNotEmpty ? firstSlot.groupId : null);
+            Navigator.pop(context);
+          },
+        ));
+      }
+
       if (firstSlot.status == 'active' || firstSlot.status == 'temporary') {
         if (firstSlot.status == 'active') {
           actions.add(SheetAction(
