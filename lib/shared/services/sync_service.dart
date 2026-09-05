@@ -175,6 +175,7 @@ class SyncService {
         final lostEntries = toArchive.map((s) => {
           'original_slot_id': s.id,
           'secret': s.secret,
+          'group_id': s.groupId,
           'is_paid': s.isPaid,
           'created_at': DateTime.now().toIso8601String(),
         }).toList();
@@ -308,24 +309,52 @@ class SyncService {
     Future<void> update() async {
       if (controller.isClosed) return;
       
-      // 1. Check local DB
-      final local = await (db.select(db.wardrobeSlots)
+      // 1. Check local DB (WardrobeSlots)
+      final localWardrobe = await (db.select(db.wardrobeSlots)
             ..where((t) => t.groupId.equals(groupId) & t.secret.equals(secret))
             ..orderBy([(t) => OrderingTerm(expression: t.id)]))
           .get();
       
-      if (local.isNotEmpty) {
-        controller.add(local);
+      // 2. Check local DB (LostItems)
+      final localLost = await (db.select(db.lostItems)
+            ..where((t) => t.groupId.equals(groupId) & t.secret.equals(secret))
+            ..orderBy([(t) => OrderingTerm(expression: t.originalSlotId)]))
+          .get();
+
+      final Map<int, WardrobeSlot> slotsMap = {};
+      
+      // Prefer active/unpaid slots over lost items for the same ID if there's a conflict
+      for (final l in localLost) {
+        slotsMap[l.originalSlotId] = WardrobeSlot(
+          id: l.originalSlotId,
+          status: l.isHandedOver ? 'picked_up' : 'forgotten',
+          isPaid: l.isPaid,
+          paymentMethod: 'none',
+          secret: l.secret,
+          groupId: l.groupId,
+          updatedAt: l.createdAt,
+        );
+      }
+      
+      for (final w in localWardrobe) {
+        if (w.status != 'free') {
+           slotsMap[w.id] = w;
+        }
+      }
+
+      if (slotsMap.isNotEmpty) {
+        final sorted = slotsMap.values.toList()..sort((a, b) => a.id.compareTo(b.id));
+        controller.add(sorted);
       } else {
-        // 2. Fallback to Supabase (important for first guest load)
+        // 3. Fallback to Supabase
         try {
-          final data = await _from('checket_garderobe')
+          // Check Wardrobe
+          final wardrobeData = await _from('checket_garderobe')
               .select()
               .eq('group_id', groupId)
-              .eq('secret', secret)
-              .order('id', ascending: true);
+              .eq('secret', secret);
           
-          final slots = (data as List).map((json) => WardrobeSlot(
+          final wardrobeSlots = (wardrobeData as List).map((json) => WardrobeSlot(
             id: json['id'] as int,
             status: json['status'] as String? ?? 'free',
             isPaid: json['is_paid'] as bool? ?? false,
@@ -334,19 +363,46 @@ class SyncService {
             groupId: json['group_id'] as String? ?? '',
             updatedAt: DateTime.parse(json['updated_at'] as String),
           )).toList();
-          
-          if (slots.isNotEmpty) controller.add(slots);
+
+          // Check Lost Found
+          final lostData = await _from('checket_lost_found')
+              .select()
+              .eq('group_id', groupId)
+              .eq('secret', secret);
+
+          final lostSlots = (lostData as List).map((json) => WardrobeSlot(
+            id: json['original_slot_id'] as int,
+            status: json['is_handed_over'] == true ? 'picked_up' : 'forgotten',
+            isPaid: json['is_paid'] as bool? ?? false,
+            paymentMethod: 'none',
+            secret: json['secret'] as String? ?? '',
+            groupId: json['group_id'] as String? ?? '',
+            updatedAt: DateTime.parse(json['created_at'] as String),
+          )).toList();
+
+          final Map<int, WardrobeSlot> remoteMap = {};
+          for (final s in lostSlots) remoteMap[s.id] = s;
+          for (final s in wardrobeSlots) {
+            if (s.status != 'free') remoteMap[s.id] = s;
+          }
+
+          if (remoteMap.isNotEmpty) {
+            final sorted = remoteMap.values.toList()..sort((a, b) => a.id.compareTo(b.id));
+            controller.add(sorted);
+          }
         } catch (e) {
-          // Silent fail or empty
+          print('watchGroup fallback error: $e');
         }
       }
     }
 
-    final sub = db.wardrobeSlots.all().watch().listen((_) => update());
+    final sub1 = db.wardrobeSlots.all().watch().listen((_) => update());
+    final sub2 = db.lostItems.all().watch().listen((_) => update());
     update();
     
     controller.onCancel = () {
-      sub.cancel();
+      sub1.cancel();
+      sub2.cancel();
       controller.close();
     };
     
@@ -387,27 +443,49 @@ class SyncService {
 
       // 2. Fallback to Supabase (important for guest view)
       try {
-        final data = await _from('checket_garderobe')
+        // Check Wardrobe
+        final wardrobeData = await _from('checket_garderobe')
             .select()
             .eq('id', id)
             .eq('secret', secret)
             .maybeSingle();
         
-        if (data != null) {
+        if (wardrobeData != null) {
           final slot = WardrobeSlot(
-            id: data['id'] as int,
-            status: data['status'] as String? ?? 'free',
-            isPaid: data['is_paid'] as bool? ?? false,
-            paymentMethod: data['payment_method'] as String? ?? 'none',
-            secret: data['secret'] as String? ?? '',
-            groupId: data['group_id'] as String? ?? '',
-            updatedAt: DateTime.parse(data['updated_at'] as String),
+            id: wardrobeData['id'] as int,
+            status: wardrobeData['status'] as String? ?? 'free',
+            isPaid: wardrobeData['is_paid'] as bool? ?? false,
+            paymentMethod: wardrobeData['payment_method'] as String? ?? 'none',
+            secret: wardrobeData['secret'] as String? ?? '',
+            groupId: wardrobeData['group_id'] as String? ?? '',
+            updatedAt: DateTime.parse(wardrobeData['updated_at'] as String),
+          );
+          controller.add(slot);
+          return;
+        }
+
+        // Check Lost Found
+        final lostData = await _from('checket_lost_found')
+            .select()
+            .eq('original_slot_id', id)
+            .eq('secret', secret)
+            .maybeSingle();
+
+        if (lostData != null) {
+          final slot = WardrobeSlot(
+            id: lostData['original_slot_id'] as int,
+            status: lostData['is_handed_over'] == true ? 'picked_up' : 'forgotten',
+            isPaid: lostData['is_paid'] as bool? ?? false,
+            paymentMethod: 'none',
+            secret: lostData['secret'] as String? ?? '',
+            groupId: lostData['group_id'] as String? ?? '',
+            updatedAt: DateTime.parse(lostData['created_at'] as String),
           );
           controller.add(slot);
           return;
         }
       } catch (e) {
-        // Silent
+        print('watchTicket fallback error: $e');
       }
 
       // 3. Check for general picked up state

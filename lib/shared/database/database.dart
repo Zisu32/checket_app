@@ -28,6 +28,7 @@ class LostItems extends Table {
   TextColumn get id => text()(); // UUID from Supabase
   IntColumn get originalSlotId => integer()();
   TextColumn get secret => text()();
+  TextColumn get groupId => text().withDefault(const Constant(''))();
   BoolColumn get isPaid => boolean()();
   DateTimeColumn get createdAt => dateTime()();
   BoolColumn get isHandedOver => boolean().withDefault(const Constant(false))();
@@ -99,6 +100,7 @@ class AppDatabase extends _$AppDatabase {
       id: Value(json['id'] as String),
       originalSlotId: Value(json['original_slot_id'] as int),
       secret: Value(json['secret'] as String? ?? ''),
+      groupId: Value(json['group_id'] as String? ?? ''),
       isPaid: Value(json['is_paid'] as bool? ?? false),
       createdAt: Value(DateTime.parse(json['created_at'] as String)),
       isHandedOver: Value(json['is_handed_over'] as bool? ?? false),
@@ -110,6 +112,7 @@ class AppDatabase extends _$AppDatabase {
       'id': entry.id,
       'original_slot_id': entry.originalSlotId,
       'secret': entry.secret,
+      'group_id': entry.groupId,
       'is_paid': entry.isPaid,
       'created_at': entry.createdAt.toIso8601String(),
       'is_handed_over': entry.isHandedOver,
