@@ -82,8 +82,8 @@ class _StaffViewState extends State<StaffView> {
     
     final origin = web.window.location.origin;
     final path = web.window.location.pathname;
-    // Use a clean URL without sensitive parameters, include target for identification
-    final qrUrl = '$origin$path#/qr?target=$readerId';
+    // Clean URL without parameters, identification via window name
+    final qrUrl = '$origin$path#/qr';
     web.window.open(qrUrl, 'checket_monitor_$readerId');
   }
 

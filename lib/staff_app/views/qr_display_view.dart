@@ -37,16 +37,23 @@ class _QrDisplayViewState extends State<QrDisplayView> {
     final fullUrl = web.window.location.href;
     final uri = Uri.parse(fullUrl);
     
-    // Handle parameters inside the fragment (e.g., #/qr?target=...)
-    Map<String, String> params = Map.from(uri.queryParameters);
-    if (uri.hasFragment) {
-      final fragment = uri.fragment.contains('?') ? uri.fragment.split('?').last : '';
-      if (fragment.isNotEmpty) {
-        params.addAll(Uri.splitQueryString(fragment));
-      }
-    }
+    // Identify workstation via window name (cleaner URL)
+    String targetId = 'default';
+    final windowName = web.window.name;
     
-    final targetId = params['target'] ?? 'default';
+    if (windowName.startsWith('checket_monitor_')) {
+      targetId = windowName.replaceFirst('checket_monitor_', '');
+    } else {
+      // Fallback to URL parameters for manual input
+      Map<String, String> params = Map.from(uri.queryParameters);
+      if (uri.hasFragment) {
+        final fragment = uri.fragment.contains('?') ? uri.fragment.split('?').last : '';
+        if (fragment.isNotEmpty) {
+          params.addAll(Uri.splitQueryString(fragment));
+        }
+      }
+      targetId = params['target'] ?? 'default';
+    }
 
     final monitor = MonitorService();
     monitor.init();
