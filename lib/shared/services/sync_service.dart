@@ -165,10 +165,12 @@ class SyncService {
       schema: _schemaName,
       table: 'checket_garderobe',
       callback: (payload) async {
-        // If we are a tenant/staff, we pull everything
         final user = supabase.auth.currentUser;
         if (user != null) {
           await pullFromSupabase();
+        } else {
+          // Guest mode: notify local streams to trigger re-pull from Supabase
+          await _notifySlots();
         }
       },
     ).subscribe((status, [error]) {
@@ -184,7 +186,13 @@ class SyncService {
       schema: _schemaName,
       table: 'checket_lost_found',
       callback: (payload) async {
-        await pullLostItemsFromSupabase();
+        final user = supabase.auth.currentUser;
+        if (user != null) {
+          await pullLostItemsFromSupabase();
+        } else {
+          // Guest mode: notify local streams
+          await _notifySlots();
+        }
       },
     ).subscribe();
   }
