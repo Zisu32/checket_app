@@ -84,28 +84,35 @@ class SyncService {
   Future<void> pullGroupFromSupabase(String groupId, String secret) async {
     if (_schemaName == 'public') return;
     try {
-      // 1. Pull from Wardrobe
-      final wardrobeData = await _from('checket_garderobe')
-          .select()
-          .eq('group_id', groupId)
-          .eq('secret', secret);
+      // 1. Fetch current remote states
+      final wardrobeData = await _from('checket_garderobe').select().eq('group_id', groupId).eq('secret', secret);
+      final lostData = await _from('checket_lost_found').select().eq('group_id', groupId).eq('secret', secret);
       
-      final wardrobeEntries = (wardrobeData as List).map((json) => db.companionFromJson(json)).toList();
+      final remoteWardrobeIds = (wardrobeData as List).map((json) => json['id'] as int).toSet();
       
-      // 2. Pull from Lost Found
-      final lostData = await _from('checket_lost_found')
-          .select()
-          .eq('group_id', groupId)
-          .eq('secret', secret);
-      
-      final lostEntries = (lostData as List).map((json) => db.lostItemCompanionFromJson(json)).toList();
-
       await db.batch((batch) {
-        // Update wardrobe slots
-        batch.insertAll(db.wardrobeSlots, wardrobeEntries, mode: InsertMode.insertOrReplace);
+        // Update lost items first
+        batch.insertAll(db.lostItems, (lostData as List).map((json) => db.lostItemCompanionFromJson(json)).toList(), mode: InsertMode.insertOrReplace);
 
-        // Update lost items
-        batch.insertAll(db.lostItems, lostEntries, mode: InsertMode.insertOrReplace);
+        // Update active slots
+        batch.insertAll(db.wardrobeSlots, (wardrobeData as List).map((json) => db.companionFromJson(json)).toList(), mode: InsertMode.insertOrReplace);
+        
+        // IMPORTANT: For any slot that is locally active but NO LONGER in the remote wardrobe result 
+        // (meaning it was reset or archived), we must mark it as free locally 
+        // so the UI falls back to the lost_found state.
+        final localEntries = slotsNotifier.value.where((s) => s.groupId == groupId && s.secret == secret);
+        for (final local in localEntries) {
+          if (!remoteWardrobeIds.contains(local.id)) {
+             batch.insertAll(db.wardrobeSlots, [
+               WardrobeSlotsCompanion(
+                 id: Value(local.id),
+                 status: const Value('free'),
+                 secret: const Value(''),
+                 groupId: const Value(''),
+               )
+             ], mode: InsertMode.insertOrReplace);
+          }
+        }
       });
       await _notifySlots();
     } catch (e) {
@@ -116,26 +123,25 @@ class SyncService {
   Future<void> pullTicketFromSupabase(int id, String secret) async {
     if (_schemaName == 'public') return;
     try {
-      // 1. Check Wardrobe
-      final wardrobeData = await _from('checket_garderobe')
-          .select()
-          .eq('id', id)
-          .eq('secret', secret)
-          .maybeSingle();
-      
-      // 2. Check Lost Found
-      final lostData = await _from('checket_lost_found')
-          .select()
-          .eq('original_slot_id', id)
-          .eq('secret', secret)
-          .maybeSingle();
+      final wardrobeData = await _from('checket_garderobe').select().eq('id', id).eq('secret', secret).maybeSingle();
+      final lostData = await _from('checket_lost_found').select().eq('original_slot_id', id).eq('secret', secret).maybeSingle();
 
       await db.batch((batch) {
-        if (wardrobeData != null) {
-          batch.insertAll(db.wardrobeSlots, [db.companionFromJson(wardrobeData)], mode: InsertMode.insertOrReplace);
-        }
         if (lostData != null) {
           batch.insertAll(db.lostItems, [db.lostItemCompanionFromJson(lostData)], mode: InsertMode.insertOrReplace);
+        }
+        
+        if (wardrobeData != null) {
+          batch.insertAll(db.wardrobeSlots, [db.companionFromJson(wardrobeData)], mode: InsertMode.insertOrReplace);
+        } else {
+          // If not in remote wardrobe but we have a secret locally, reset local slot
+          batch.insertAll(db.wardrobeSlots, [
+            WardrobeSlotsCompanion(
+              id: Value(id),
+              status: const Value('free'),
+              secret: const Value(''),
+            )
+          ], mode: InsertMode.insertOrReplace);
         }
       });
       await _notifySlots();
@@ -361,7 +367,7 @@ class SyncService {
 
       final Map<int, WardrobeSlot> slotsMap = {};
       
-      // Priority 1: Items in Fundbüro (Archived)
+      // Priority 1: Items in Fundbüro (Archived) - ALWAYS wins
       for (final l in localLost) {
         slotsMap[l.originalSlotId] = WardrobeSlot(
           id: l.originalSlotId,
@@ -375,15 +381,14 @@ class SyncService {
       }
       
       // Priority 2: Active items in wardrobe (Live)
-      // If an item is in both, the 'active' one in wardrobe table is usually the most recent 
-      // UNLESS it's status is 'free' (meaning it's been reset but we still have the secret in cache)
       for (final w in localWardrobe) {
         if (w.status != 'free') {
-           slotsMap[w.id] = w;
+           // Only add if not already present from LostItems
+           if (!slotsMap.containsKey(w.id)) {
+              slotsMap[w.id] = w;
+           }
         } else {
-           // If it's free in wardrobe but we have it as forgotten in lost_found, 
-           // the loop above already added it. 
-           // If it's free and NOT in lost_found, it was probably picked up.
+           // If it's free and NOT in lost_found, it was probably picked up
            if (!slotsMap.containsKey(w.id)) {
               slotsMap[w.id] = w.copyWith(status: 'picked_up');
            }
