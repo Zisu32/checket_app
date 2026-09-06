@@ -4,7 +4,7 @@ class AppTheme {
   // Main colors
   static const Color header = Color(0xFF131314);
   static const Color background = Color(0xFF292B2C);
-  static const Color surface = Color(0xFF3F4245);
+  static const Color surface = Color(0xFF414449);
   
   // Status colors
   static const Color unpaid = Color(0xFFA15151);
