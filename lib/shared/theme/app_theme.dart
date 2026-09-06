@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Main colors
-  static const Color background = Color(0xFF292B2C);
   static const Color header = Color(0xFF131314);
+  static const Color background = Color(0xFF292B2C);
   static const Color surface = Color(0xFF3F4245);
   
   // Status colors
