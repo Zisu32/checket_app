@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class AppTheme {
   // Main colors
   static const Color header = Color(0xFF131314);
-  static const Color background = Color(0xFF292A2C);
-  static const Color surface = Color(0xFF3E3F45);
+  static const Color background = Color(0xFF1E1F20);
+  static const Color surface = Color(0xFF3a3c42);
   
   // Status colors
   static const Color unpaid = Color(0xFFA15151);
@@ -18,7 +18,7 @@ class AppTheme {
   static const Color white = Color(0xFFE3E3E3);
   static const Color shadow = Color(0xff000000);
 
-  // Font Sizes
+  // Font Sizes1E1F20
   static const double xsmall = 12.0;
   static const double small = 16.0;
   static const double medium = 25.0;
