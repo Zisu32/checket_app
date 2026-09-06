@@ -2,23 +2,20 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Main colors
-  //static const Color header = Color(0xFF11171C);
-  //static const Color background = Color(0xFF232F39);
-  //static const Color surface = Color(0xFF3B5061);
-  static const Color header = Color(0xFF1C1C1C);
-  static const Color background = Color(0xFF292929);
-  static const Color surface = Color(0xFF404040);
+  static const Color header = Color(0xFF131314);
+  static const Color background = Color(0xFF1E1F20);
+  static const Color surface = Color(0xFF282A2C);
   
   // Status colors
-  static const Color unpaid = Color(0xFFB71C1C);
-  static const Color temporary = Color(0xFFE67B00);
-  static const Color secret = Color(0xffffd500);
+  static const Color unpaid = Color(0xFFE57373);
+  static const Color temporary = Color(0xFFFFB74D);
+  static const Color secret = Color(0xFFFFF176);
   static const Color active = Color(0xFF00B58B);
-  static const Color forgotten = Color(0xFF0081C3);
-  static const Color free = Color(0xFF818181);
+  static const Color forgotten = Color(0xFF64B5F6);
+  static const Color free = Color(0xFF8E918F);
 
   // Others
-  static const Color white = Color(0xffdfdfdf);
+  static const Color white = Color(0xFFE3E3E3);
   static const Color shadow = Color(0xff000000);
 
   // Font Sizes
