@@ -28,8 +28,6 @@ class _QrDisplayViewState extends State<QrDisplayView> {
   String? _currentGroupId;
   String? _currentSecret;
   bool _isSuccess = false;
-  int _secondsRemaining = 0;
-  Timer? _countdownTimer;
   late StreamSubscription _subscription;
   StreamSubscription? _statusSubscription;
 
@@ -64,7 +62,6 @@ class _QrDisplayViewState extends State<QrDisplayView> {
       _currentId = widget.ticketId?.toString();
       _currentGroupId = widget.groupId;
       _currentSecret = widget.secret;
-      _startTimer();
       _listenForStatus();
     } else {
       final last = monitor.readLastKnown(targetId: targetId);
@@ -72,7 +69,6 @@ class _QrDisplayViewState extends State<QrDisplayView> {
       _currentGroupId = last.groupId;
       _currentSecret = last.secret;
       if (_currentSecret != null) {
-        _startTimer();
         _listenForStatus();
       }
     }
@@ -93,24 +89,7 @@ class _QrDisplayViewState extends State<QrDisplayView> {
       });
 
       if (newSecret != null) {
-        _startTimer();
         _listenForStatus();
-      } else {
-        _countdownTimer?.cancel();
-        setState(() => _secondsRemaining = 0);
-      }
-    });
-  }
-
-  void _startTimer() {
-    _countdownTimer?.cancel();
-    setState(() => _secondsRemaining = 60);
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return;
-      if (_secondsRemaining > 0) {
-        setState(() => _secondsRemaining--);
-      } else {
-        timer.cancel();
       }
     });
   }
@@ -120,7 +99,6 @@ class _QrDisplayViewState extends State<QrDisplayView> {
     if (_currentId == null || _currentSecret == null) return;
     
     final sync = SyncService();
-    // Use the first ID in label for status monitoring
     final firstIdStr = _currentId!.split(',').first.trim();
     final firstId = int.tryParse(firstIdStr) ?? 0;
     
@@ -129,13 +107,8 @@ class _QrDisplayViewState extends State<QrDisplayView> {
     _statusSubscription = sync.watchTicket(firstId, _currentSecret!).listen((slot) {
       if (!mounted) return;
       if (slot != null && slot.status == 'active' && !_isSuccess) {
-        // Only trigger "Success" animation if we were previously waiting for payment
-        // or if we just showed it and it was paid immediately.
-        // We add a small delay so the customer can scan it first if they just missed the unpaid phase.
         setState(() {
           _isSuccess = true;
-          _secondsRemaining = 0;
-          _countdownTimer?.cancel();
         });
       }
     });
@@ -145,14 +118,13 @@ class _QrDisplayViewState extends State<QrDisplayView> {
   void dispose() {
     _subscription.cancel();
     _statusSubscription?.cancel();
-    _countdownTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.header,
+      backgroundColor: AppTheme.background,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(50),
         child: AppBar(
@@ -163,39 +135,18 @@ class _QrDisplayViewState extends State<QrDisplayView> {
           title: SvgPicture.asset('assets/images/full-icon.svg', height: 28),
         ),
       ),
-      body: Stack(
-        children: [
-          Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20),
-                child: QrDisplay(
-                  ticketId: _currentId, 
-                  groupId: _currentGroupId,
-                  secret: _currentSecret,
-                  isExpired: _secondsRemaining == 0 && !_isSuccess,
-                  isSuccess: _isSuccess,
-                ),
-              ),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20),
+            child: QrDisplay(
+              ticketId: _currentId, 
+              groupId: _currentGroupId,
+              secret: _currentSecret,
+              isSuccess: _isSuccess,
             ),
           ),
-          if (_secondsRemaining > 0)
-            Positioned(
-              bottom: 20,
-              right: 20,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.background.withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Text(
-                  'Code aktiv: ${_secondsRemaining}s',
-                  style: const TextStyle(color: AppTheme.white, fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }

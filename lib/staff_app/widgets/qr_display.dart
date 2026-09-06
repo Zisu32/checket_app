@@ -8,7 +8,6 @@ class QrDisplay extends StatelessWidget {
   final String? ticketId;
   final String? groupId;
   final String? secret;
-  final bool isExpired;
   final bool isSuccess;
 
   const QrDisplay({
@@ -16,7 +15,6 @@ class QrDisplay extends StatelessWidget {
     this.ticketId,
     this.groupId,
     this.secret,
-    this.isExpired = false,
     this.isSuccess = false,
   });
 
@@ -41,21 +39,21 @@ class QrDisplay extends StatelessWidget {
       );
     }
 
-    if (isExpired || secret == null) {
+    if (secret == null) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.timer_off_outlined, color: AppTheme.free.withValues(alpha: 0.5), size: 100),
+          Icon(Icons.qr_code_scanner, color: AppTheme.free.withValues(alpha: 0.5), size: 100),
           const SizedBox(height: 20),
           Text(
-            secret == null ? 'BEREIT FÜR SCAN' : 'CODE ABGELAUFEN',
+            'BEREIT FÜR SCAN',
             style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.free.withValues(alpha: 0.5)),
           ),
           const SizedBox(height: 10),
-          Text(
-            secret == null ? 'Warte auf nächsten Gast...' : 'Bitte das Personal fragen.',
+          const Text(
+            'Warte auf nächsten Gast...',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18, color: AppTheme.free),
+            style: TextStyle(fontSize: 18, color: AppTheme.free),
           ),
         ],
       );

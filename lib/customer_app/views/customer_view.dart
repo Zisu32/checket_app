@@ -214,7 +214,6 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
       'forgotten' => (AppTheme.forgotten, Icons.inventory_2_outlined, 'Jacke im Fundbüro'),
       'free' || 'picked_up' => (AppTheme.free, Icons.task_alt, 'Jacke bereits abgeholt'),
       'wrong_secret' => (AppTheme.secret, Icons.lock_person_outlined, 'Secret stimmt nicht'),
-      'marked' => (AppTheme.temporary, Icons.timer_outlined, 'Wird bearbeitet...'),
       _ => (AppTheme.active, Icons.verified_user_outlined, 'Jacke auf Platz aktiv'),
     };
   }
