@@ -69,7 +69,7 @@ class QrDisplay extends StatelessWidget {
         Text(
           isRecovery 
             ? 'TICKET WIEDERHERSTELLEN' 
-            : (groupId != null && groupId!.isNotEmpty ? 'GRUPPEN-TICKET' : 'TICKET $ticketId'),
+            : (groupId != null && groupId!.isNotEmpty ? 'GRUPPENTICKET' : 'TICKET $ticketId'),
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: AppTheme.white, letterSpacing: 2),
         ),
