@@ -18,7 +18,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     // Theme wrapper for icons in the AppBar
-    final iconTheme = IconTheme.of(context).copyWith(color: AppTheme.background);
+    final iconTheme = IconTheme.of(context).copyWith(color: AppTheme.surface);
     
     return AppBar(
       backgroundColor: AppTheme.header,
