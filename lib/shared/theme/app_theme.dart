@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Main colors
-  static const Color header = Color(0xFF11171C);
-  static const Color background = Color(0xFF232F39);
-  static const Color surface = Color(0xFF3B5061);
+  //static const Color header = Color(0xFF11171C);
+  //static const Color background = Color(0xFF232F39);
+  //static const Color surface = Color(0xFF3B5061);
+  static const Color header = Color(0xFF1C1C1C);
+  static const Color background = Color(0xFF292929);
+  static const Color surface = Color(0xFF404040);
   
   // Status colors
   static const Color unpaid = Color(0xFFB71C1C);

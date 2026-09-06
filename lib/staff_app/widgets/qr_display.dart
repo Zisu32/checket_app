@@ -40,23 +40,7 @@ class QrDisplay extends StatelessWidget {
     }
 
     if (secret == null) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.qr_code_scanner, color: AppTheme.free.withValues(alpha: 0.5), size: 100),
-          const SizedBox(height: 20),
-          Text(
-            'BEREIT FÜR SCAN',
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.free.withValues(alpha: 0.5)),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Warte auf nächsten Gast...',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 18, color: AppTheme.free),
-          ),
-        ],
-      );
+      return const SizedBox.shrink();
     }
 
     final isRecovery = ticketId == '-1' || secret == 'recovery';
