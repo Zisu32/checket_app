@@ -132,5 +132,4 @@ class _WorkstationSettingsTabViewState extends State<WorkstationSettingsTabView>
       ],
     );
   }
-  }
 }
