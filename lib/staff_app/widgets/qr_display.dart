@@ -28,12 +28,12 @@ class QrDisplay extends StatelessWidget {
           const SizedBox(height: 20),
           const Text(
             'CHECK-IN ERFOLGREICH!',
-            style: TextStyle(fontSize: AppTheme.large, color: AppTheme.active),
+            style: TextStyle(fontSize: AppTheme.large, fontWeight: FontWeight.bold, color: AppTheme.active),
           ),
           const SizedBox(height: 10),
           Text(
             'Bügel ${ticketId ?? ""}',
-            style: const TextStyle(fontSize: AppTheme.medium, color: AppTheme.white),
+            style: const TextStyle(fontSize: AppTheme.medium, fontWeight: FontWeight.bold, color: AppTheme.white),
           ),
         ],
       );
@@ -71,7 +71,7 @@ class QrDisplay extends StatelessWidget {
             ? 'TICKET WIEDERHERSTELLEN' 
             : (groupId != null && groupId!.isNotEmpty ? 'GRUPPENTICKET' : 'TICKET $ticketId'),
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: AppTheme.large, color: AppTheme.white),
+          style: const TextStyle(fontSize: AppTheme.large, fontWeight: FontWeight.bold, color: AppTheme.white),
         ),
         if (groupId != null && groupId!.isNotEmpty)
           Padding(
@@ -82,7 +82,7 @@ class QrDisplay extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 10),
-        const Text('BITTE SCANNEN', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.active)),
+        const Text('BITTE SCANNEN', style: TextStyle(fontSize: AppTheme.small, fontWeight: FontWeight.bold, color: AppTheme.active)),
         const SizedBox(height: 40),
         Container(
           padding: const EdgeInsets.all(16),

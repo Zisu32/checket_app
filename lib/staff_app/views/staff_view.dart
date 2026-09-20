@@ -113,7 +113,6 @@ class _StaffViewState extends State<StaffView> {
               decoration: InputDecoration(
                 labelText: 'Passwort eingeben',
                 errorText: (passwordController.text.isEmpty && isAuthenticating) ? '' : null,
-                errorStyle: const TextStyle(height: 0, fontSize: 0),
                 counterText: '',
               ),
             ),
