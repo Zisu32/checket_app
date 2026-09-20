@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { Buffer } from "https://deno.land/std@0.168.0/node/buffer.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { PKPass } from "https://esm.sh/passkit-generator@3.1.0"
 
@@ -13,16 +14,16 @@ serve(async (req) => {
   try {
     const { ticketId, groupId, secret, tenant } = await req.json()
 
-    // 1. Initialize Supabase with Service Role
+    // 1. Initialize Supabase
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { db: { schema: tenant } }
     )
 
-    // 2. Fetch Ticket Info & Verify Secret (Security)
-    let ticketDetails = "";
+    // 2. Fetch Ticket Info
     let label = "";
+    let ticketDetails = "";
     let found = false;
 
     if (groupId) {
@@ -52,42 +53,38 @@ serve(async (req) => {
       }
     }
 
-    if (!found) {
-      throw new Error("Ticket nicht gefunden oder Zugriff verweigert.")
-    }
+    if (!found) throw new Error("Ticket nicht gefunden.")
 
-    // 3. Setup Pass Certificates
-    const p12Buffer = Uint8Array.from(atob(Deno.env.get('APPLE_PASS_P12_BASE64')!), c => c.charCodeAt(0))
-    const wwdrBuffer = Uint8Array.from(atob(Deno.env.get('APPLE_WWDR_CERT')!), c => c.charCodeAt(0))
+    // 3. Prepare Certificates using Buffer (required by the library)
+    const wwdr = Buffer.from(Deno.env.get('APPLE_WWDR_CERT')!, 'base64');
+    const p12 = Buffer.from(Deno.env.get('APPLE_PASS_P12_BASE64')!, 'base64');
+    const signerKeyPassword = Deno.env.get('APPLE_PASS_P12_PASSWORD')!;
 
     // 4. Create Pass
-    // Note: We use the generic type for wardrobe tickets
+    // We pass the p12 to both signerCert and signerKey, the library will attempt
+    // to extract what it needs using the password.
     const pass = new PKPass({}, {
-      wwdr: wwdrBuffer,
-      signerCert: p12Buffer,
-      signerKey: p12Buffer,
-      signerKeyPassword: Deno.env.get('APPLE_PASS_P12_PASSWORD'),
+      wwdr: wwdr,
+      signerCert: p12,
+      signerKey: p12,
+      signerKeyPassword: signerKeyPassword,
     });
 
-    // Load template from pass.json in model folder
-    // Since we are in Deno, we might need to read the file manually if path-based loading fails
-    const passJson = await Deno.readTextFile(new URL("./model/pass.json", import.meta.url));
-    const template = JSON.parse(passJson);
-
-    // Merge template into pass
+    // Set Identifiers
     pass.setPassTypeIdentifier(Deno.env.get('APPLE_PASS_TYPE_ID')!);
     pass.setTeamIdentifier(Deno.env.get('APPLE_TEAM_ID')!);
 
-    // Colors from AppTheme
-    pass.backgroundColor = "rgb(39, 39, 44)"; // background
-    pass.foregroundColor = "rgb(227, 227, 223)"; // white
-    pass.labelColor = "rgb(142, 145, 143)"; // free
+    // Set Colors
+    pass.backgroundColor = "rgb(39, 39, 44)";
+    pass.foregroundColor = "rgb(227, 227, 223)";
+    pass.labelColor = "rgb(142, 145, 143)";
 
+    // Fields
     pass.headerFields.add({ key: "ticket", label: "TICKET", value: label });
     pass.primaryFields.add({ key: "status", label: "Checket Status", value: "Aktiv" });
     pass.secondaryFields.add({ key: "info", label: "Anzahl", value: ticketDetails });
 
-    // Barcode
+    // QR Code
     const baseUrl = "https://checket.eu"
     const qrUrl = groupId
       ? `${baseUrl}/?groupId=${groupId}&secret=${secret}&tenant=${tenant}`
@@ -99,7 +96,7 @@ serve(async (req) => {
       messageEncoding: "iso-8859-1"
     });
 
-    // Add images manually to be safe with Deno's bundle system
+    // Add Images
     const addImage = async (name: string) => {
       try {
         const data = await Deno.readFile(new URL(`./model/${name}`, import.meta.url));
@@ -126,7 +123,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error("Wallet Error:", error.message);
+    console.error("Wallet Error Detail:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
