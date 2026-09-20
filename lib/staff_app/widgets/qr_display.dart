@@ -28,12 +28,12 @@ class QrDisplay extends StatelessWidget {
           const SizedBox(height: 20),
           const Text(
             'CHECK-IN ERFOLGREICH!',
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.active),
+            style: TextStyle(fontSize: AppTheme.large, color: AppTheme.active),
           ),
           const SizedBox(height: 10),
           Text(
             'Bügel ${ticketId ?? ""}',
-            style: const TextStyle(fontSize: 24, color: AppTheme.white),
+            style: const TextStyle(fontSize: AppTheme.medium, color: AppTheme.white),
           ),
         ],
       );
@@ -71,18 +71,18 @@ class QrDisplay extends StatelessWidget {
             ? 'TICKET WIEDERHERSTELLEN' 
             : (groupId != null && groupId!.isNotEmpty ? 'GRUPPENTICKET' : 'TICKET $ticketId'),
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: AppTheme.white, letterSpacing: 2),
+          style: const TextStyle(fontSize: AppTheme.large, color: AppTheme.white),
         ),
         if (groupId != null && groupId!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Text(
               ticketId ?? '',
-              style: const TextStyle(fontSize: 32, color: AppTheme.white, fontWeight: FontWeight.bold, letterSpacing: 1),
+              style: const TextStyle(fontSize: AppTheme.medium, color: AppTheme.white),
             ),
           ),
         const SizedBox(height: 10),
-        const Text('BITTE SCANNEN', style: TextStyle(fontSize: 18, color: AppTheme.active, letterSpacing: 4)),
+        const Text('BITTE SCANNEN', style: TextStyle(fontSize: AppTheme.small, color: AppTheme.active)),
         const SizedBox(height: 40),
         Container(
           padding: const EdgeInsets.all(16),
