@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { Buffer } from "https://deno.land/std@0.168.0/node/buffer.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 import { PKPass } from "https://esm.sh/passkit-generator@3.1.0"
+import { Buffer } from "https://deno.land/std@0.168.0/node/buffer.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -55,19 +55,18 @@ serve(async (req) => {
 
     if (!found) throw new Error("Ticket nicht gefunden.")
 
-    // 3. Prepare Certificates using Buffer (required by the library)
-    const wwdr = Buffer.from(Deno.env.get('APPLE_WWDR_CERT')!, 'base64');
-    const p12 = Buffer.from(Deno.env.get('APPLE_PASS_P12_BASE64')!, 'base64');
-    const signerKeyPassword = Deno.env.get('APPLE_PASS_P12_PASSWORD')!;
+    // 3. Prepare Certificates (Now using PEM strings from Base64)
+    const wwdr = Buffer.from(Deno.env.get('APPLE_WWDR_CERT')!, 'base64').toString('utf-8');
+    const signerCert = Buffer.from(Deno.env.get('APPLE_SIGNER_CERT')!, 'base64').toString('utf-8');
+    const signerKey = Buffer.from(Deno.env.get('APPLE_SIGNER_KEY')!, 'base64').toString('utf-8');
 
     // 4. Create Pass
-    // We pass the p12 to both signerCert and signerKey, the library will attempt
-    // to extract what it needs using the password.
+    // The library version 3.x uses "signerKeyPassphrase" instead of "signerKeyPassword"
     const pass = new PKPass({}, {
       wwdr: wwdr,
-      signerCert: p12,
-      signerKey: p12,
-      signerKeyPassword: signerKeyPassword,
+      signerCert: signerCert,
+      signerKey: signerKey,
+      signerKeyPassphrase: "", // Empty because we used -nodes during export
     });
 
     // Set Identifiers
@@ -123,7 +122,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error("Wallet Error Detail:", error);
+    console.error("Wallet Error Detail:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
