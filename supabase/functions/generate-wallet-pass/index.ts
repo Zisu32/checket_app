@@ -1,113 +1,99 @@
-import * as jose from "https://deno.land/x/jose@v5.2.3/index.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import * as passkit from "https://esm.sh/passkit-generator@3.1.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-function getSecretKey(): string {
-  const envKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
-  if (envKeys) {
-    try {
-      return JSON.parse(envKeys)?.default || envKeys;
-    } catch {
-      return envKeys;
-    }
-  }
-  return Deno.env.get('SUPABASE_SECRET_KEY') ?? '';
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { ticketId, secret, platform, origin, tenant } = await req.json()
-    console.log(`--- WALLET REQUEST START ---`)
-    console.log(`Ticket ID: ${ticketId}, Tenant: ${tenant}`)
+    const { ticketId, groupId, secret, tenant } = await req.json()
 
-    // 1. Initialize Supabase Admin
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseAdmin = createClient(supabaseUrl, getSecretKey())
+    // 1. Initialize Supabase with Service Role (to bypass RLS for this specific task)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { db: { schema: tenant } }
+    )
 
-    // 2. Validate Ticket using the Public Fetcher RPC
-    const { data: slots, error: slotError } = await supabaseAdmin.rpc('fetch_guest_ticket', {
-      p_schema: tenant || 'public',
-      p_id: Number(ticketId),
-      p_secret: secret
+    // 2. Fetch Ticket Info
+    let ticketDetails = "";
+    let label = "";
+
+    if (groupId) {
+      const { data: slots } = await supabaseAdmin
+        .from('checket_garderobe')
+        .select('id')
+        .eq('group_id', groupId)
+        .eq('secret', secret)
+
+      if (slots && slots.length > 0) {
+        label = `Gruppe: ${slots.map(s => s.id).join(', ')}`
+        ticketDetails = `${slots.length} Jacken`
+      }
+    } else {
+      label = `Bügel ${ticketId}`
+      ticketDetails = "1 Jacke"
+    }
+
+    // 3. Setup Passkit Generator
+    // We expect the P12 to be stored as Base64 in Secrets
+    const p12Buffer = Uint8Array.from(atob(Deno.env.get('APPLE_PASS_P12_BASE64')!), c => c.charCodeAt(0))
+
+    const pass = await passkit.createPass({
+      model: "./model", // We'll need to provide icons/logo in a subfolder or via buffers
+      certificates: {
+        wwdr: Deno.env.get('APPLE_WWDR_CERT'), // Standard Apple WWDR Certificate
+        signerCert: p12Buffer,
+        signerKey: p12Buffer,
+        signerKeyPassword: Deno.env.get('APPLE_PASS_P12_PASSWORD'),
+      },
     })
 
-    if (slotError || !slots || slots.length === 0) {
-      console.error(`Validation failed for ticket ${ticketId} in tenant ${tenant}:`, slotError)
-      throw new Error('Ticket ungültig oder nicht gefunden.')
-    }
+    // 4. Configure Pass Content (Matching AppTheme)
+    pass.setPassTypeIdentifier(Deno.env.get('APPLE_PASS_TYPE_ID')!)
+    pass.setTeamIdentifier(Deno.env.get('APPLE_TEAM_ID')!)
 
-    const slot = slots[0]
-    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
+    pass.headerFields.add({ key: "ticket", label: "TICKET", value: label })
+    pass.primaryFields.add({ key: "status", label: "Checket Status", value: "Aktiv" })
+    pass.secondaryFields.add({ key: "info", label: "Anzahl", value: ticketDetails })
 
-    // Helper for Status Coloring
-    const statusMap: Record<string, { color: string, text: string }> = {
-      'unpaid': { color: '#B71C1C', text: 'Zahlung ausstehend' },
-      'active': { color: '#00B58B', text: 'Jacke auf Platz aktiv' },
-      'temporary': { color: '#E67B00', text: 'Jacke temporär draußen' },
-      'forgotten': { color: '#0081C3', text: 'Jacke im Fundbüro' },
-      'free': { color: '#818181', text: 'Bügel ist frei' },
-    }
-    const currentStatus = statusMap[slot.status] || { color: '#232F39', text: 'Status unbekannt' }
+    // Design
+    pass.backgroundColor = "rgb(35, 47, 57)" // AppTheme.background
+    pass.labelColor = "rgb(129, 129, 129)" // AppTheme.free
+    pass.foregroundColor = "rgb(223, 223, 223)" // AppTheme.white
 
-    if (platform === 'google') {
-      const ISSUER_ID = Deno.env.get('GOOGLE_ISSUER_ID')?.trim()
-      const CLIENT_EMAIL = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')?.trim()
-      const PRIVATE_KEY = Deno.env.get('GOOGLE_PRIVATE_KEY')?.replace(/\\n/g, '\n')
+    // Barcode (The same link used for the QR Monitor)
+    const baseUrl = "https://checket.eu" // Replace with your actual domain
+    const qrUrl = groupId
+      ? `${baseUrl}/?groupId=${groupId}&secret=${secret}&tenant=${tenant}`
+      : `${baseUrl}/?id=${ticketId}&secret=${secret}&tenant=$tenant`
 
-      if (!ISSUER_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
-        throw new Error('Google Wallet configuration missing.')
-      }
+    pass.barcodes.set({
+      format: "PKBarcodeFormatQR",
+      message: qrUrl,
+      messageEncoding: "iso-8859-1"
+    })
 
-      // Unique resourceId per tenant: issuerId.checket_tenant_ticketId_secret
-      const resourceId = `${ISSUER_ID}.checket_${tenant}_${ticketId}_${secret}`
+    const bundle = await pass.generate()
 
-      const genericObject = {
-        id: resourceId,
-        classId: `${ISSUER_ID}.checket_ticket_v1`,
-        genericType: "GENERIC_TYPE_UNSPECIFIED",
-        hexBackgroundColor: currentStatus.color,
-        logo: { sourceUri: { uri: `${baseDomain}/assets/images/logo-icon.png` } },
-        cardTitle: { defaultValue: { value: "CHECKET" } },
-        subheader: { defaultValue: { value: currentStatus.text } },
-        header: { defaultValue: { value: `${ticketId}` } },
-        heroImage: { sourceUri: { uri: `${baseDomain}/assets/images/hero-icon.png` } }
-      }
-
-      const claims = {
-        iss: CLIENT_EMAIL,
-        aud: "google",
-        typ: "savetowallet",
-        iat: Math.floor(Date.now() / 1000),
-        payload: { genericObjects: [genericObject] },
-      }
-
-      const key = await jose.importPKCS8(PRIVATE_KEY, "RS256")
-      const jwt = await new jose.SignJWT(claims)
-        .setProtectedHeader({ alg: "RS256" })
-        .sign(key)
-
-      return new Response(
-        JSON.stringify({ url: `https://pay.google.com/gp/v/save/${jwt}` }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    return new Response(
-      JSON.stringify({ error: 'Apple Wallet noch nicht unterstützt.' }),
-      { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(bundle, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/vnd.apple.pkpass',
+        'Content-Disposition': `attachment; filename="checket_${ticketId || groupId}.pkpass"`
+      },
+      status: 200,
+    })
 
   } catch (error) {
-    console.error(`Wallet Error:`, error.message)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
 })

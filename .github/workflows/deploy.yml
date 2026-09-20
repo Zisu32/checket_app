@@ -1,10 +1,13 @@
-name: Deploy to GitHub Pages
+name: Build and Deploy
 
 on:
   push:
     branches:
       - main
       - dev
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 permissions:
   contents: write
@@ -80,3 +83,29 @@ jobs:
           folder: deploy_out
           branch: gh-pages
           clean: false # Do not delete existing files in gh-pages to allow main and dev to coexist
+
+  deploy-supabase:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'supabase') || github.run_attempt > 1 || github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Set Project ID
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "PROJECT_ID=${{ secrets.SUPABASE_PROJECT_ID_PROD }}" >> $GITHUB_ENV
+          else
+            echo "PROJECT_ID=${{ secrets.SUPABASE_PROJECT_ID_DEV }}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy Edge Functions
+        run: |
+          supabase functions deploy --project-ref ${{ env.PROJECT_ID }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
