@@ -24,7 +24,7 @@ class QrDisplay extends StatelessWidget {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.check_circle_outline, color: AppTheme.active, size: 120),
+          const Icon(Icons.check_circle_outline, color: AppTheme.active, size: 60),
           const SizedBox(height: 20),
           const Text(
             'CHECK-IN ERFOLGREICH!',
