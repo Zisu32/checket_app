@@ -21,19 +21,33 @@ class QrDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isSuccess) {
-      return Column(
+      return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.check_circle_outline, color: AppTheme.active, size: 60),
-          const SizedBox(height: 20),
-          const Text(
-            'CHECK-IN ERFOLGREICH!',
-            style: TextStyle(fontSize: AppTheme.large, fontWeight: FontWeight.bold, color: AppTheme.active),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Bügel ${ticketId ?? ""}',
-            style: const TextStyle(fontSize: AppTheme.medium, fontWeight: FontWeight.bold, color: AppTheme.white),
+          const Icon(Icons.check_circle_outline, color: AppTheme.active, size: 80),
+          const SizedBox(width: 24),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'CHECK-IN ERFOLGREICH!',
+                style: TextStyle(
+                  fontSize: AppTheme.large, 
+                  fontWeight: FontWeight.bold, 
+                  color: AppTheme.active
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Bügel ${ticketId ?? ""}',
+                style: const TextStyle(
+                  fontSize: AppTheme.medium, 
+                  fontWeight: FontWeight.bold, 
+                  color: AppTheme.white
+                ),
+              ),
+            ],
           ),
         ],
       );
@@ -78,7 +92,7 @@ class QrDisplay extends StatelessWidget {
             padding: const EdgeInsets.only(top: 8.0),
             child: Text(
               ticketId ?? '',
-              style: const TextStyle(fontSize: AppTheme.medium, color: AppTheme.white),
+              style: const TextStyle(fontSize: AppTheme.medium, fontWeight: FontWeight.bold, color: AppTheme.white),
             ),
           ),
         const SizedBox(height: 10),

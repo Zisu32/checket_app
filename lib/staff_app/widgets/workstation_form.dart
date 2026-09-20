@@ -5,13 +5,13 @@ import '../../shared/widgets/app_snackbar.dart';
 import '../../shared/widgets/app_primary_button.dart';
 import '../../shared/services/sumup_service.dart';
 
-class WorkstationSheet extends StatefulWidget {
+class WorkstationForm extends StatefulWidget {
   final String? initialName;
   final String? initialReaderId;
   final List<dynamic> allReaders;
   final List<dynamic> assignments;
 
-  const WorkstationSheet({
+  const WorkstationForm({
     super.key,
     this.initialName,
     this.initialReaderId,
@@ -20,10 +20,10 @@ class WorkstationSheet extends StatefulWidget {
   });
 
   @override
-  State<WorkstationSheet> createState() => _WorkstationSheetState();
+  State<WorkstationForm> createState() => _WorkstationFormState();
 }
 
-class _WorkstationSheetState extends State<WorkstationSheet> {
+class _WorkstationFormState extends State<WorkstationForm> {
   late TextEditingController _nameController;
   bool _showTerminalSelection = false;
   bool _isSaving = false;

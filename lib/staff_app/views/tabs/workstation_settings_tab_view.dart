@@ -4,7 +4,7 @@ import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/widgets/app_snackbar.dart';
 import '../../../../shared/widgets/app_list_view.dart';
 import '../../../../shared/services/sumup_service.dart';
-import '../../widgets/workstation_sheet.dart';
+import '../../widgets/workstation_form.dart';
 import '../../widgets/workstation_action_sheet.dart';
 import '../../../../shared/widgets/app_thumb_button.dart';
 
@@ -46,12 +46,12 @@ class _WorkstationSettingsTabViewState extends State<WorkstationSettingsTabView>
     }
   }
 
-  void _openWorkstationSheet({String? name, String? readerId}) async {
+  void _openWorkstationForm({String? name, String? readerId}) async {
     await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: AppTheme.background,
       isScrollControlled: true,
-      builder: (context) => WorkstationSheet(
+      builder: (context) => WorkstationForm(
         initialName: name,
         initialReaderId: readerId,
         allReaders: _readers,
@@ -112,7 +112,7 @@ class _WorkstationSettingsTabViewState extends State<WorkstationSettingsTabView>
                               _sumUpService.setLocalStation(asg['station_name'], asg['reader_id']);
                               setState(() {});
                             },
-                            onEdit: () => _openWorkstationSheet(
+                            onEdit: () => _openWorkstationForm(
                               name: asg['station_name'],
                               readerId: asg['reader_id'],
                             ),
@@ -128,8 +128,9 @@ class _WorkstationSettingsTabViewState extends State<WorkstationSettingsTabView>
             ),
           ],
         ),
-        AppThumbButton(onTap: () => _openWorkstationSheet()),
+        AppThumbButton(onTap: () => _openWorkstationForm()),
       ],
     );
+  }
   }
 }
