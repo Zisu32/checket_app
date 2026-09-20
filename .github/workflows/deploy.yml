@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  app:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -83,7 +83,7 @@ jobs:
           branch: gh-pages
           clean: false
 
-  deploy-supabase:
+  supabase-functions:
     runs-on: ubuntu-latest
     if: contains(github.event.head_commit.message, 'supabase') || github.run_attempt > 1 || github.ref == 'refs/heads/main'
     steps:
