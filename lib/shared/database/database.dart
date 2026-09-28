@@ -13,6 +13,7 @@ class WardrobeSlots extends Table {
   BoolColumn get isPaid => boolean().withDefault(const Constant(false))();
   TextColumn get paymentMethod => text().withDefault(const Constant('none'))();
   TextColumn get secret => text().withDefault(const Constant(''))();
+  TextColumn get groupId => text().withDefault(const Constant(''))();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -27,6 +28,7 @@ class LostItems extends Table {
   TextColumn get id => text()(); // UUID from Supabase
   IntColumn get originalSlotId => integer()();
   TextColumn get secret => text()();
+  TextColumn get groupId => text().withDefault(const Constant(''))();
   BoolColumn get isPaid => boolean()();
   DateTimeColumn get createdAt => dateTime()();
   BoolColumn get isHandedOver => boolean().withDefault(const Constant(false))();
@@ -75,6 +77,7 @@ class AppDatabase extends _$AppDatabase {
       isPaid: Value(json['is_paid'] as bool? ?? false),
       paymentMethod: Value(json['payment_method'] as String? ?? 'none'),
       secret: Value(json['secret'] as String? ?? ''),
+      groupId: Value(json['group_id'] as String? ?? ''),
       updatedAt: Value(DateTime.parse(json['updated_at'] as String)),
     );
   }
@@ -86,6 +89,7 @@ class AppDatabase extends _$AppDatabase {
       'is_paid': entry.isPaid,
       'payment_method': entry.paymentMethod,
       'secret': entry.secret,
+      'group_id': entry.groupId,
       'updated_at': entry.updatedAt.toIso8601String(),
     };
   }
@@ -96,6 +100,7 @@ class AppDatabase extends _$AppDatabase {
       id: Value(json['id'] as String),
       originalSlotId: Value(json['original_slot_id'] as int),
       secret: Value(json['secret'] as String? ?? ''),
+      groupId: Value(json['group_id'] as String? ?? ''),
       isPaid: Value(json['is_paid'] as bool? ?? false),
       createdAt: Value(DateTime.parse(json['created_at'] as String)),
       isHandedOver: Value(json['is_handed_over'] as bool? ?? false),
@@ -107,6 +112,7 @@ class AppDatabase extends _$AppDatabase {
       'id': entry.id,
       'original_slot_id': entry.originalSlotId,
       'secret': entry.secret,
+      'group_id': entry.groupId,
       'is_paid': entry.isPaid,
       'created_at': entry.createdAt.toIso8601String(),
       'is_handed_over': entry.isHandedOver,

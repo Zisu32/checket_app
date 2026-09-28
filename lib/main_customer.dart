@@ -9,25 +9,76 @@ import 'widgets/splash.dart';
 import 'widgets/error.dart';
 import 'widgets/fatal_error.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Global Error Catcher for Debugging
   ErrorWidget.builder = (FlutterErrorDetails details) {
-    return FatalError(details: details, titleSuffix: 'Costumer');
+    return FatalError(details: details, titleSuffix: 'Customer');
   };
 
+  const url = String.fromEnvironment('SUPABASE_URL');
+  const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+
+  if (url.isEmpty || publishableKey.isEmpty) {
+    runApp(MaterialApp(home: Error(error: 'Konfiguration fehlt.', onRetry: () {})));
+    return;
+  }
+
+  await Supabase.initialize(url: url, publishableKey: publishableKey);
+  
   runApp(const ChecketCustomerWebApp());
 }
 
-class ChecketCustomerWebApp extends StatefulWidget {
+class ChecketCustomerWebApp extends StatelessWidget {
   const ChecketCustomerWebApp({super.key});
 
   @override
-  State<ChecketCustomerWebApp> createState() => _ChecketCustomerWebAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Checket Ticket',
+      theme: ThemeData.dark().copyWith(
+        inputDecorationTheme: AppTheme.inputDecorationTheme,
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: AppTheme.white,
+          selectionColor: AppTheme.white.withValues(alpha: 0.24),
+          selectionHandleColor: AppTheme.white,
+        ),
+      ),
+      debugShowCheckedModeBanner: false,
+      home: const _Router(),
+    );
+  }
 }
 
-class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
+class _Router extends StatelessWidget {
+  const _Router();
+
+  @override
+  Widget build(BuildContext context) {
+    final params = RouteService().parseCustomerParams();
+    return _AuthenticatedApp(
+      ticketId: params.id,
+      groupId: params.groupId,
+      secret: params.secret,
+      tenant: params.tenant,
+    );
+  }
+}
+
+class _AuthenticatedApp extends StatefulWidget {
+  final int? ticketId;
+  final String? groupId;
+  final String? secret;
+  final String? tenant;
+
+  const _AuthenticatedApp({this.ticketId, this.groupId, this.secret, this.tenant});
+
+  @override
+  State<_AuthenticatedApp> createState() => _AuthenticatedAppState();
+}
+
+class _AuthenticatedAppState extends State<_AuthenticatedApp> {
   late Future<void> _initFuture;
 
   @override
@@ -37,65 +88,40 @@ class _ChecketCustomerWebAppState extends State<ChecketCustomerWebApp> {
   }
 
   Future<void> _initialize() async {
-    const url = String.fromEnvironment('SUPABASE_URL');
-    const publishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
-
-    if (url.isEmpty || publishableKey.isEmpty) {
-      throw Exception('Konfiguration fehlt (URL/KEY). Bitte GitHub Secrets prüfen.');
-    }
-
-    await Supabase.initialize(url: url, publishableKey: publishableKey);
-    await SyncService().init(dbName: 'checket_customer_db');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Checket Ticket',
-      theme: ThemeData.dark().copyWith(
-        textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: AppTheme.white,
-          selectionColor: AppTheme.white,
-          selectionHandleColor: AppTheme.white,
-        ),
-      ),
-      debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        return FutureBuilder(
-          future: _initFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return const Splash();
-            }
-            if (snapshot.hasError) {
-              return Error(
-                error: snapshot.error.toString(),
-                onRetry: () => setState(() { _initFuture = _initialize(); }),
-              );
-            }
-            return child ?? const SizedBox.shrink();
-          },
-        );
-      },
-      home: const _CustomerRouteHandler(),
+    // Guest app needs to know which schema to sync with
+    await SyncService().init(
+      dbName: 'checket_customer_${widget.tenant ?? "public"}',
+      schema: widget.tenant,
     );
   }
-}
-
-class _CustomerRouteHandler extends StatelessWidget {
-  const _CustomerRouteHandler();
 
   @override
   Widget build(BuildContext context) {
-    final params = RouteService().parseCustomerParams();
+    return FutureBuilder(
+      future: _initFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Splash();
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Error(
+              error: snapshot.error.toString(),
+              onRetry: () => setState(() { _initFuture = _initialize(); }),
+            ),
+          );
+        }
 
-    if (params.id == null || params.secret == null) {
-      return const NoTicket();
-    }
-    
-    return CustomerView(
-      ticketId: params.id, 
-      secret: params.secret
+        if (widget.ticketId == null && widget.groupId == null || widget.secret == null) {
+          return const NoTicket();
+        }
+
+        return CustomerView(
+          ticketId: widget.ticketId,
+          groupId: widget.groupId,
+          secret: widget.secret,
+        );
+      },
     );
   }
 }

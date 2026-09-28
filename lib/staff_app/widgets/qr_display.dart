@@ -1,72 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:web/web.dart' as web;
 import '../../shared/theme/app_theme.dart';
 
 class QrDisplay extends StatelessWidget {
-  final int? ticketId;
+  final String? ticketId;
+  final String? groupId;
   final String? secret;
+  final bool isSuccess;
 
   const QrDisplay({
     super.key,
-    required this.ticketId,
-    required this.secret,
+    this.ticketId,
+    this.groupId,
+    this.secret,
+    this.isSuccess = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isRecovery = ticketId == -1 || secret == 'recovery';
-    
-    // Generate URL for QR
-    final origin = web.window.location.origin;
-    // Strip '/staff/' or '/staff' from the end of the pathname
-    String path = web.window.location.pathname;
-    if (path.endsWith('/staff/')) {
-      path = path.substring(0, path.length - 7);
-    } else if (path.endsWith('/staff')) {
-      path = path.substring(0, path.length - 6);
+    if (isSuccess) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.check_circle_outline, color: AppTheme.active, size: 80),
+          const SizedBox(width: 24),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'CHECK-IN ERFOLGREICH!',
+                style: TextStyle(
+                  fontSize: AppTheme.large, 
+                  fontWeight: FontWeight.bold, 
+                  color: AppTheme.active
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Bügel ${ticketId ?? ""}',
+                style: const TextStyle(
+                  fontSize: AppTheme.medium, 
+                  fontWeight: FontWeight.bold, 
+                  color: AppTheme.white
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
     }
 
-    // Ensure path ends with exactly one slash if it's not empty, or is just a slash
-    if (!path.endsWith('/')) {
-      path += '/';
+    if (secret == null) {
+      return const SizedBox.shrink();
     }
+
+    final isRecovery = ticketId == '-1' || secret == 'recovery';
+    final origin = web.window.location.origin;
+    String path = web.window.location.pathname;
+    if (path.endsWith('/staff/')) path = path.substring(0, path.length - 7);
+    else if (path.endsWith('/staff')) path = path.substring(0, path.length - 6);
+    if (!path.endsWith('/')) path += '/';
+
+    final user = Supabase.instance.client.auth.currentUser;
+    final tenant = user?.appMetadata['schema_name'] as String? ?? 'public';
 
     String qrData;
     if (isRecovery) {
-      qrData = '$origin$path'; // Base website
+      qrData = '$origin$path?tenant=$tenant';
+    } else if (groupId != null && groupId!.isNotEmpty) {
+      qrData = '$origin$path?groupId=$groupId&secret=$secret&tenant=$tenant';
     } else {
-      qrData = '$origin$path?id=$ticketId&secret=$secret';
+      final idOnly = ticketId?.split(',').first.trim() ?? '';
+      qrData = '$origin$path?id=$idOnly&secret=$secret&tenant=$tenant';
     }
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          isRecovery ? 'TICKET WIEDERHERSTELLEN' : 'TICKET $ticketId',
-          style: const TextStyle(
-            fontSize: 42,
-            fontWeight: FontWeight.w900,
-            color: AppTheme.white,
-            letterSpacing: 2,
-          ),
+          isRecovery 
+            ? 'TICKET WIEDERHERSTELLEN' 
+            : (groupId != null && groupId!.isNotEmpty ? 'GRUPPENTICKET' : 'TICKET $ticketId'),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: AppTheme.large, fontWeight: FontWeight.bold, color: AppTheme.white),
         ),
+        if (groupId != null && groupId!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: Text(
+              ticketId ?? '',
+              style: const TextStyle(fontSize: AppTheme.medium, fontWeight: FontWeight.bold, color: AppTheme.white),
+            ),
+          ),
         const SizedBox(height: 10),
-        Text(
-          isRecovery ? 'BITTE BASIS-URL SCANNEN' : 'BITTE SCANNEN',
-          style: const TextStyle(
-            fontSize: 18,
-            color: AppTheme.free,
-            letterSpacing: 4,
-          ),
-        ),
+        const Text('BITTE SCANNEN', style: TextStyle(fontSize: AppTheme.small, fontWeight: FontWeight.bold, color: AppTheme.active)),
         const SizedBox(height: 40),
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppTheme.white,
-            borderRadius: BorderRadius.circular(24),
-          ),
+          decoration: BoxDecoration(color: AppTheme.white, borderRadius: BorderRadius.circular(24)),
           child: QrImageView(
             data: qrData,
             version: QrVersions.auto,
@@ -75,12 +109,10 @@ class QrDisplay extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 40),
-        Text(
-          isRecovery
-              ? 'Dein Handy lädt dein Ticket automatisch aus dem Speicher.'
-              : 'Dein digitales Ticket für die Garderobe.',
+        const Text(
+          'Dein digitales Ticket für die Garderobe.',
           textAlign: TextAlign.center,
-          style: const TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
+          style: TextStyle(color: AppTheme.free, fontSize: AppTheme.small),
         ),
       ],
     );

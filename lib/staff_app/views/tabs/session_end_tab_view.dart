@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../shared/database/database.dart';
 import '../../../shared/services/sync_service.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/app_header.dart';
+import '../../../shared/widgets/app_snackbar.dart';
+import '../../../shared/widgets/app_primary_button.dart';
 
 class SessionEndTabView extends StatelessWidget {
   final List<WardrobeSlot> allSlots;
@@ -23,18 +26,10 @@ class SessionEndTabView extends StatelessWidget {
 
     return Column(
       children: [
-        SizedBox(
-          height: 80,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: const [
-                Icon(Icons.loop, color: AppTheme.white, size: 28),
-              ],
-            ),
-          ),
+        const AppHeader(
+          icon: Icons.swap_horiz_rounded,
+          title: 'Schichtende',
         ),
-        const Divider(height: 1, indent: 20, endIndent: 20, color: AppTheme.surface),
         Expanded(
           child: Center(
             child: Padding(
@@ -42,12 +37,6 @@ class SessionEndTabView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Schicht beenden?',
-                    style: TextStyle(fontSize: AppTheme.medium,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.white),
-                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Sollen $activeJacketsCount aktive Jacken ins FUNDBÜRO verschoben und die Garderobe geschlossen werden?',
@@ -56,12 +45,18 @@ class SessionEndTabView extends StatelessWidget {
                         color: AppTheme.white, fontSize: AppTheme.small),
                   ),
                   const SizedBox(height: 40),
-                  AppTheme.buildPrimaryButton(
+                  AppPrimaryButton(
                     text: 'Ja, Schicht beenden',
                     color: AppTheme.unpaid,
                     onTap: () async {
-                      await syncService.archiveAndResetShift();
-                      onComplete();
+                      try {
+                        await syncService.archiveAndResetShift();
+                        onComplete();
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(AppSnackBar(message: 'Fehler: $e'));
+                        }
+                      }
                     },
                   ),
                   const SizedBox(height: 12),

@@ -11,9 +11,6 @@ class MonitorService {
   final _controller = StreamController<Map<String, dynamic>>.broadcast();
   bool _listening = false;
 
-  static const _kIdKey = 'monitor_last_id';
-  static const _kSecretKey = 'monitor_last_secret';
-
   void init() {
     if (_listening) return;
     _listening = true;
@@ -25,17 +22,46 @@ class MonitorService {
     }.toJS;
   }
 
-  void updateMonitor(int id, String secret) {
-    web.window.localStorage.setItem(_kIdKey, id.toString());
-    web.window.localStorage.setItem(_kSecretKey, secret);
+  void updateMonitor({
+    String? label,
+    String? groupId,
+    required String secret,
+    String targetId = 'default',
+  }) {
+    final prefix = 'monitor_${targetId}_';
+    
+    if (label != null) {
+      web.window.localStorage.setItem('${prefix}last_label', label);
+    } else {
+      web.window.localStorage.removeItem('${prefix}last_label');
+    }
 
-    _channel.postMessage({'id': id, 'secret': secret}.jsify());
+    if (groupId != null) {
+      web.window.localStorage.setItem('${prefix}last_group_id', groupId);
+    } else {
+      web.window.localStorage.removeItem('${prefix}last_group_id');
+    }
+
+    web.window.localStorage.setItem('${prefix}last_secret', secret);
+
+    _channel.postMessage({
+      'targetId': targetId,
+      'label': label, 
+      'groupId': groupId,
+      'secret': secret
+    }.jsify());
   }
 
-  ({int? id, String? secret}) readLastKnown() {
-    final idStr = web.window.localStorage.getItem(_kIdKey);
-    final secret = web.window.localStorage.getItem(_kSecretKey);
-    return (id: idStr != null ? int.tryParse(idStr) : null, secret: secret);
+  ({String? label, String? groupId, String? secret}) readLastKnown({String targetId = 'default'}) {
+    final prefix = 'monitor_${targetId}_';
+    final label = web.window.localStorage.getItem('${prefix}last_label');
+    final groupId = web.window.localStorage.getItem('${prefix}last_group_id');
+    final secret = web.window.localStorage.getItem('${prefix}last_secret');
+    return (
+      label: label, 
+      groupId: groupId,
+      secret: secret
+    );
   }
 
   Stream<Map<String, dynamic>> get onUpdate => _controller.stream;

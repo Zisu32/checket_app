@@ -5,7 +5,7 @@ class RouteService {
   factory RouteService() => _instance;
   RouteService._internal();
 
-  ({int? id, String? secret}) parseCustomerParams() {
+  ({int? id, String? groupId, String? secret, String? tenant}) parseCustomerParams() {
     final fullUrl = web.window.location.href;
     final uri = Uri.parse(fullUrl);
     
@@ -19,23 +19,31 @@ class RouteService {
       }
     }
 
-    String ticketIdStr = params['id'] ?? '';
+    String ticketId = params['id'] ?? '';
+    String groupId = params['groupId'] ?? '';
     String secret = params['secret'] ?? '';
+    String tenant = params['tenant'] ?? '';
 
     final storage = web.window.localStorage;
 
     // Persist or recover from localStorage for PWA support
-    if (ticketIdStr.isNotEmpty && secret.isNotEmpty) {
-      storage.setItem('last_ticket_id', ticketIdStr);
+    if ((ticketId.isNotEmpty || groupId.isNotEmpty) && secret.isNotEmpty) {
+      if (ticketId.isNotEmpty) storage.setItem('last_ticket_id', ticketId);
+      if (groupId.isNotEmpty) storage.setItem('last_group_id', groupId);
       storage.setItem('last_ticket_secret', secret);
+      if (tenant.isNotEmpty) storage.setItem('last_tenant', tenant);
     } else {
-      ticketIdStr = storage.getItem('last_ticket_id') ?? '';
+      ticketId = storage.getItem('last_ticket_id') ?? '';
+      groupId = storage.getItem('last_group_id') ?? '';
       secret = storage.getItem('last_ticket_secret') ?? '';
+      tenant = storage.getItem('last_tenant') ?? '';
     }
 
     return (
-      id: int.tryParse(ticketIdStr),
+      id: int.tryParse(ticketId),
+      groupId: groupId.isNotEmpty ? groupId : null,
       secret: secret.isNotEmpty ? secret : null,
+      tenant: tenant.isNotEmpty ? tenant : null,
     );
   }
 
@@ -44,16 +52,18 @@ class RouteService {
   ({int? id, String? secret, bool isQrRoute}) parseStaffParams(String? routeName) {
     if (routeName == null) return (id: null, secret: null, isQrRoute: false);
 
-    // Standardize route name to ensure it starts with / and contains qr
+    // Standardize route name to ensure it starts with /
     final path = routeName.startsWith('/') ? routeName : '/$routeName';
-    final isQr = path.contains('/qr');
+    
+    // Parse the path to handle query parameters
+    final uri = Uri.parse(path);
+    final isQr = uri.path == '/qr';
 
     if (!isQr) {
       return (id: null, secret: null, isQrRoute: false);
     }
 
-    // Extract query parameters if present (for backward compatibility or direct links)
-    final uri = Uri.parse(path);
+    // Extract query parameters
     final idStr = uri.queryParameters['id'] ?? '';
     final secret = uri.queryParameters['secret'];
 

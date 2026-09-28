@@ -8,16 +8,19 @@ import '../../shared/services/sync_service.dart';
 import '../../shared/services/platform_hints_service.dart';
 import '../../shared/theme/app_theme.dart';
 import '../widgets/ticket_card.dart';
+import '../../shared/widgets/app_snackbar.dart';
 import '../widgets/ticket_info_area.dart';
 import '../widgets/no_ticket.dart';
 
 class CustomerView extends StatefulWidget {
   final int? ticketId;
+  final String? groupId;
   final String? secret;
 
   const CustomerView({
     super.key,
     this.ticketId,
+    this.groupId,
     this.secret,
     @Deprecated('Status is now fetched via SyncService') String? status,
   });
@@ -36,6 +39,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
   late AnimationController _borderRotationController;
 
   int? _activeId;
+  String? _activeGroupId;
   String? _activeSecret;
 
   @override
@@ -67,16 +71,20 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
   void _handlePersistence() {
     final storage = web.window.localStorage;
 
-    if (widget.ticketId != null && widget.secret != null && widget.secret!.isNotEmpty) {
+    if ((widget.ticketId != null || widget.groupId != null) && widget.secret != null && widget.secret!.isNotEmpty) {
       _activeId = widget.ticketId;
+      _activeGroupId = widget.groupId;
       _activeSecret = widget.secret;
-      storage.setItem('last_ticket_id', _activeId.toString());
+      if (_activeId != null) storage.setItem('last_ticket_id', _activeId.toString());
+      if (_activeGroupId != null) storage.setItem('last_group_id', _activeGroupId!);
       storage.setItem('last_ticket_secret', _activeSecret!);
     } else {
       final storedId = storage.getItem('last_ticket_id');
+      final storedGroupId = storage.getItem('last_group_id');
       final storedSecret = storage.getItem('last_ticket_secret');
-      if (storedId != null && storedSecret != null) {
-        _activeId = int.tryParse(storedId);
+      if (storedSecret != null) {
+        _activeId = storedId != null ? int.tryParse(storedId) : null;
+        _activeGroupId = storedGroupId;
         _activeSecret = storedSecret;
       }
     }
@@ -85,6 +93,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
   void _clearPersistence() {
     final storage = web.window.localStorage;
     storage.removeItem('last_ticket_id');
+    storage.removeItem('last_group_id');
     storage.removeItem('last_ticket_secret');
   }
 
@@ -101,48 +110,34 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
     final screenHeight = MediaQuery.of(context).size.height;
     final isShortScreen = screenHeight < 700;
 
-    if (_activeId == null || _activeSecret == null) {
+    if ((_activeId == null && _activeGroupId == null) || _activeSecret == null) {
       return const NoTicket();
     }
 
     return ValueListenableBuilder<String?>(
       valueListenable: _syncService.errorNotifier,
       builder: (context, error, _) {
-        return StreamBuilder<WardrobeSlot?>(
-          stream: _syncService.watchTicket(_activeId!, _activeSecret!),
+        return StreamBuilder<List<WardrobeSlot>>(
+          stream: _activeGroupId != null 
+              ? _syncService.watchGroup(_activeGroupId!, _activeSecret!)
+              : _syncService.watchTicket(_activeId!, _activeSecret!).map((s) => s != null ? [s] : []),
           builder: (context, snapshot) {
-            final slot = snapshot.data;
+            final slots = snapshot.data ?? [];
             final bool isSearching = !snapshot.hasData;
-            
-            final (statusColor, statusIcon, statusText) = switch (error) {
-              String e when e.isNotEmpty => (
-                AppTheme.secret,
-                Icons.cloud_off_outlined,
-                'Verbindungsfehler...'
-              ),
-              _ => switch (slot) {
-                _ when isSearching => (
-                  AppTheme.white,
-                  Icons.sync,
-                  _showTimeoutMessage ? 'Wird synchronisiert...' : 'Ticket lädt...'
-                ),
-                null => (
-                  AppTheme.unpaid,
-                  Icons.error_outline,
-                  'Ticket ungültig'
-                ),
-                _ => switch (slot.status) {
-                  'unpaid' => (AppTheme.unpaid, Icons.credit_card_off_outlined, 'Zahlung ausstehend'),
-                  'temporary' => (AppTheme.temporary, Icons.pause, 'Jacke temporär draußen'),
-                  'forgotten' => (AppTheme.forgotten, Icons.inventory_2_outlined, 'Jacke im Fundbüro'),
-                  'free' || 'picked_up' => (AppTheme.free, Icons.task_alt, 'Jacke bereits abgeholt'),
-                  'wrong_secret' => (AppTheme.secret, Icons.lock_person_outlined, 'Secret stimmt nicht'),
-                  _ => (AppTheme.active, Icons.verified_user_outlined, 'Jacke auf Platz aktiv'),
-                },
-              },
-            };
 
-            if (slot != null && ['free', 'picked_up', 'wrong_secret'].contains(slot.status)) {
+            // Trigger a manual pull when something changes in the background
+            if (_activeGroupId != null && _activeSecret != null) {
+              _syncService.pullGroupFromSupabase(_activeGroupId!, _activeSecret!);
+            } else if (_activeId != null && _activeSecret != null) {
+              _syncService.pullTicketFromSupabase(_activeId!, _activeSecret!);
+            }
+            
+            if (slots.isEmpty && !isSearching) {
+               return const NoTicket();
+            }
+
+            final isAllGone = slots.isNotEmpty && slots.every((s) => ['free', 'picked_up', 'wrong_secret'].contains(s.status));
+            if (isAllGone) {
               WidgetsBinding.instance.addPostFrameCallback((_) => _clearPersistence());
             }
 
@@ -158,49 +153,41 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
                   title: SvgPicture.asset(
                     'assets/images/full-icon.svg',
                     height: 28,
-                    placeholderBuilder: (_) => const Text(
-                      'CHECKET',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                        color: AppTheme.white,
-                        fontSize: AppTheme.small,
-                      ),
-                    ),
                   ),
                 ),
               ),
               body: SafeArea(
-                child: Center(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: isShortScreen ? 12 : 24,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(height: isShortScreen ? 12 : 20),
-
-                        TicketCard(
-                          statusColor: statusColor,
-                          statusIcon: statusIcon,
-                          statusText: statusText,
-                          ticketId: _activeId!,
-                          isSearching: isSearching && error == null,
-                          isShortScreen: isShortScreen,
-                          pulseAnimation: _pulseAnimation,
-                          borderRotationController: _borderRotationController,
-                        ),
-
-                        const Spacer(),
-                        TicketInfoArea(
-                          slot: slot,
-                          isShort: isShortScreen,
-                          onAddToWallet: _addToWallet,
-                        ),
-                      ],
+                child: SingleChildScrollView(
+                  child: Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        children: [
+                          ...slots.map((slot) {
+                            final (statusColor, statusIcon, statusText) = _getStatusInfo(slot, error);
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 24),
+                              child: TicketCard(
+                                statusColor: statusColor,
+                                statusIcon: statusIcon,
+                                statusText: statusText,
+                                ticketId: slot.id,
+                                isSearching: isSearching && error == null,
+                                isShortScreen: isShortScreen,
+                                pulseAnimation: _pulseAnimation,
+                                borderRotationController: _borderRotationController,
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 24),
+                          TicketInfoArea(
+                            slot: slots.isNotEmpty ? slots.first : null,
+                            isShort: isShortScreen,
+                            onAddToWallet: _addToWallet,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -212,20 +199,42 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
     );
   }
 
+  (Color, IconData, String) _getStatusInfo(WardrobeSlot? slot, String? error) {
+    if (error != null && error.isNotEmpty) {
+      return (AppTheme.secret, Icons.cloud_off_outlined, 'Verbindungsfehler...');
+    }
+    
+    if (slot == null) {
+      return (AppTheme.unpaid, Icons.error_outline, 'Ticket ungültig');
+    }
+
+    return switch (slot.status) {
+      'unpaid' => (AppTheme.unpaid, Icons.credit_card_off_outlined, 'Zahlung ausstehend'),
+      'temporary' => (AppTheme.temporary, Icons.pause, 'Jacke temporär draußen'),
+      'forgotten' => (AppTheme.forgotten, Icons.inventory_2_outlined, 'Jacke im Fundbüro'),
+      'free' || 'picked_up' => (AppTheme.free, Icons.task_alt, 'Jacke bereits abgeholt'),
+      'wrong_secret' => (AppTheme.secret, Icons.lock_person_outlined, 'Secret stimmt nicht'),
+      _ => (AppTheme.active, Icons.verified_user_outlined, 'Jacke auf Platz aktiv'),
+    };
+  }
+
   Future<void> _addToWallet() async {
     try {
       final supabase = Supabase.instance.client;
       // Send the current origin so the backend can generate correct links for dev/prod
       final origin = web.window.location.origin;
       final path = web.window.location.pathname;
+      final tenant = _syncService.schemaName;
 
       final response = await supabase.functions.invoke(
         'generate-wallet-pass',
         body: {
           'ticketId': _activeId,
+          'groupId': _activeGroupId,
           'secret': _activeSecret,
           'platform': PlatformHintsService.isIOS ? 'apple' : 'google',
           'origin': '$origin$path',
+          'tenant': tenant,
         },
       );
 
@@ -238,10 +247,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Fehler beim Erstellen des Passes: $e'),
-          backgroundColor: AppTheme.unpaid,
-        ),
+        AppSnackBar(message: 'Fehler beim Erstellen des Passes: $e', isError: true),
       );
     }
   }

@@ -1,124 +1,131 @@
-import * as jose from "https://deno.land/x/jose@v5.2.3/index.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { PKPass } from "https://esm.sh/passkit-generator@3.1.0"
+import { Buffer } from "https://deno.land/std@0.168.0/node/buffer.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// SECRET HANDLING
-function getSecretKey(): string {
-  const envSecretKeys = Deno.env.get('SUPABASE_SECRET_KEYS');
-  if (envSecretKeys) {
-    try {
-      const parsed = JSON.parse(envSecretKeys);
-      if (parsed?.default) return parsed.default;
-    } catch {
-      return envSecretKeys;
-    }
-  }
-  const singleSecretKey = Deno.env.get('SUPABASE_SECRET_KEY');
-  if (singleSecretKey) return singleSecretKey;
-  throw new Error('Kein gültiger Supabase Secret Key gefunden!');
-}
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    // SUPABASE CLIENT
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    if (!supabaseUrl) throw new Error('SUPABASE_URL missing.')
+    const { ticketId, groupId, secret, tenant } = await req.json()
 
-    const supabase = createClient(supabaseUrl, getSecretKey(), {
-      auth: { autoRefreshToken: false, persistSession: false }
+    // 1. Initialize Supabase
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { db: { schema: tenant } }
+    )
+
+    // 2. Fetch Ticket Info
+    let label = "";
+    let ticketDetails = "";
+    let found = false;
+
+    if (groupId) {
+      const { data: slots } = await supabaseAdmin
+        .from('checket_garderobe')
+        .select('id')
+        .eq('group_id', groupId)
+        .eq('secret', secret)
+
+      if (slots && slots.length > 0) {
+        label = slots.map(s => s.id).join(', ')
+        ticketDetails = `${slots.length} Jacken`
+        found = true;
+      }
+    } else {
+      const { data: slot } = await supabaseAdmin
+        .from('checket_garderobe')
+        .select('id')
+        .eq('id', ticketId)
+        .eq('secret', secret)
+        .single()
+
+      if (slot) {
+        label = `${slot.id}`
+        ticketDetails = "1 Jacke"
+        found = true;
+      }
+    }
+
+    if (!found) throw new Error("Ticket nicht gefunden.")
+
+    // 3. Prepare Certificates (Now using PEM strings from Base64)
+    const wwdr = Buffer.from(Deno.env.get('APPLE_WWDR_CERT')!, 'base64').toString('utf-8');
+    const signerCert = Buffer.from(Deno.env.get('APPLE_SIGNER_CERT')!, 'base64').toString('utf-8');
+    const signerKey = Buffer.from(Deno.env.get('APPLE_SIGNER_KEY')!, 'base64').toString('utf-8');
+
+    // 4. Create Pass
+    // The library version 3.x uses "signerKeyPassphrase" instead of "signerKeyPassword"
+    const pass = new PKPass({}, {
+      wwdr: wwdr,
+      signerCert: signerCert,
+      signerKey: signerKey,
+      signerKeyPassphrase: "", // Empty because we used -nodes during export
+    });
+
+    // Set Identifiers
+    pass.setPassTypeIdentifier(Deno.env.get('APPLE_PASS_TYPE_ID')!);
+    pass.setTeamIdentifier(Deno.env.get('APPLE_TEAM_ID')!);
+
+    // Set Colors
+    pass.backgroundColor = "rgb(39, 39, 44)";
+    pass.foregroundColor = "rgb(227, 227, 223)";
+    pass.labelColor = "rgb(142, 145, 143)";
+
+    // Fields
+    pass.headerFields.add({ key: "ticket", label: "TICKET", value: label });
+    pass.primaryFields.add({ key: "status", label: "Checket Status", value: "Aktiv" });
+    pass.secondaryFields.add({ key: "info", label: "Anzahl", value: ticketDetails });
+
+    // QR Code
+    const baseUrl = "https://checket.eu"
+    const qrUrl = groupId
+      ? `${baseUrl}/?groupId=${groupId}&secret=${secret}&tenant=${tenant}`
+      : `${baseUrl}/?id=${ticketId}&secret=${secret}&tenant=${tenant}`
+
+    pass.barcodes.set({
+      format: "PKBarcodeFormatQR",
+      message: qrUrl,
+      messageEncoding: "iso-8859-1"
+    });
+
+    // Add Images
+    const addImage = async (name: string) => {
+      try {
+        const data = await Deno.readFile(new URL(`./model/${name}`, import.meta.url));
+        pass.addResource(name, data);
+      } catch (e) {
+        console.warn(`Could not load image ${name}:`, e.message);
+      }
+    };
+
+    await addImage("icon.png");
+    await addImage("icon@2x.png");
+    await addImage("logo.png");
+    await addImage("logo@2x.png");
+
+    const bundle = await pass.generate();
+
+    return new Response(bundle, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/vnd.apple.pkpass',
+        'Content-Disposition': `attachment; filename="checket_${ticketId || groupId}.pkpass"`
+      },
+      status: 200,
     })
 
-    // PAYLOAD VERARBEITUNG
-    const { ticketId, secret, platform, origin } = await req.json()
-    console.log(`Ticket ID: ${ticketId}, Platform: ${platform}`)
-
-    const baseDomain = origin ? origin.replace(/\/$/, "") : "https://checket.eu"
-    const tid = Number(ticketId)
-
-    const { data: slot, error: slotError } = await supabase
-      .from('checket_garderobe')
-      .select('id, status, secret')
-      .eq('id', tid)
-      .eq('secret', secret)
-      .single()
-
-    if (slotError) {
-      console.error(`Database Query Error for ID ${tid}:`, slotError.message)
-      throw new Error(`Ticket-Abfrage fehlgeschlagen: ${slotError.message}`)
-    }
-
-    if (!slot) {
-      console.error(`No slot found for ID ${tid} with provided secret.`)
-      throw new Error('Ticket ungültig oder nicht gefunden.')
-    }
-
-    console.log(`Validation Success: Slot ${slot.id} is in status ${slot.status}`)
-
-    const statusMap: Record<string, { color: string, text: string }> = {
-      'unpaid': { color: '#B71C1C', text: 'Zahlung ausstehend' },
-      'active': { color: '#00B58B', text: 'Jacke auf Platz aktiv' },
-      'temporary': { color: '#E67B00', text: 'Jacke temporär draußen' },
-      'forgotten': { color: '#0081C3', text: 'Jacke im Fundbüro' },
-      'free': { color: '#818181', text: 'Bügel ist frei' },
-    }
-    const currentStatus = statusMap[slot.status] || { color: '#232F39', text: 'Status unbekannt' }
-
-    if (platform === 'google') {
-      const ISSUER_ID = Deno.env.get('GOOGLE_ISSUER_ID')
-      const CLIENT_EMAIL = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')
-      const PRIVATE_KEY = Deno.env.get('GOOGLE_PRIVATE_KEY')?.replace(/\\n/g, '\n')
-
-      if (!ISSUER_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
-        throw new Error('Google Wallet Konfiguration fehlt in den Supabase Secrets.')
-      }
-
-      const genericObject = {
-        id: `${ISSUER_ID}.checket_${ticketId}_${secret}`,
-        classId: `${ISSUER_ID}.checket_ticket_v1`,
-        genericType: "GENERIC_TYPE_UNSPECIFIED",
-        hexBackgroundColor: currentStatus.color,
-        logo: { sourceUri: { uri: `${baseDomain}/assets/images/logo-icon.png` } },
-        cardTitle: { defaultValue: { value: "CHECKET" } },
-        subheader: { defaultValue: { value: currentStatus.text } },
-        header: { defaultValue: { value: `${ticketId}` } },
-        heroImage: { sourceUri: { uri: `${baseDomain}/assets/images/hero-icon.png` } }
-      }
-
-      const claims = {
-        iss: CLIENT_EMAIL,
-        aud: "google",
-        typ: "savetowallet",
-        iat: Math.floor(Date.now() / 1000),
-        payload: { genericObjects: [genericObject] },
-      }
-
-      const key = await jose.importPKCS8(PRIVATE_KEY, "RS256")
-      const jwt = await new jose.SignJWT(claims)
-        .setProtectedHeader({ alg: "RS256" })
-        .sign(key)
-
-      return new Response(
-        JSON.stringify({ url: `https://pay.google.com/gp/v/save/${jwt}` }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    return new Response(
-      JSON.stringify({ error: 'Apple Wallet erfordert Zertifikat-Signierung (PKPass).' }),
-      { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-
   } catch (error) {
-    console.error(`Wallet Error:`, error.message)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    console.error("Wallet Error Detail:", error.message);
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
 })
