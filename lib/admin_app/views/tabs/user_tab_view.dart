@@ -131,9 +131,9 @@ class _UserTabViewState extends State<UserTabView> {
               ),
               child: DropdownButton<String>(
                 value: _filterTenant,
-                hint: const Text('Alle Tenants', style: TextStyle(color: AppTheme.free, fontSize: 14)),
+                hint: const Text('Alle Tenants', style: TextStyle(color: AppTheme.free, fontSize: AppTheme.small)),
                 dropdownColor: AppTheme.surface,
-                style: const TextStyle(color: AppTheme.white, fontSize: 14),
+                style: const TextStyle(color: AppTheme.white, fontSize: AppTheme.small),
                 isExpanded: true,
                 underline: const SizedBox(),
                 items: [
