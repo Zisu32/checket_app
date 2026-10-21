@@ -12,7 +12,29 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { ticketId, groupId, secret, tenant } = await req.json()
+    let ticketId: string | number | null = null
+    let groupId: string | null = null
+    let secret: string | null = null
+    let tenant: string | null = null
+    let platform: string | null = null
+
+    if (req.method === 'GET') {
+      const url = new URL(req.url)
+      ticketId = url.searchParams.get('ticketId')
+      groupId = url.searchParams.get('groupId')
+      secret = url.searchParams.get('secret')
+      tenant = url.searchParams.get('tenant')
+      platform = url.searchParams.get('platform')
+    } else {
+      const body = await req.json()
+      ticketId = body.ticketId
+      groupId = body.groupId
+      secret = body.secret
+      tenant = body.tenant
+      platform = body.platform
+    }
+
+    if (!tenant) tenant = 'public'
 
     // 1. Initialize Supabase
     const supabaseAdmin = createClient(
@@ -38,7 +60,7 @@ serve(async (req) => {
         ticketDetails = `${slots.length} Jacken`
         found = true;
       }
-    } else {
+    } else if (ticketId) {
       const { data: slot } = await supabaseAdmin
         .from('checket_garderobe')
         .select('id')
@@ -55,23 +77,32 @@ serve(async (req) => {
 
     if (!found) throw new Error("Ticket nicht gefunden.")
 
-    // 3. Prepare Certificates (Now using PEM strings from Base64)
-    const wwdr = Buffer.from(Deno.env.get('APPLE_WWDR_CERT')!, 'base64').toString('utf-8');
-    const signerCert = Buffer.from(Deno.env.get('APPLE_SIGNER_CERT')!, 'base64').toString('utf-8');
-    const signerKey = Buffer.from(Deno.env.get('APPLE_SIGNER_KEY')!, 'base64').toString('utf-8');
+    // 3. Prepare Certificates
+    const envWwdr = Deno.env.get('APPLE_WWDR_CERT')
+    const envSignerCert = Deno.env.get('APPLE_SIGNER_CERT')
+    const envSignerKey = Deno.env.get('APPLE_SIGNER_KEY')
+    const passTypeId = Deno.env.get('APPLE_PASS_TYPE_ID')
+    const teamId = Deno.env.get('APPLE_TEAM_ID')
+
+    if (!envWwdr || !envSignerCert || !envSignerKey || !passTypeId || !teamId) {
+      throw new Error("Apple Wallet Zertifikate/Secrets fehlen in der Supabase-Konfiguration.")
+    }
+
+    const wwdr = Buffer.from(envWwdr, 'base64').toString('utf-8');
+    const signerCert = Buffer.from(envSignerCert, 'base64').toString('utf-8');
+    const signerKey = Buffer.from(envSignerKey, 'base64').toString('utf-8');
 
     // 4. Create Pass
-    // The library version 3.x uses "signerKeyPassphrase" instead of "signerKeyPassword"
     const pass = new PKPass({}, {
       wwdr: wwdr,
       signerCert: signerCert,
       signerKey: signerKey,
-      signerKeyPassphrase: "", // Empty because we used -nodes during export
+      signerKeyPassphrase: "",
     });
 
     // Set Identifiers
-    pass.setPassTypeIdentifier(Deno.env.get('APPLE_PASS_TYPE_ID')!);
-    pass.setTeamIdentifier(Deno.env.get('APPLE_TEAM_ID')!);
+    pass.setPassTypeIdentifier(passTypeId);
+    pass.setTeamIdentifier(teamId);
 
     // Set Colors
     pass.backgroundColor = "rgb(39, 39, 44)";
@@ -95,20 +126,21 @@ serve(async (req) => {
       messageEncoding: "iso-8859-1"
     });
 
-    // Add Images
-    const addImage = async (name: string) => {
+    // Add Resources (pass.json + images)
+    const addResource = async (name: string) => {
       try {
         const data = await Deno.readFile(new URL(`./model/${name}`, import.meta.url));
         pass.addResource(name, data);
       } catch (e) {
-        console.warn(`Could not load image ${name}:`, e.message);
+        console.warn(`Could not load resource ${name}:`, e.message);
       }
     };
 
-    await addImage("icon.png");
-    await addImage("icon@2x.png");
-    await addImage("logo.png");
-    await addImage("logo@2x.png");
+    await addResource("pass.json");
+    await addResource("icon.png");
+    await addResource("icon@2x.png");
+    await addResource("logo.png");
+    await addResource("logo@2x.png");
 
     const bundle = await pass.generate();
 

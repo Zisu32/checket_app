@@ -221,29 +221,22 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
   Future<void> _addToWallet() async {
     try {
       final supabase = Supabase.instance.client;
-      // Send the current origin so the backend can generate correct links for dev/prod
-      final origin = web.window.location.origin;
-      final path = web.window.location.pathname;
       final tenant = _syncService.schemaName;
+      final platform = PlatformHintsService.isIOS ? 'apple' : 'google';
 
-      final response = await supabase.functions.invoke(
-        'generate-wallet-pass',
-        body: {
-          'ticketId': _activeId,
-          'groupId': _activeGroupId,
-          'secret': _activeSecret,
-          'platform': PlatformHintsService.isIOS ? 'apple' : 'google',
-          'origin': '$origin$path',
-          'tenant': tenant,
-        },
-      );
+      final queryParams = <String, String>{
+        if (_activeId != null) 'ticketId': _activeId.toString(),
+        if (_activeGroupId != null) 'groupId': _activeGroupId!,
+        if (_activeSecret != null) 'secret': _activeSecret!,
+        'platform': platform,
+        'tenant': tenant,
+      };
 
-      final url = response.data['url'] as String?;
-      if (url != null && url.isNotEmpty) {
-        web.window.open(url, '_blank');
-      } else {
-        throw 'Ungültige Antwort vom Server.';
-      }
+      final passUrl = Uri.parse('${supabase.supabaseUrl}/functions/v1/generate-wallet-pass')
+          .replace(queryParameters: queryParams)
+          .toString();
+
+      web.window.open(passUrl, '_blank');
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
