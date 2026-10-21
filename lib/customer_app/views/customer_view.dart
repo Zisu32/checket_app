@@ -220,7 +220,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
 
   Future<void> _addToWallet() async {
     try {
-      final supabase = Supabase.instance.client;
+      const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
       final tenant = _syncService.schemaName;
       final platform = PlatformHintsService.isIOS ? 'apple' : 'google';
 
@@ -232,7 +232,7 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
         'tenant': tenant,
       };
 
-      final passUrl = Uri.parse('${supabase.supabaseUrl}/functions/v1/generate-wallet-pass')
+      final passUrl = Uri.parse('$supabaseUrl/functions/v1/generate-wallet-pass')
           .replace(queryParameters: queryParams)
           .toString();
 
