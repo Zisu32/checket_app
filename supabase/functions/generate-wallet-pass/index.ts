@@ -114,7 +114,7 @@ serve(async (req) => {
     pass.primaryFields.add({ key: "status", label: "Checket Status", value: "Aktiv" });
     pass.secondaryFields.add({ key: "info", label: "Anzahl", value: ticketDetails });
 
-    // QR Code
+    // QR-Code
     const baseUrl = "https://checket.eu"
     const qrUrl = groupId
       ? `${baseUrl}/?groupId=${groupId}&secret=${secret}&tenant=${tenant}`
