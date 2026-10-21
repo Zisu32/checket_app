@@ -8,4 +8,13 @@ class PlatformHintsService {
           (_ua.contains('Macintosh') && web.window.navigator.maxTouchPoints > 1);
 
   static bool get isAndroid => _ua.contains('Android');
+
+  /// Prueft, ob der Nutzer ein iOS-Geraet nutzt, aber nicht im nativen Safari ist (z.B. Firefox "FxiOS", Chrome "CriOS")
+  static bool get isNonSafariIOS {
+    if (!isIOS) return false;
+    final ua = _ua;
+    return ua.contains('FxiOS') ||
+        ua.contains('CriOS') ||
+        ua.contains('EdgiOS');
+  }
 }

@@ -148,7 +148,7 @@ serve(async (req) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/vnd.apple.pkpass',
-        'Content-Disposition': `attachment; filename="checket_${ticketId || groupId}.pkpass"`
+        'Content-Disposition': `inline; filename="checket_${ticketId || groupId}.pkpass"`
       },
       status: 200,
     })

@@ -236,7 +236,8 @@ class _CustomerViewState extends State<CustomerView> with TickerProviderStateMix
           .replace(queryParameters: queryParams)
           .toString();
 
-      web.window.open(passUrl, '_blank');
+      // Direkte Navigation auf die Pass-URL:
+      web.window.location.href = passUrl;
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
