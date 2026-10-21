@@ -45287,7 +45287,7 @@ J.ey(m,"platform",n)
 J.ey(m,"tenant",o)
 l=m
 k=A.ca("https://dtvozyjaljzptarkyzgo.supabase.co/functions/v1/generate-wallet-pass",0,null).oi(l).gkB()
-v.G.window.open(k,"_blank")}catch(g){j=A.S(g)
+v.G.window.location.href=k}catch(g){j=A.S(g)
 m=p.c
 if(m==null){s=1
 break}m=m.aj(t.Pu).f
@@ -46804,7 +46804,7 @@ var $async$fl=A.v(function(b,c){if(b===1)return A.q(c,r)
 for(;;)switch(s){case 0:n=p.a
 n.r=a
 o=p.d
-q=o==null?p.d=n.a.qH(new A.n5(1792607635,p.b),t.hU).aw(new A.at1(),t.y):o
+q=o==null?p.d=n.a.qH(new A.n5(1792609250,p.b),t.hU).aw(new A.at1(),t.y):o
 s=1
 break
 case 1:return A.r(q,r)}})
@@ -47799,7 +47799,7 @@ n=o.y
 n===$&&A.a()
 s=n instanceof A.ac7?2:4
 break
-case 2:p=1792607635
+case 2:p=1792609250
 s=3
 break
 case 4:s=n instanceof A.H9?5:7
@@ -47812,10 +47812,10 @@ break
 case 7:throw A.e(A.cQ("Invalid delegate: "+o.j(0)+". The versionDelegate getter must not subclass DBVersionDelegate directly"))
 case 6:case 3:if(p===0)p=null
 s=9
-return A.k(a.TL(new A.Si(q,new A.qk()),new A.BF(p,1792607635)),$async$pk)
-case 9:s=n instanceof A.H9&&p!==1792607635?10:11
+return A.k(a.TL(new A.Si(q,new A.qk()),new A.BF(p,1792609250)),$async$pk)
+case 9:s=n instanceof A.H9&&p!==1792609250?10:11
 break
-case 10:n.a.Vc("PRAGMA user_version = 1792607635;")
+case 10:n.a.Vc("PRAGMA user_version = 1792609250;")
 s=12
 return A.k(A.dI(null,t.H),$async$pk)
 case 12:case 11:return A.r(null,r)}})
