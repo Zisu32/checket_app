@@ -78,26 +78,33 @@ serve(async (req) => {
     if (!found) throw new Error("Ticket nicht gefunden.")
 
     // 3. Prepare Certificates
-    const envWwdr = Deno.env.get('APPLE_WWDR_CERT')
-    const envSignerCert = Deno.env.get('APPLE_SIGNER_CERT')
-    const envSignerKey = Deno.env.get('APPLE_SIGNER_KEY')
-    const passTypeId = Deno.env.get('APPLE_PASS_TYPE_ID')
-    const teamId = Deno.env.get('APPLE_TEAM_ID')
+    const envWwdr = Deno.env.get('APPLE_WWDR_CERT')?.trim()
+    const envSignerCert = Deno.env.get('APPLE_SIGNER_CERT')?.trim()
+    const envSignerKey = Deno.env.get('APPLE_SIGNER_KEY')?.trim()
+    const envSignerKeyPassphrase = Deno.env.get('APPLE_SIGNER_KEY_PASSPHRASE')?.trim()
+    const passTypeId = Deno.env.get('APPLE_PASS_TYPE_ID')?.trim()
+    const teamId = Deno.env.get('APPLE_TEAM_ID')?.trim()
 
-    if (!envWwdr || !envSignerCert || !envSignerKey || !passTypeId || !teamId) {
+    if (!envWwdr || !envSignerCert || !envSignerKey || !envSignerKeyPassphrase || !passTypeId || !teamId) {
       throw new Error("Apple Wallet Zertifikate/Secrets fehlen in der Supabase-Konfiguration.")
     }
 
     const wwdr = Buffer.from(envWwdr, 'base64').toString('utf-8');
     const signerCert = Buffer.from(envSignerCert, 'base64').toString('utf-8');
     const signerKey = Buffer.from(envSignerKey, 'base64').toString('utf-8');
+    const signerKeyPassphrase = Buffer.from(envSignerKeyPassphrase, 'base64').toString('utf-8');
+
+    // Model Template (pass.json) laden
+    const passJson = await Deno.readFile(new URL("./model/pass.json", import.meta.url));
 
     // 4. Create Pass
-    const pass = new PKPass({}, {
+    const pass = new PKPass({
+      "pass.json": passJson,
+    }, {
       wwdr: wwdr,
       signerCert: signerCert,
       signerKey: signerKey,
-      signerKeyPassphrase: "",
+      signerKeyPassphrase: signerKeyPassphrase,
     });
 
     // Set Identifiers
@@ -136,7 +143,6 @@ serve(async (req) => {
       }
     };
 
-    await addResource("pass.json");
     await addResource("icon.png");
     await addResource("icon@2x.png");
     await addResource("logo.png");
