@@ -143,6 +143,7 @@ serve(async (req) => {
       }
     };
 
+    await addResource("pass.json");
     await addResource("icon.png");
     await addResource("icon@2x.png");
     await addResource("logo.png");
