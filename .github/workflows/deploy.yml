@@ -85,17 +85,26 @@ jobs:
 
   supabase-functions:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'supabase') || github.run_attempt > 1 || github.ref == 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check for Supabase Changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            supabase:
+              - 'supabase/**'
+
       - name: Setup Supabase CLI
+        if: steps.changes.outputs.supabase == 'true' || github.run_attempt > 1 || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
         uses: supabase/setup-cli@v1
         with:
           version: latest
 
       - name: Deploy Edge Functions
+        if: steps.changes.outputs.supabase == 'true' || github.run_attempt > 1 || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             FULL_URL="${{ secrets.SUPABASE_URL_PROD }}"

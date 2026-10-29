@@ -2,12 +2,13 @@ name: Supabase Keep-Alive
 
 on:
   schedule:
-    # Runs at 00:00 every 3 days
-    - cron: '0 0 */3 * *'
+    # Runs every day at 08:00 UTC to ensure Supabase free tier never gets paused
+    - cron: '0 8 * * *'
   push:
     branches:
       - main
       - dev
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions UI
 
 jobs:
   ping-supabase:
@@ -15,12 +16,16 @@ jobs:
     steps:
       - name: Ping Supabase Dev
         run: |
-          curl -X GET "${{ secrets.SUPABASE_URL_DEV }}/rest/v1/tenants?select=id&limit=1" \
-          -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}"
+          echo "Pinging Supabase Dev..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET "${{ secrets.SUPABASE_URL_DEV }}/rest/v1/tenants?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY_DEV }}")
+          echo "Dev HTTP Status: $HTTP_STATUS"
 
       - name: Ping Supabase Prod
         run: |
-          curl -X GET "${{ secrets.SUPABASE_URL_PROD }}/rest/v1/tenants?select=id&limit=1" \
-          -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}"
+          echo "Pinging Supabase Prod..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET "${{ secrets.SUPABASE_URL_PROD }}/rest/v1/tenants?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_PUBLISHABLE_KEY_PROD }}")
+          echo "Prod HTTP Status: $HTTP_STATUS"
